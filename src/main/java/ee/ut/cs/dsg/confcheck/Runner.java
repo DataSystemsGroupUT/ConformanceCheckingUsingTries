@@ -12,9 +12,12 @@ public class Runner {
 
     public static void main(String... args)
     {
-        testBed2();
-
-
+        //testBed2();
+        //testBed1();
+//        System.out.println("abc".hashCode()%29);
+//        System.out.println("cab".hashCode()%29);
+//        System.out.println("bca".hashCode()%29);
+//        System.out.println(Math.abs("etoile".hashCode())%29);
     }
 
     private static void testBed2()

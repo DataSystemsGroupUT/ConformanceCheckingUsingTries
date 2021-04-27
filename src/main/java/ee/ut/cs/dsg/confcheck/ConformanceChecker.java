@@ -26,7 +26,7 @@ public class ConformanceChecker {
         List<String> tracePostfix;
         State state = new State(alg,trace,trie.getRoot(),0);
         nextChecks.add(state);
-        String event = null;
+        String event;
         while(nextChecks.size() !=0)
         {
             state = nextChecks.poll();
@@ -64,6 +64,7 @@ public class ConformanceChecker {
             {
                 // let make the log move if there are still more moves
                 if (event != null) {
+                    //TODO: We need to fix the cost below to reflect the formula on the slides
                     Move logMove = new Move(event, ">>", 1);
                     alg = state.getAlignment();
                     alg.appendMove(logMove);
@@ -81,7 +82,8 @@ public class ConformanceChecker {
                 Move modelMove;
                 for (TrieNode nd : nodes)
                 {
-                    modelMove = null;
+//                    modelMove = null;
+                    //TODO: We need to fix the cost below to reflect the formula on the slides
                     modelMove = new Move(">>", nd.getContent(),1);
                     alg = state.getAlignment();
                     alg.appendMove(modelMove);
