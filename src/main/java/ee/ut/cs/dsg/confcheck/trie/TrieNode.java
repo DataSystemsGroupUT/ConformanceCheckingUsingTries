@@ -1,5 +1,7 @@
 package ee.ut.cs.dsg.confcheck.trie;
 
+import ee.ut.cs.dsg.confcheck.util.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,10 +17,12 @@ public class TrieNode {
     public TrieNode(String content, int maxChildren, int minPathLengthToEnd, boolean isEndOfTrace, TrieNode parent)
     {
         this.content = content;
-        this.children = new TrieNode[maxChildren];
+        this.maxChildren = Utils.isPrime(maxChildren)? maxChildren:  Utils.nextPrime(maxChildren);
+        //TODO: Change children type to HashMap?
+        this.children = new TrieNode[this.maxChildren];
         this.minPathLengthToEnd = minPathLengthToEnd;
         this.parent = parent;
-        this.maxChildren = maxChildren;
+
         this.isEndOfTrace = isEndOfTrace;
     }
     public String getContent()
@@ -37,7 +41,7 @@ public class TrieNode {
     public TrieNode getChild(String label)
     {
 
-        return children[label.hashCode()%maxChildren];
+        return children[Math.abs(label.hashCode())%maxChildren];
     }
 
     public boolean isEndOfTrace() {
@@ -68,8 +72,8 @@ public class TrieNode {
     public TrieNode addChild(TrieNode child)
     {
 //        System.out.println("Hash code "+child.getContent().hashCode());
-        if (children[child.getContent().hashCode()%maxChildren] == null) {
-            children[child.getContent().hashCode() % maxChildren] = child;
+        if (children[Math.abs(child.getContent().hashCode())%maxChildren] == null) {
+            children[Math.abs(child.getContent().hashCode()) % maxChildren] = child;
             child.parent = this;
         }
         this.minPathLengthToEnd = Math.min(this.minPathLengthToEnd, child.getMinPathLengthToEnd()+1);

@@ -20,8 +20,12 @@ public class Alignment {
 
     public void appendMove(Move move)
     {
+        appendMove(move, move.getCost());
+    }
+    public void appendMove(Move move, int oracleCost)
+    {
         moves.add(move);
-        totalCost+=move.getCost();
+        totalCost+=oracleCost;
     }
 
     public int getTotalCost() {

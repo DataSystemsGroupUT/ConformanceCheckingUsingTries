@@ -9,43 +9,51 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 public class ConformanceChecker {
-    private Trie trie;
+    private final Trie trie;
+    private final int logMoveCost ;
+    private final int modelMoveCost ;
     private PriorityQueue<State> nextChecks;
 
     public ConformanceChecker(Trie trie)
     {
-        this.trie = trie;
-        nextChecks = new PriorityQueue<>();
+       this(trie, 1, 1);
 
+    }
+    public ConformanceChecker(Trie trie, int logCost, int modelCost)
+    {
+        this.trie = trie;
+        this.logMoveCost = logCost;
+        this.modelMoveCost = modelCost;
+        nextChecks = new PriorityQueue<>();
     }
 
     public Alignment check(List<String> trace)
     {
         TrieNode node;
         Alignment alg = new Alignment();
-        List<String> tracePostfix;
+        List<String> traceSuffix;
         State state = new State(alg,trace,trie.getRoot(),0);
         nextChecks.add(state);
         String event;
-        while(nextChecks.size() !=0)
+        while(nextChecks.size() !=0 )
         {
             state = nextChecks.poll();
 
             event = null;
-            tracePostfix = state.getTracePostfix();
+            traceSuffix = state.getTracePostfix();
 
             // we have to check what is remaining
-            if (tracePostfix.size() == 0 && state.getNode().isEndOfTrace())// We're done
+            if (traceSuffix.size() == 0 && state.getNode().isEndOfTrace())// We're done
             {
                 return state.getAlignment();
             }
-            else if (tracePostfix.size() ==0)
+            else if (traceSuffix.size() ==0)
             {
                 // we still have model moves to do
                 node = null;
             }
             else {
-                event = tracePostfix.remove(0);
+                event = traceSuffix.remove(0);
                 node = state.getNode().getChild(event);
             }
             if (node != null) // we found a match => synchronous move
@@ -54,9 +62,9 @@ public class ConformanceChecker {
                 Move syncMove = new Move(event,event,0);
                 alg = state.getAlignment();
                 alg.appendMove(syncMove);
-                if (node.isEndOfTrace() &&  tracePostfix.size()==0) // we should stop
+                if (node.isEndOfTrace() &&  traceSuffix.size()==0) // we should stop
                     return alg;
-                state = new State(alg,tracePostfix,node, state.getCostSoFar());
+                state = new State(alg,traceSuffix,node, state.getCostSoFar());
                 nextChecks.add(state);
 
             }
@@ -64,37 +72,46 @@ public class ConformanceChecker {
             {
                 // let make the log move if there are still more moves
                 if (event != null) {
-                    //TODO: We need to fix the cost below to reflect the formula on the slides
-                    Move logMove = new Move(event, ">>", 1);
+
+                    Move logMove = new Move( event, ">>", logMoveCost);
                     alg = state.getAlignment();
                     alg.appendMove(logMove);
-                    State logMoveState = new State(alg, tracePostfix, state.getNode(), alg.getTotalCost());
+                    State logMoveState = new State(alg, traceSuffix, state.getNode(), computeCost(state.getNode().getMinPathLengthToEnd(),traceSuffix.size(), state.getCostSoFar(),true));
                     nextChecks.add(logMoveState);
                     // let's put the event back in the trace postfix to see how it check for model moves
-                    tracePostfix.add(0,event);
+                    traceSuffix.add(0,event);
                 }
 
                 // Let us make the model move
                 // We need to try all possibilities, we can later try the optimization of the remaining length
 
-//                node = state.getNode().getChildWithLeastPath(tracePostfix.size());
+//                node = state.getNode().getChildWithLeastPath(traceSuffix.size());
                 List<TrieNode> nodes = state.getNode().getAllChildren();
                 Move modelMove;
                 for (TrieNode nd : nodes)
                 {
 //                    modelMove = null;
-                    //TODO: We need to fix the cost below to reflect the formula on the slides
-                    modelMove = new Move(">>", nd.getContent(),1);
+
+                    modelMove = new Move(">>", nd.getContent(),modelMoveCost);
                     alg = state.getAlignment();
                     alg.appendMove(modelMove);
 
                     // find a child node that has length to the end less than the remaining postfix
-                    State modelMoveState = new State(alg, tracePostfix,nd,alg.getTotalCost() );
+                    State modelMoveState = new State(alg, traceSuffix,nd, computeCost(nd.getMinPathLengthToEnd(),traceSuffix.size(), state.getCostSoFar(),false));
                     nextChecks.add(modelMoveState);
                 }
             }
         }
         return alg;
+    }
+    private int computeCost(int minPathLengthToEnd, int traceSuffixLength, int cumulativeCost, boolean isLogMove)
+    {
+        int cost = isLogMove? logMoveCost: modelMoveCost;
+
+        // If this is a log move, we have to add 1 to the trie length to end as we have not moved yet from the current node
+        // in the trie.
+        cost += /*cumulativeCost +*/ Math.abs( (/*(isLogMove? 1:0) +*/ minPathLengthToEnd) -  traceSuffixLength);
+        return cost;
     }
 
 }

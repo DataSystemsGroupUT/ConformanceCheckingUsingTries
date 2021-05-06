@@ -4,6 +4,7 @@ public class Move {
     private String logMove;
     private String modelMove;
     private int cost;
+    private int oracle;
 
     public Move(String logMove, String modelMove, int cost)
     {

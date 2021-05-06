@@ -12,12 +12,13 @@ public class Runner {
 
     public static void main(String... args)
     {
-        //testBed2();
+        testBed2();
         //testBed1();
 //        System.out.println("abc".hashCode()%29);
 //        System.out.println("cab".hashCode()%29);
 //        System.out.println("bca".hashCode()%29);
 //        System.out.println(Math.abs("etoile".hashCode())%29);
+//        System.out.println("etoile".hashCode());
     }
 
     private static void testBed2()
@@ -64,6 +65,7 @@ public class Runner {
         t.addTrace(trace4);
         t.addTrace(trace5);
 
+//        System.out.println(t.toString());
         // Now log traces
 
         // we can reuse trace 4
@@ -84,22 +86,28 @@ public class Runner {
         trace8.add("c");
         trace8.add("e");
 
+        List<String> trace9 = new ArrayList<>();
+        trace9.add("xxx");
+        trace9.add("z");
+        trace9.add("e");
+
         ConformanceChecker cnfChecker = new ConformanceChecker(t);
 
         Alignment alg;
-        alg = cnfChecker.check(trace4);
+//        alg = cnfChecker.check(trace4);
+//        System.out.println(alg.toString());
+//
+//        alg = cnfChecker.check(trace6);
+//        System.out.println(alg.toString());
+//
+//        alg = cnfChecker.check(trace7);
+//        System.out.println(alg.toString());
+//
+//        alg = cnfChecker.check(trace8);
+//        System.out.println(alg.toString());
+
+        alg = cnfChecker.check(trace9);
         System.out.println(alg.toString());
-
-        alg = cnfChecker.check(trace6);
-        System.out.println(alg.toString());
-
-        alg = cnfChecker.check(trace7);
-        System.out.println(alg.toString());
-
-        alg = cnfChecker.check(trace8);
-        System.out.println(alg.toString());
-
-
 
 
     }
