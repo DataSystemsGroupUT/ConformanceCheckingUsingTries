@@ -71,23 +71,23 @@ public class ConformanceChecker {
             else // there is no match, we have to make the model move and the log move
             {
                 // let make the log move if there are still more moves
+                State logMoveState=null;
                 if (event != null) {
 
                     Move logMove = new Move( event, ">>", logMoveCost);
                     alg = state.getAlignment();
                     alg.appendMove(logMove);
-                    State logMoveState = new State(alg, traceSuffix, state.getNode(), computeCost(state.getNode().getMinPathLengthToEnd(),traceSuffix.size(), state.getCostSoFar(),true));
-                    nextChecks.add(logMoveState);
+                    logMoveState = new State(alg, traceSuffix, state.getNode(), computeCost(state.getNode().getMinPathLengthToEnd(),traceSuffix.size(), state.getCostSoFar(),true));
+//                    nextChecks.add(logMoveState);
                     // let's put the event back in the trace postfix to see how it check for model moves
                     traceSuffix.add(0,event);
                 }
 
                 // Let us make the model move
-                // We need to try all possibilities, we can later try the optimization of the remaining length
 
-//                node = state.getNode().getChildWithLeastPath(traceSuffix.size());
                 List<TrieNode> nodes = state.getNode().getAllChildren();
                 Move modelMove;
+                State minModelMoveState = null ;
                 for (TrieNode nd : nodes)
                 {
 //                    modelMove = null;
@@ -98,8 +98,18 @@ public class ConformanceChecker {
 
                     // find a child node that has length to the end less than the remaining postfix
                     State modelMoveState = new State(alg, traceSuffix,nd, computeCost(nd.getMinPathLengthToEnd(),traceSuffix.size(), state.getCostSoFar(),false));
-                    nextChecks.add(modelMoveState);
+                    if (minModelMoveState == null)
+                        minModelMoveState = modelMoveState;
+                    else if (minModelMoveState.getCostSoFar() > modelMoveState.getCostSoFar())
+                        minModelMoveState = modelMoveState;
+
+                  //  nextChecks.add(modelMoveState);
                 }
+                if (minModelMoveState.getCostSoFar() < logMoveState.getCostSoFar())
+                    nextChecks.add(minModelMoveState);
+                else
+                    nextChecks.add(logMoveState);
+
             }
         }
         return alg;

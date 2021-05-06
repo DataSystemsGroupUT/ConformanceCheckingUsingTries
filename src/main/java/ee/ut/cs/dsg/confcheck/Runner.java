@@ -2,10 +2,7 @@ package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Runner {
@@ -94,18 +91,23 @@ public class Runner {
         ConformanceChecker cnfChecker = new ConformanceChecker(t);
 
         Alignment alg;
-//        alg = cnfChecker.check(trace4);
-//        System.out.println(alg.toString());
-//
-//        alg = cnfChecker.check(trace6);
-//        System.out.println(alg.toString());
-//
-//        alg = cnfChecker.check(trace7);
-//        System.out.println(alg.toString());
-//
-//        alg = cnfChecker.check(trace8);
-//        System.out.println(alg.toString());
+        System.out.println(trace4.toString());
+        alg = cnfChecker.check(trace4);
+        System.out.println(alg.toString());
 
+        System.out.println(trace6.toString());
+        alg = cnfChecker.check(trace6);
+        System.out.println(alg.toString());
+
+        System.out.println(trace7.toString());
+        alg = cnfChecker.check(trace7);
+        System.out.println(alg.toString());
+
+        System.out.println(trace8.toString());
+        alg = cnfChecker.check(trace8);
+        System.out.println(alg.toString());
+
+        System.out.println(trace9.toString());
         alg = cnfChecker.check(trace9);
         System.out.println(alg.toString());
 
