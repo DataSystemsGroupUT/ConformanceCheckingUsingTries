@@ -427,7 +427,7 @@ public class ProtoTypeSelectionAlgo {
         computeActualAlignment(net, TraceLog);
 
         ///////////////////////Compute the approximation Cost
-
+        MBTime = System.currentTimeMillis();
         double Costs = 0;
         double SmapleFitness=0;
         double approximateCosts = 0;
@@ -695,6 +695,7 @@ public class ProtoTypeSelectionAlgo {
                     "<td style=\"font-size: 1.2em;color: red;\">"+AsyncrousMoves.get(string)+"</td>\n"
                     +"<tr>\n" ;
         }
+        System.out.println(String.format("Time taken for approximate conformance checking %d msc", System.currentTimeMillis()- MBTime));
 
 
         String outp2 = "<html><table>\n" +
@@ -892,7 +893,7 @@ public class ProtoTypeSelectionAlgo {
         ser = new XesXmlSerializer();
 
         try {
-            os = new FileOutputStream("C:\\\\Work\\DSG\\Data\\frequencyLog.xml");
+            os = new FileOutputStream("C:\\Work\\DSG\\Data\\frequencyLog.xml");
             ser.serialize(frequencyLog, os);
         } catch (FileNotFoundException e1) {
             // TODO Auto-generated catch block
