@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0">
+    <info organisation="prom" module="LogFiltering" revision="latest" status="integration" publication="20210506125454">
+    	<description>
+    		Version VERSION
+    	</description>
+    </info>
+    <configurations>
+   		<conf name="default" extends="lib"/>
+   		<conf name="lib"/>
+	</configurations>  
+    <dependencies defaultconf="default">
+   	   <dependency org="prom" name="PetriNetSimulator" rev="latest" changing="true" transitive="true"/>
+      
+       <dependency org="prom" name="ApacheUtils" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="Log" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="Widgets" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="AlphaMiner" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="PNetReplayer" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="LpSolve" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="DataAwareReplayer" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="ETConformance" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="EfficientStorage" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="XESLite" rev="latest" changing="true" transitive="true"/>
+		
+       <dependency org="prom" name="StochasticPetriNets" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="Alignment" rev="latest" changing="true" transitive="true"/> 
+       <dependency org="prom" name="ProjectedRecallAndPrecision" rev="latest" changing="true" transitive="true"/> 
+       <dependency org="prom" name="HybridILPMiner" rev="latest" changing="true" transitive="true"/> 
+       <dependency org="prom" name="DecomposedReplayer" rev="latest" changing="true" transitive="true"/>  
+       <dependency org="prom" name="EarthMoversStochasticConformanceChecking" rev="latest" changing="true" transitive="true"/> 
+       <dependency org="prom" name="StochasticAwareConformanceChecking" rev="latest" changing="true" transitive="true"/>
+       <dependency org="prom" name="PrimeMiner" rev="latest" changing="true" transitive="true"/>
+       
+       <dependency conf="lib->default" org="com.toedter" name="jcalendar" rev="1.4"/>
+       <dependency conf="lib->default" org="org.eclipse.collections" name="eclipse-collections" rev="9.2.0"/>
+       <dependency conf="lib->default" org="org.apache.commons" name="commons-collections4" rev="4.4"/>
+       <dependency conf="lib->default" org="com.jgoodies" name="jgoodies-common" rev="1.8.1"/>
+	   <dependency conf="lib->default" org="com.jgoodies" name="jgoodies-forms" rev="1.9.0"/>
+       
+    </dependencies>
+</ivy-module>

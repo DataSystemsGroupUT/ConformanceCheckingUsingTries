@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="DecomposedReplayer-latest">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/DecomposedReplayer-latest.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/DecomposedReplayer-latest.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/DecomposedReplayer-latest.jar!/" />
+    </SOURCES>
+  </library>
+</component>

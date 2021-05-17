@@ -2,20 +2,53 @@ package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
+import lpsolve.LpSolve;
+import lpsolve.LpSolveException;
+import org.deckfour.xes.classification.XEventClass;
+import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.in.XesXmlParser;
+import org.deckfour.xes.info.impl.XLogInfoImpl;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.out.XesXmlSerializer;
+import org.processmining.logfiltering.algorithms.ProtoTypeSelectionAlgo;
+import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.PrototypeType;
+import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.SimilarityMeasure;
+import org.processmining.logfiltering.parameters.MatrixFilterParameter;
+import org.processmining.logfiltering.parameters.SamplingReturnType;
+import org.processmining.models.connections.GraphLayoutConnection;
+import org.processmining.models.graphbased.directed.petrinet.Petrinet;
+import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetFactory;
+import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetImpl;
+import org.processmining.models.semantics.petrinet.Marking;
+import org.processmining.plugins.pnml.base.FullPnmlElementFactory;
+import org.processmining.plugins.pnml.base.Pnml;
+import org.processmining.plugins.pnml.elements.extensions.opennet.PnmlLabel;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 public class Runner {
 
     public static void main(String... args)
     {
-        testBed2();
-        //testBed1();
+//        testBed2();
+//        testBed1();
 //        System.out.println("abc".hashCode()%29);
 //        System.out.println("cab".hashCode()%29);
 //        System.out.println("bca".hashCode()%29);
 //        System.out.println(Math.abs("etoile".hashCode())%29);
 //        System.out.println("etoile".hashCode());
+        testConformanceApproximation();
+//        testJNI();
     }
 
     private static void testBed2()
@@ -107,13 +140,116 @@ public class Runner {
         alg = cnfChecker.check(trace8);
         System.out.println(alg.toString());
 
+        long start = System.currentTimeMillis();
         System.out.println(trace9.toString());
         alg = cnfChecker.check(trace9);
         System.out.println(alg.toString());
+        System.out.println(String.format("Time taken: %d ms", System.currentTimeMillis()-start));
 
 
     }
 
+    private static Pnml importPnmlFromStream(InputStream input) throws
+            XmlPullParserException, IOException {
+        FullPnmlElementFactory pnmlFactory = new FullPnmlElementFactory();
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        XmlPullParser xpp = factory.newPullParser();
+        xpp.setInput(input, null);
+        int eventType = xpp.getEventType();
+        Pnml pnml = new Pnml();
+        synchronized (pnmlFactory) {
+            pnml.setFactory(pnmlFactory);
+            /*
+             * Skip whatever we find until we've found a start tag.
+             */
+            while (eventType != XmlPullParser.START_TAG) {
+                eventType = xpp.next();
+            }
+            /*
+             * Check whether start tag corresponds to PNML start tag.
+             */
+            if (xpp.getName().equals(Pnml.TAG)) {
+                /*
+                 * Yes it does. Import the PNML element.
+                 */
+                pnml.importElement(xpp, pnml);
+            } else {
+                /*
+                 * No it does not. Return null to signal failure.
+                 */
+                pnml.log(Pnml.TAG, xpp.getLineNumber(), "Expected pnml");
+            }
+            if (pnml.hasErrors()) {
+                return null;
+            }
+            return pnml;
+        }
+    }
+
+
+    private static void testConformanceApproximation()
+    {
+        //This method is used to test the approach by Fani Sani
+        XEventClass dummyEvClass = new XEventClass("DUMMY", 99999);
+        XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
+        XesXmlParser parser = new XesXmlParser();
+        XLog inputLog;
+
+        try {
+            InputStream is = new FileInputStream("C:\\Work\\DSG\\Data\\BPI2015Reduced2014.xml");
+            inputLog = parser.parse(is).get(0);
+            Pnml pnml = importPnmlFromStream(new FileInputStream("C:\\Work\\DSG\\Data\\IM_Petrinet.pnml"));
+            Petrinet pn = PetrinetFactory.newPetrinet(pnml.getLabel());
+            Marking imk=new Marking();
+            Collection<Marking> fmks = new HashSet<>();
+            GraphLayoutConnection glc = new GraphLayoutConnection(pn);
+            pnml.convertToNet(pn,imk, fmks,glc);
+            MatrixFilterParameter parameter = new MatrixFilterParameter(10, inputLog.getClassifiers().get(0), SimilarityMeasure.Levenstein, SamplingReturnType.Variants, PrototypeType.Frequency);
+            //now the target
+            String result = ProtoTypeSelectionAlgo.apply(inputLog,pn,parameter,null);
+
+            System.out.println(result);
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+    private static void testJNI()
+    {
+        try {
+            // Create a problem with 4 variables and 0 constraints
+            LpSolve solver = LpSolve.makeLp(0, 4);
+
+            // add constraints
+            solver.strAddConstraint("3 2 2 1", LpSolve.LE, 4);
+            solver.strAddConstraint("0 4 3 1", LpSolve.GE, 3);
+
+            // set objective function
+            solver.strSetObjFn("2 3 -2 3");
+
+            // solve the problem
+            solver.solve();
+
+            // print solution
+            System.out.println("Value of objective function: " + solver.getObjective());
+            double[] var = solver.getPtrVariables();
+            for (int i = 0; i < var.length; i++) {
+                System.out.println("Value of var[" + i + "] = " + var[i]);
+            }
+
+            // delete the problem and free memory
+            solver.deleteLp();
+        }
+        catch (LpSolveException e) {
+            e.printStackTrace();
+        }
+    }
     private static void testBed1() {
         List<String> trace = new ArrayList<>();
         trace.add("a");
