@@ -4,11 +4,16 @@ import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
+import org.apache.commons.math3.analysis.function.Add;
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.in.XesXmlParser;
+import org.deckfour.xes.info.XLogInfo;
+import org.deckfour.xes.info.XLogInfoFactory;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
+import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.out.XesXmlSerializer;
 import org.processmining.logfiltering.algorithms.ProtoTypeSelectionAlgo;
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.PrototypeType;
@@ -31,10 +36,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class Runner {
 
@@ -47,8 +49,10 @@ public class Runner {
 //        System.out.println("bca".hashCode()%29);
 //        System.out.println(Math.abs("etoile".hashCode())%29);
 //        System.out.println("etoile".hashCode());
-        testConformanceApproximation();
+//        testConformanceApproximation();
+//
 //        testJNI();
+        testOnConformanceApproximationResults("C:\\Work\\DSG\\Data\\sampledClusteredLog.xml","C:\\Work\\DSG\\Data\\sampledLog.xml");
     }
 
     private static void testBed2()
@@ -188,6 +192,123 @@ public class Runner {
     }
 
 
+    private static void testOnConformanceApproximationResults(String inputProxyLogFile, String inputSampleLogFile)
+    {
+        XLog inputProxyLog, inputSamplelog;
+        XEventClass dummyEvClass = new XEventClass("DUMMY", 99999);
+        XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
+        XesXmlParser parser = new XesXmlParser();
+        try{
+            InputStream is = new FileInputStream(inputProxyLogFile);
+            inputProxyLog = parser.parse(is).get(0);
+            XLogInfo logInfo = inputProxyLog.getInfo(eventClassifier);
+            logInfo = XLogInfoFactory.createLogInfo(inputProxyLog, inputProxyLog.getClassifiers().get(0));
+            int count=0;
+            for (XEventClass clazz : logInfo.getNameClasses().getClasses()){
+                count++;
+        //        System.out.println(clazz.toString());
+            }
+            System.out.println("Number of unique activities "+count);
+            is = new FileInputStream(inputSampleLogFile);
+            inputSamplelog = parser.parse(is).get(0);
+            //Let's construct the trie from the proxy log
+            Trie t = new Trie(count);
+            List<String> templist = new ArrayList<>();
+            List<String> firstProxyTrace = new ArrayList<>();
+            for (XTrace trace: inputProxyLog)
+            {
+                templist = new ArrayList<String>();
+                for (XEvent e: trace)
+                {
+                    templist.add(e.getAttributes().get(inputProxyLog.getClassifiers().get(0).getDefiningAttributeKeys()[0]).toString());
+                }
+                //System.out.println(templist.toString());
+                if (templist.size() > 0) {
+                    t.addTrace(templist);
+                    break;
+                }
+            }
+            firstProxyTrace.addAll(templist);
+
+            ConformanceChecker checker = new ConformanceChecker(t);
+            Alignment alg;
+            List<String> firstSampleTrace = new ArrayList<>();
+            long start = System.currentTimeMillis();
+            for (XTrace trace: inputSamplelog)
+            {
+                templist = new ArrayList<String>();
+                for (XEvent e: trace)
+                {
+                    templist.add(e.getAttributes().get(inputProxyLog.getClassifiers().get(0).getDefiningAttributeKeys()[0]).toString());
+                }
+                //System.out.println(templist.toString());
+                if (templist.size() > 0) {
+//                    alg = checker.check(templist);
+//                    System.out.println(alg);
+                    break;
+                }
+
+
+            }
+            System.out.println(String.format("Time taken for trie-based conformance checking %d milliseconds",System.currentTimeMillis() - start));
+
+            firstSampleTrace.addAll(templist);
+            HashMap<String, String> activityToAlphabet = new HashMap<>();
+            HashMap<String, String> alphabetToActivity = new HashMap<>();
+            StringBuilder sbProxy = new StringBuilder(firstProxyTrace.size());
+            StringBuilder sbLog = new StringBuilder(firstSampleTrace.size());
+            int charCounter = 64;
+            List<String> firstProxyTrace2 = new ArrayList<>();
+            for (int i = 0; i < firstProxyTrace.size();i++)
+            {
+
+                if (!activityToAlphabet.containsKey(firstProxyTrace.get(i)))
+                {
+                    charCounter++;
+                    activityToAlphabet.put(firstProxyTrace.get(i), Character.toString((char) charCounter));
+                    alphabetToActivity.put(Character.toString((char) charCounter), firstProxyTrace.get(i));
+                }
+                sbProxy.append(activityToAlphabet.get(firstProxyTrace.get(i)));
+                firstProxyTrace2.add(activityToAlphabet.get(firstProxyTrace.get(i)));
+
+            }
+            System.out.println(firstProxyTrace2.toString());
+            List<String> firstLogTrace2 = new ArrayList<>();
+            for (int i = 0; i < firstSampleTrace.size();i++)
+            {
+
+                if (!activityToAlphabet.containsKey(firstSampleTrace.get(i)))
+                {
+                    charCounter++;
+                    activityToAlphabet.put(firstSampleTrace.get(i), Character.toString((char) charCounter));
+                    alphabetToActivity.put(Character.toString((char) charCounter), firstSampleTrace.get(i));
+                }
+                sbLog.append(activityToAlphabet.get(firstSampleTrace.get(i)));
+                firstLogTrace2.add(activityToAlphabet.get(firstSampleTrace.get(i)));
+
+            }
+            System.out.println(firstLogTrace2.toString());
+
+            t = new Trie(100);
+            t.addTrace(firstProxyTrace2);
+            System.out.println(t.toString());
+            checker = new ConformanceChecker(t,1,1);
+            System.out .println(checker.check(firstLogTrace2).toString());
+            System.out.println("Encoded proxy trace "+sbProxy.toString());
+            System.out.println("Encoded log trace   "+sbLog.toString());
+            System.out.println("String distance is "+ProtoTypeSelectionAlgo.levenshteinDistanceCost(sbProxy.toString(),sbLog.toString()));
+
+            // Now I need to test the edit distance on the first trace of the proxy set against the first trace of the sample log
+
+
+//            System.out.println(t.toString());
+   //         inputProxyLog.
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
     private static void testConformanceApproximation()
     {
         //This method is used to test the approach by Fani Sani
@@ -205,7 +326,7 @@ public class Runner {
             Collection<Marking> fmks = new HashSet<>();
             GraphLayoutConnection glc = new GraphLayoutConnection(pn);
             pnml.convertToNet(pn,imk, fmks,glc);
-            MatrixFilterParameter parameter = new MatrixFilterParameter(10, inputLog.getClassifiers().get(0), SimilarityMeasure.Levenstein, SamplingReturnType.Variants, PrototypeType.Frequency);
+            MatrixFilterParameter parameter = new MatrixFilterParameter(10, inputLog.getClassifiers().get(0), SimilarityMeasure.Levenstein, SamplingReturnType.Traces, PrototypeType.KMeansClusteringApprox);
             //now the target
             String result = ProtoTypeSelectionAlgo.apply(inputLog,pn,parameter,null);
 

@@ -13,6 +13,7 @@ public class ConformanceChecker {
     private final int logMoveCost ;
     private final int modelMoveCost ;
     private PriorityQueue<State> nextChecks;
+   // private PriorityQueue<State> candidates;
 
     public ConformanceChecker(Trie trie)
     {
@@ -25,6 +26,7 @@ public class ConformanceChecker {
         this.logMoveCost = logCost;
         this.modelMoveCost = modelCost;
         nextChecks = new PriorityQueue<>();
+   //     candidates = new PriorityQueue<>();
     }
 
     public Alignment check(List<String> trace)
@@ -34,6 +36,7 @@ public class ConformanceChecker {
         List<String> traceSuffix;
         State state = new State(alg,trace,trie.getRoot(),0);
         nextChecks.add(state);
+        State candidateState = null;
         String event;
         while(nextChecks.size() !=0 )
         {
@@ -45,7 +48,21 @@ public class ConformanceChecker {
             // we have to check what is remaining
             if (traceSuffix.size() == 0 && state.getNode().isEndOfTrace())// We're done
             {
-                return state.getAlignment();
+                //return state.getAlignment();
+
+                if (candidateState == null)
+                {
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(),state.getNode(), state.getAlignment().getTotalCost());
+                }
+                else if (state.getAlignment().getTotalCost() < candidateState.getCostSoFar())
+                {
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(),state.getNode(), state.getAlignment().getTotalCost());
+                }
+               // candidates.add(candidateState);
+                System.out.println("Remaining alignments to check " +nextChecks.size());
+                System.out.println("Best alignment so far " +candidateState.getCostSoFar());
+                return candidateState.getAlignment();
+                //continue;
             }
             else if (traceSuffix.size() ==0)
             {
@@ -78,7 +95,7 @@ public class ConformanceChecker {
                     alg = state.getAlignment();
                     alg.appendMove(logMove);
                     logMoveState = new State(alg, traceSuffix, state.getNode(), computeCost(state.getNode().getMinPathLengthToEnd(),traceSuffix.size(), state.getCostSoFar(),true));
-//                    nextChecks.add(logMoveState);
+                   nextChecks.add(logMoveState);
                     // let's put the event back in the trace postfix to see how it check for model moves
                     traceSuffix.add(0,event);
                 }
@@ -98,21 +115,30 @@ public class ConformanceChecker {
 
                     // find a child node that has length to the end less than the remaining postfix
                     State modelMoveState = new State(alg, traceSuffix,nd, computeCost(nd.getMinPathLengthToEnd(),traceSuffix.size(), state.getCostSoFar(),false));
-                    if (minModelMoveState == null)
-                        minModelMoveState = modelMoveState;
-                    else if (minModelMoveState.getCostSoFar() > modelMoveState.getCostSoFar())
-                        minModelMoveState = modelMoveState;
+//                    if (minModelMoveState == null)
+//                        minModelMoveState = modelMoveState;
+//                    else if (minModelMoveState.getCostSoFar() > modelMoveState.getCostSoFar())
+//                        minModelMoveState = modelMoveState;
 
-                  //  nextChecks.add(modelMoveState);
+                    nextChecks.add(modelMoveState);
                 }
-                if (minModelMoveState.getCostSoFar() < logMoveState.getCostSoFar())
-                    nextChecks.add(minModelMoveState);
-                else
+/*
+                if (minModelMoveState != null && logMoveState != null) {
+                    if (minModelMoveState.getCostSoFar() < logMoveState.getCostSoFar())
+                        nextChecks.add(minModelMoveState);
+                    else
+                        nextChecks.add(logMoveState);
+                }
+                else if (logMoveState != null)
                     nextChecks.add(logMoveState);
+                else if (minModelMoveState != null)
+                    nextChecks.add(minModelMoveState);
+*/
 
             }
         }
-        return alg;
+        return candidateState.getAlignment();
+        //return alg;
     }
     private int computeCost(int minPathLengthToEnd, int traceSuffixLength, int cumulativeCost, boolean isLogMove)
     {
@@ -120,7 +146,7 @@ public class ConformanceChecker {
 
         // If this is a log move, we have to add 1 to the trie length to end as we have not moved yet from the current node
         // in the trie.
-        cost += /*cumulativeCost +*/ Math.abs( (/*(isLogMove? 1:0) +*/ minPathLengthToEnd) -  traceSuffixLength);
+        cost += cumulativeCost + Math.abs( (/*(isLogMove? 1:0) +*/ minPathLengthToEnd) -  traceSuffixLength);
         return cost;
     }
 

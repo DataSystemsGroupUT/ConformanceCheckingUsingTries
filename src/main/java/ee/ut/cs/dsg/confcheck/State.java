@@ -4,6 +4,7 @@ import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class State implements Comparable<State>{
@@ -15,7 +16,7 @@ public class State implements Comparable<State>{
     public State(Alignment alignment, List<String> tracePostfix, TrieNode node, int costSoFar)
     {
         this.alignment = alignment;
-        this.tracePostfix = new ArrayList<>();
+        this.tracePostfix = new LinkedList<>();
         this.tracePostfix.addAll(tracePostfix);
         this.node = node;
         this.costSoFar = costSoFar;

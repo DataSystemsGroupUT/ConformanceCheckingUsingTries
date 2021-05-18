@@ -76,8 +76,16 @@ public class TrieNode {
             children[Math.abs(child.getContent().hashCode()) % maxChildren] = child;
             child.parent = this;
         }
+        else
+        {
+            if (!children[Math.abs(child.getContent().hashCode()) % maxChildren].getContent().equals(child.getContent()))
+            {
+                System.err.println("A collision occurred");
+            }
+        }
         this.minPathLengthToEnd = Math.min(this.minPathLengthToEnd, child.getMinPathLengthToEnd()+1);
-        return children[child.getContent().hashCode() % maxChildren];
+       // return children[child.getContent().hashCode() % maxChildren];
+        return children[Math.abs(child.getContent().hashCode()) % maxChildren];
     }
 
     public String toString()
