@@ -1713,9 +1713,9 @@ public class ProtoTypeSelectionAlgo {
             cost[i] = i;
         alignment[0][0] ="";newcostString[0] ="";
         for (int i = 1; i < len0; i++)
-            alignment[0][i] =alignment[0][i-1]+ "> Deletion " + lhs.charAt(i-1);
+            alignment[0][i] =alignment[0][i-1]+ ">> Deletion " + lhs.charAt(i-1);
         for (int i = 1; i < len1; i++)
-            alignment[i][0] =alignment[i-1][0]+ "> Insertion " + rhs.charAt(i-1);
+            alignment[i][0] =alignment[i-1][0]+ ">> Insertion " + rhs.charAt(i-1);
         // dynamically computing the array of distances
         boolean deleted= true;
         // transformation cost for each letter in s1
@@ -1735,16 +1735,16 @@ public class ProtoTypeSelectionAlgo {
                 // keep minimum cost
                 newcost[i] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
                 if (match==0)
-                    alignment[j][i]= alignment[j-1][i-1]+"> Sync "+ rhs.charAt(j - 1);
+                    alignment[j][i]= alignment[j-1][i-1]+">> Sync "+ rhs.charAt(j - 1);
                 else { if (Math.min(cost_insert, cost_delete) < cost_replace )
                 {
                     if(cost_insert>cost_delete)
-                        alignment[j][i]= alignment[j][i-1]+"> Deletion " + lhs.charAt(i-1);
+                        alignment[j][i]= alignment[j][i-1]+">> Deletion " + lhs.charAt(i-1);
                     else
-                        alignment[j][i]= alignment[j-1][i]+ "> Insertion " + rhs.charAt(j-1);
+                        alignment[j][i]= alignment[j-1][i]+ ">> Insertion " + rhs.charAt(j-1);
                 }
                 else
-                    alignment[j][i]= alignment[j-1][i-1]+ "> Insertion " + rhs.charAt(j-1) +"> Deletion " + lhs.charAt(i-1);
+                    alignment[j][i]= alignment[j-1][i-1]+ ">> Insertion " + rhs.charAt(j-1) +">> Deletion " + lhs.charAt(i-1);
 
                 }
             }
@@ -1756,8 +1756,9 @@ public class ProtoTypeSelectionAlgo {
 
 
         }
-        String align = alignment[len1-1][len0-1].substring(1);
-        AlignObj alignObj = new AlignObj(align, (cost[len0 - 1]*1.0 ) / (len1+len0)) ;
+        String align = alignment[len1-1][len0-1].substring(2);
+//        AlignObj alignObj = new AlignObj(align, (cost[len0 - 1]*1.0 ) / (len1+len0)) ;
+        AlignObj alignObj = new AlignObj(align, cost[len0 - 1]) ;
         // the distance is the cost for transforming all letters in both strings
         return alignObj;//alignment[len0][len0-1] ;
     }

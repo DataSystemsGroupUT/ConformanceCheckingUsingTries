@@ -50,4 +50,9 @@ public class State implements Comparable<State>{
     public int getCostSoFar() {
         return costSoFar;
     }
+
+//    public int hashCode()
+//    {
+//        return node.hashCode();
+//    }
 }

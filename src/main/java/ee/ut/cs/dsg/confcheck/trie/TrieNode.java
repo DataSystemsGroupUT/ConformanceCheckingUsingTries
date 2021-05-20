@@ -10,20 +10,52 @@ public class TrieNode {
     private String content; // This is a numerical representation of the activity label. Should be part of a lookup table
     private int maxChildren;
     private int minPathLengthToEnd;
+    private int maxPathLengthToEnd;
     private TrieNode parent;
     private TrieNode[] children;
     private boolean isEndOfTrace;
+    private List<Integer> linkedTraces;
+    private int level=0;
 
-    public TrieNode(String content, int maxChildren, int minPathLengthToEnd, boolean isEndOfTrace, TrieNode parent)
+//    public TrieNode(String content, int maxChildren, int minPathLengthToEnd, boolean isEndOfTrace, TrieNode parent)
+//    {
+//        this.content = content;
+//        this.maxChildren = Utils.isPrime(maxChildren)? maxChildren:  Utils.nextPrime(maxChildren);
+//        //TODO: Change children type to HashMap?
+//        this.children = new TrieNode[this.maxChildren];
+//        this.minPathLengthToEnd = minPathLengthToEnd;
+//        this.parent = parent;
+//
+//        this.isEndOfTrace = isEndOfTrace;
+//        this.linkedTraces = new ArrayList<>();
+//    }
+    public TrieNode(String content, int maxChildren, int minPathLengthToEnd, int maxPathLengthToEnd, boolean isEndOfTrace, TrieNode parent)
     {
         this.content = content;
         this.maxChildren = Utils.isPrime(maxChildren)? maxChildren:  Utils.nextPrime(maxChildren);
         //TODO: Change children type to HashMap?
         this.children = new TrieNode[this.maxChildren];
         this.minPathLengthToEnd = minPathLengthToEnd;
+        this.maxPathLengthToEnd = maxPathLengthToEnd;
         this.parent = parent;
+        if(parent != null)
+            this.level = parent.getLevel()+1;
 
         this.isEndOfTrace = isEndOfTrace;
+        this.linkedTraces = new ArrayList<>();
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void addLinkedTraceIndex(int i )
+    {
+        this.linkedTraces.add(i);
+    }
+    public List<Integer> getLinkedTraces()
+    {
+        return linkedTraces;
     }
     public String getContent()
     {
@@ -32,6 +64,11 @@ public class TrieNode {
 
     public int getMinPathLengthToEnd() {
         return minPathLengthToEnd;
+    }
+
+    public int getMaxPathLengthToEnd()
+    {
+        return maxPathLengthToEnd;
     }
 
     public TrieNode getParent()
@@ -48,15 +85,23 @@ public class TrieNode {
         return isEndOfTrace;
     }
 
-    public TrieNode getChildWithLeastPath(int pathLength)
+    public TrieNode getChildWithLeastPathLengthDifference( int pathLength)
     {
         int minPath = pathLength;
         TrieNode child = null;
+        int minDiff = Integer.MAX_VALUE;
         for (TrieNode ch : children)
             if(ch != null)
             {
-                if (ch.getMinPathLengthToEnd() < minPath)
+//                if (!ch.getContent().equals(label))
+//                    continue;
+                int diff = Math.abs(ch.getMinPathLengthToEnd() - minPath);
+                if ( diff < minDiff)
+                {
                     child = ch;
+                    minDiff = diff;
+                }
+
             }
         return child;
     }
@@ -84,6 +129,7 @@ public class TrieNode {
             }
         }
         this.minPathLengthToEnd = Math.min(this.minPathLengthToEnd, child.getMinPathLengthToEnd()+1);
+        this.maxPathLengthToEnd = Math.max(this.maxPathLengthToEnd, child.getMaxPathLengthToEnd()+1);
        // return children[child.getContent().hashCode() % maxChildren];
         return children[Math.abs(child.getContent().hashCode()) % maxChildren];
     }
@@ -91,7 +137,7 @@ public class TrieNode {
     public String toString()
     {
         StringBuilder result = new StringBuilder();
-        result.append(" Node(content:"+this.content+", minPath:"+minPathLengthToEnd+") Children(");
+        result.append(" Node(content:"+this.content+", minPath:"+minPathLengthToEnd+", maxPath:"+maxPathLengthToEnd+", isEndOfATrace:"+isEndOfTrace+") Children(");
         for (TrieNode child : children)
             if (child != null)
                 result.append(child.toString());
