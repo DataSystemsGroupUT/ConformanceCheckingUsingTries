@@ -145,4 +145,15 @@ public class TrieNode {
         return result.toString();
     }
 
+    public boolean equals(Object other)
+    {
+        if (other instanceof  TrieNode)
+        {
+            TrieNode otherNode = (TrieNode) other;
+
+            return (this.content.equals(otherNode.getContent()) && this.level==otherNode.getLevel());
+        }
+        return false;
+    }
+
 }

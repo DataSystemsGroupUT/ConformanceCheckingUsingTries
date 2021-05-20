@@ -77,8 +77,16 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
 
 
             if (match == null)// we could not find any partial match, let's fall back to scanning all the traces
-                match = trie.getRoot();
+            {
 
+                match = trie.getRoot();
+//                System.out.println("We could not fine any common prefix. Let's try the search based approach");
+//                Alignment alg = super.check(trace);
+//                System.out.println(alg.toString());
+//                return alg;
+            }
+
+            // try a little trick to run the state-search based approach
 
 
             linkedTraces.addAll(match.getLinkedTraces());
@@ -97,7 +105,7 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
                     bestAlignment = traceAsString;
                     bestTrace = traceAsString;
                     break;
-                } else if (match.getLevel() > 0)
+                } else if (match.getLevel() > 0 && !lookForInfixMatches)
                     obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(traceAsString.substring(match.getLevel() - 1), trie.getTrace(i).substring(match.getLevel()));
 
                 else
