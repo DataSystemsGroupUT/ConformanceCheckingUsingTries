@@ -50,7 +50,7 @@ public class Runner {
 //        System.out.println("bca".hashCode()%29);
 //        System.out.println(Math.abs("etoile".hashCode())%29);
 //        System.out.println("etoile".hashCode());
-//        testConformanceApproximation();
+        testConformanceApproximation();
 //
 //        testJNI();
 
@@ -60,7 +60,7 @@ public class Runner {
         String reducedActivityLog = "C:\\Work\\DSG\\Data\\reducedLogActivity.xml";
         String sampleLog = "C:\\Work\\DSG\\Data\\sampledLog.xml";
 
-        testOnConformanceApproximationResults(simulatedLog, clusteredLog,true);
+//        testOnConformanceApproximationResults(clusteredLog, sampleLog,false);
 //        testVanellaConformanceApproximation(simulatedLog,clusteredLog);
     }
 
@@ -230,7 +230,7 @@ public class Runner {
             if (usePrefixChecker)
                 checker = new PrefixConformanceChecker(t,1,1, false);
             else
-                checker = new ConformanceChecker(t,1,10, 50);
+                checker = new ConformanceChecker(t,1,1, 500000);
 
             Alignment alg;
 

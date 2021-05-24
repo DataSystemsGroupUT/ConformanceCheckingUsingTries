@@ -51,4 +51,8 @@ public class Alignment {
         result.addAll(moves);
         return result;
     }
+    public int hashCode()
+    {
+        return this.toString().hashCode();
+    }
 }

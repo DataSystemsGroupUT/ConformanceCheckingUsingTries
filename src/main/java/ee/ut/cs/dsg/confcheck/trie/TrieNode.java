@@ -156,4 +156,9 @@ public class TrieNode {
         return false;
     }
 
+    public int hashCode()
+    {
+        return this.content.hashCode()+this.level;
+    }
+
 }

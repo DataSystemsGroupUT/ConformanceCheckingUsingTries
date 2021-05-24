@@ -51,8 +51,8 @@ public class State implements Comparable<State>{
         return costSoFar;
     }
 
-//    public int hashCode()
-//    {
-//        return node.hashCode();
-//    }
+    public int hashCode()
+    {
+        return node.hashCode()+alignment.hashCode();
+    }
 }

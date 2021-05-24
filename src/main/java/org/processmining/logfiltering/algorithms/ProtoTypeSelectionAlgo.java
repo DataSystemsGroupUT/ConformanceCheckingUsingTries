@@ -459,7 +459,7 @@ public class ProtoTypeSelectionAlgo {
                 }
                 AlignObj temp=levenshteinDistancewithAlignment(VariantChar[SampledList.get(i)],  ModelBehaviorSimReverse.get(tempIndex) );
                 alignment=temp.Alignment;
-                String[] Moves = alignment.split(">");
+                String[] Moves = alignment.split(">>");
                 for (int j = 0; j < Moves.length; j++) {
                     if(Moves[j].contains("Sync"))
                         SyncrousMoves.put(ActivityDeCoder.get(Moves[j].substring(Moves[j].length()-1)), (int) (SyncrousMoves.get(ActivityDeCoder.get(Moves[j].substring(Moves[j].length()-1)))+VariantFreq[SampledList.get(i)]));
