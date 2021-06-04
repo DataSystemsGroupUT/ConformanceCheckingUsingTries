@@ -53,6 +53,6 @@ public class State implements Comparable<State>{
 
     public int hashCode()
     {
-        return node.hashCode()+alignment.hashCode();
+        return node.hashCode();
     }
 }

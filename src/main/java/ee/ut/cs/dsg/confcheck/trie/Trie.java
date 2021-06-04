@@ -70,9 +70,9 @@ public class Trie {
      * @param trace is a list of strings that define the trace to search a match for
      * @return a trie node
      */
-    public TrieNode match(List<String> trace)
+    public TrieNode match(List<String> trace, TrieNode startFromThisNode)
     {
-        TrieNode current = root;
+        TrieNode current = startFromThisNode;
         TrieNode result;
         int size = trace.size();
         int lengthDifference = Integer.MAX_VALUE;
@@ -80,9 +80,9 @@ public class Trie {
 //        for (String event : trace)
         {
             result = current.getChild(trace.get(i));
-           // result = current.getChildWithLeastPathLengthDifference(trace.get(i), size - i);
+            // result = current.getChildWithLeastPathLengthDifference(trace.get(i), size - i);
 
-            if (result == null && current == root)
+            if (result == null && current == startFromThisNode)
                 return null;
             else if (result == null)
                 return current;
@@ -91,9 +91,9 @@ public class Trie {
                 //result2 = result.getChildWithLeastPathLengthDifference(size-(i+1));
 
 //                if (Math.abs(result2.getMinPathLengthToEnd() - (size - (i+1))) <= lengthDifference)
- //               {
-                    // we still have a promising direction
-                    current = result;
+                //               {
+                // we still have a promising direction
+                current = result;
 //                    lengthDifference = Math.abs(result.getMinPathLengthToEnd() - (size - (i+1)));
 //                }
 //                else
@@ -104,4 +104,9 @@ public class Trie {
         }
         return current;
     }
+    public TrieNode match(List<String> trace)
+    {
+        return match(trace, root);
+    }
+
 }

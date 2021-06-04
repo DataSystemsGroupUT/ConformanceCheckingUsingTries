@@ -161,4 +161,17 @@ public class TrieNode {
         return this.content.hashCode()+this.level;
     }
 
+    public TrieNode getChildOnShortestPathToTheEnd()
+    {
+
+        for (TrieNode ch: children)
+        {
+            if (ch==null)
+                continue;
+            if (ch.getMinPathLengthToEnd() < this.getMinPathLengthToEnd())
+                return ch;
+        }
+        return null;
+    }
+
 }

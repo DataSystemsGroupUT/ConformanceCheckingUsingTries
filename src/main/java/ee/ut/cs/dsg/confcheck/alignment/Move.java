@@ -21,4 +21,7 @@ public class Move {
     {
         return String.format("[logMove:%s, modelMove:%s, cost:%d]", logMove,modelMove,cost);
     }
+
+    public String getModelMove(){return modelMove;}
+    public String getLogMove(){return  logMove;}
 }

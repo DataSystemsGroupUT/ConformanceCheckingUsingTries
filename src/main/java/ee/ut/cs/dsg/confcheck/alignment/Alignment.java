@@ -14,8 +14,12 @@ public class Alignment {
     }
     public Alignment()
     {
-        moves = new ArrayList<>();
-        totalCost = 0;
+        this(0);
+    }
+    public Alignment(int totalCost)
+    {
+        this.moves = new ArrayList<>();
+        this.totalCost = totalCost;
     }
 
     public void appendMove(Move move)
@@ -35,12 +39,19 @@ public class Alignment {
     public String toString()
     {
         StringBuilder result = new StringBuilder();
-
+        StringBuilder logTrace = new StringBuilder();
+        StringBuilder modelTrace = new StringBuilder();
         result.append(String.format("Total cost:%d\n", totalCost));
         for (Move m: moves)
         {
             result.append(m.toString()+"\n");
+            if (!m.getLogMove().equals(">>"))
+                logTrace.append(m.getLogMove());
+            if(!m.getModelMove().equals(">>"))
+                modelTrace.append(m.getModelMove());
         }
+        result.append("Log: "+logTrace.toString()+"\n");
+        result.append("Mod: "+modelTrace.toString());
         return result.toString();
 
     }
