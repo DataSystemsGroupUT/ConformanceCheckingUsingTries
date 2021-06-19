@@ -32,52 +32,24 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //        });
 
         //= (State[]) nextChecks.toArray();
-        if (numTrials % cleanseFrequency == 0)
-            successiveHalving();
+//        if (numTrials % cleanseFrequency == 0)
+//            successiveHalving();
         int index;
-        State s,s1,s2,s3;
-        if (cntr % 1000 == 0) {
+        State s;
+        if (cntr % 29 == 0) {
 
             State[] elements =  new State[nextChecks.size()];
             nextChecks.toArray(elements);
 
-//            if (candidateState != null)
-//            {
-//                int size = nextChecks.size();
-//                nextChecks.clear();
-//                State current;
-//                for (int i =0; i < size;i++)
-//                {
-//                    current = elements[i];
-//
-//                    if ((current.getAlignment().getTotalCost() + Math.min(Math.abs(current.getTracePostfix().size() - current.getNode().getMinPathLengthToEnd()),Math.abs(current.getTracePostfix().size() - current.getNode().getMaxPathLengthToEnd())))> candidateState.getAlignment().getTotalCost())// && state.getNode().getLevel() > candidateState.getNode().getLevel())
-//                    {
-////                        System.out.println(String.format("Removing an old expensive state with cost %d, which is greater than the best solution so far %d",(current.getAlignment().getTotalCost() + Math.min(Math.abs(current.getTracePostfix().size() - current.getNode().getMinPathLengthToEnd()),Math.abs(current.getTracePostfix().size() - current.getNode().getMaxPathLengthToEnd()))),candidateState.getAlignment().getTotalCost()) );
-////                        System.out.println("Queue size "+nextChecks.size());
-////                        continue;
-//
-//                    }
-//                    else
-//                        nextChecks.add(current);
-//                }
-//            }
 
 
 
 
-            index = (int) (rnd.nextInt( nextChecks.size()));
-//            s1 = elements[index];
-//            index = (int) (rnd.nextInt( nextChecks.size()));
-//            s2 = elements[index];
-//            index = (int) (rnd.nextInt( nextChecks.size()));
-//            s3 = elements[index];
-//            if (s1.getCostSoFar() <= s2.getCostSoFar() && s1.getCostSoFar() <= s3.getCostSoFar())
-//                s = s1;
-//            else if (s2.getCostSoFar() <= s1.getCostSoFar() && s2.getCostSoFar() <= s3.getCostSoFar())
-//                s = s2;
-//            else
-//                s = s3;
-            s = elements[index];
+            int upperBound = nextChecks.size();
+            int lowerBound = nextChecks.size() - upperBound;
+            index = rnd.nextInt( upperBound);
+
+            s = elements[lowerBound +index];
             nextChecks.remove(s);
 //            System.out.println("Getting a random state at position "+index +" from a total of "+toCheck.size() +" states.");
             cntr = 0;
@@ -91,6 +63,8 @@ public class RandomConformanceChecker extends ConformanceChecker{
     }
     private void successiveHalving()
     {
+//        if (nextChecks.size() < 100000)
+//            return  ;
         List<State> result = new ArrayList<>(nextChecks.size()/2);
         State[] elements = new State[nextChecks.size()];
         nextChecks.toArray(elements);
@@ -98,7 +72,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
         Arrays.sort(elements);
         int quantile = nextChecks.size()/4;
         nextChecks.clear();
-        for(int i = 1; i < quantile*4; i+=2)
+        for(int i = 0; i < quantile*4; i+=2)
         {
             nextChecks.add(elements[i]);
         }
@@ -179,7 +153,10 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //                System.out.println("Remaining alignments to check " +toCheck.size());
 //                System.out.println("Best alignment so far " +candidateState.getCostSoFar());
 //                return candidateState.getAlignment();
-                continue;
+                if (candidateState.getAlignment().getTotalCost()==0)
+                    break;
+                else
+                    continue;
             }
             else if (traceSuffix.size() ==0)
             {
@@ -219,9 +196,13 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 {
 //                    System.out.println("Current alignment is more expensive "+alg.getTotalCost());
                 }
-                continue;
+                if (candidateState.getAlignment().getTotalCost()==0)
+                    break;
+                else
+                    continue;
+
             }
-            else if (state.getNode().isEndOfTrace())
+            else if (state.getNode().isEndOfTrace() & !state.getNode().hasChildren()) // and no more children
             {
 //                System.out.println("Model trace ended! We can only follow the remaining log trace to the end");
                 alg = state.getAlignment();
@@ -248,39 +229,64 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
                 }
-                continue;
+                if (candidateState.getAlignment().getTotalCost()==0)
+                    break;
+                else
+                    continue;
             }
             else {
                 event = traceSuffix.remove(0);
                 node = state.getNode().getChild(event);
             }
+            if (node != null && !node.getContent().equals(event)) // just because of hashing collision!
+                node = null;
             List<State> newStates = new ArrayList<>();
-            if (node != null) // we found a match => synchronous move
+            if (node != null) // we found a match => synchronous    move
             {
-
-                Move syncMove = new Move(event,event,0);
                 alg = state.getAlignment();
-                alg.appendMove(syncMove);
-//                if (node.isEndOfTrace() &&  traceSuffix.size()==0) // we should stop
-//                    return alg;
-//                state = new State(alg,traceSuffix,node, state.getCostSoFar());
-//                state = new State(alg,traceSuffix,node,computeCostV2(node.getMinPathLengthToEnd(),traceSuffix.size(),0,false));
-//                state = new State(alg,traceSuffix,node, maxModelTraceSize+traceSize - (node.getLevel() + (traceSize-traceSuffix.size())));//Math.abs(node.getLevel() - traceSuffix.size())-2);
+                TrieNode prev;
+                do {
+//                    System.out.println("Following sync moves");
+                    Move syncMove = new Move(event,event,0);
+
+                    alg.appendMove(syncMove);
+                    prev = node;
+                    if (traceSuffix.size() > 0)
+                    {
+                        event = traceSuffix.remove(0);
+
+                        node = node.getChild(event);
+                    }
+                    else
+                    {
+                        event = null;
+                        node = null;
+                    }
+                }
+                while(node != null);
+                // put the event back that caused non sync move
+                if (event != null)
+                    traceSuffix.add(0,event);
+
+                //go strait with sync moves as there are
+
+
+
                 State syncState;
                 int cost = 0;
 //                if (!optForLongerSubstrings)
 //                    cost= maxModelTraceSize + traceSize -(state.getNode().getLevel() + (traceSize-traceSuffix.size()) ) - (alg.getMoves().size() - alg.getTotalCost());
-                syncState = new State(alg,traceSuffix,node,cost);
+                syncState = new State(alg,traceSuffix,prev,cost);
                 addStateToTheQueue(syncState, candidateState);
 //
 
-                if(!optForLongerSubstrings) {
-
-                    newStates.add(handleLogMove(traceSuffix, state, candidateState, event));
-                    newStates.addAll(handleModelMoves(traceSuffix, state, candidateState));
-
-
-                }
+//                if(!optForLongerSubstrings) {
+//
+//                    newStates.add(handleLogMove(traceSuffix, state, candidateState, event));
+//                    newStates.addAll(handleModelMoves(traceSuffix, state, candidateState));
+//
+//
+//                }
 
             }
             // On 27th of May 2021. we need to give the option to a log move as well as a model move
@@ -348,7 +354,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
             }
             else {
 //                System.out.println(String.format("State is not promising cost %d is greater than the best solution so far %d",(state.getAlignment().getTotalCost()+Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd())),candidateState.getAlignment().getTotalCost()) );
-//                System.out.println("Queue size "+toCheck.size());
+//
 //                System.out.println("Least cost to check next "+nextChecks.peek().getCostSoFar());
             }
         }

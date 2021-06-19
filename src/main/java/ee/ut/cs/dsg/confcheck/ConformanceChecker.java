@@ -23,7 +23,7 @@ public class ConformanceChecker {
     protected int leastCostSoFar  = Integer.MAX_VALUE;
 
     protected int cleanseFrequency = 100;
-    protected int maxTrials=1000000;
+    protected int maxTrials=500000;
 
     protected Trie inspectedLogTraces;
     protected Random rnd;
@@ -34,7 +34,7 @@ public class ConformanceChecker {
     }
     public ConformanceChecker(Trie trie, int logCost, int modelCost)
     {
-        this(trie, logCost, modelCost, 1000);
+        this(trie, logCost, modelCost, 10000);
 
     }
     public ConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue)
@@ -237,20 +237,21 @@ public class ConformanceChecker {
             alg = state.getAlignment();
             alg.appendMove(modelMove);
 
-            // find a child node that has length to the end less than the remaining postfix
-            int lookAhead = traceSuffix.size () > 0 && nd.getChild(traceSuffix.get(0)) != null? -1: 0;
-//            lookAhead = isFromSyncMove?(int)-1*(maxModelTraceSize+traceSize):state.getNode().getLevel();
-//            lookAhead = isFromSyncMove?(int)-1*(traceSize-traceSuffix.size())-1:state.getNode().getLevel();
-            // Cost = worst case - what has been processed in both the log and the model
 
-            int cost = maxModelTraceSize +  traceSize - (nd.getLevel() + (traceSize - traceSuffix.size()));//- (alg.getMoves().size() - alg.getTotalCost());// - Math.min((nd.getLevel()) , traceSuffix.size()));//+alg.getTotalCost();
+
+            // Cost = worst case - what has been processed in both the log and the model
+            int cost = 0;
+            //int cost = (maxModelTraceSize - nd.getLevel()) + traceSuffix.size();//- (alg.getMoves().size() - alg.getTotalCost());// - Math.min((nd.getLevel()) , traceSuffix.size()));//+alg.getTotalCost();
+            cost += nd.getMinPathLengthToEnd();//+traceSuffix.size() ;
+//            int cost = nd.getMaxPathLengthToEnd()+traceSuffix.size();
             // I need to add to the cost the more steps needed in the best case alignment
 //            cost+= Math.min(Math.abs(nd.getMinPathLengthToEnd() - traceSuffix.size()), Math.abs(nd.getMaxPathLengthToEnd()-traceSuffix.size()));
+//            cost+= Math.abs(nd.getMinPathLengthToEnd() - traceSuffix.size());
             // we penalize model move if it causes the the difference between total trace length and model trace length to increase
 //            if (nd.getLevel() -1> (traceSize - traceSuffix.size()))
 //                cost+=1;
 //            cost-=10;
-            if (nd.getChild(traceSuffix.get(0))!= null) // we can find a next sync move this path
+            if (traceSuffix.size() > 0 && nd.getChild(traceSuffix.get(0))!= null) // we can find a next sync move this path
                 cost-=1;
 
 //            else
@@ -279,9 +280,12 @@ public class ConformanceChecker {
             Move logMove = new Move(event, ">>",1);// logMoveCost);
             alg = state.getAlignment();
             alg.appendMove(logMove);
-            int lookAhead=0;
+//            int lookAhead=0;
 
-            int cost = maxModelTraceSize + traceSize -(state.getNode().getLevel() + (traceSize-traceSuffix.size()) );//- (alg.getMoves().size() - alg.getTotalCost());
+            int cost = 0;
+            cost +=  traceSuffix.size();
+//            int cost = state.getNode().getMaxPathLengthToEnd() + traceSuffix.size() ;
+//            cost += Math.min(Math.abs(state.getNode().getMinPathLengthToEnd() - traceSuffix.size()), Math.abs(state.getNode().getMaxPathLengthToEnd()-traceSuffix.size()));
             for (TrieNode nd: state.getNode().getAllChildren()) {
                 if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move
                 {

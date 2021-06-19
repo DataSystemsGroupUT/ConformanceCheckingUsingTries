@@ -129,6 +129,8 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
                     bestTrace = trie.getTrace(i);
                     traceIndex = i;
                     bestObj = obj;
+                    if (obj.cost==0)
+                        break;
                 }
             }
             if (bestObj != null) {
