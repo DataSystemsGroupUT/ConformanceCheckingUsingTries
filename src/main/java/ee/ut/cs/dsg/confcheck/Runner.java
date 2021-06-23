@@ -1,6 +1,7 @@
 package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
+import ee.ut.cs.dsg.confcheck.alignment.AlignmentFactory;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.util.AlphabetService;
 import ee.ut.cs.dsg.confcheck.util.Utils;
@@ -102,16 +103,16 @@ public class Runner {
 //        testOnConformanceApproximationResults(clusteredLog, sampleLog,false);
 //        testVanellaConformanceApproximation(clusteredLog, sampleLog);
 
-//        testOnConformanceApproximationResults(clustered2017Log, sample2017Log,false);
-//        testVanellaConformanceApproximation(clustered2017Log, sample2017Log);
+        testOnConformanceApproximationResults(reduced2017ActivityLog, sample2017Log,false);
+//        testVanellaConformanceApproximation(simulatedSepsisLog, clusteredSepsisLog);
 
 //        // BPI 2015
-        printLogStatistics(simulatedLog);
-//        printLogStatistics(sampleLog);
-        printLogStatistics(clusteredLog);
-        printLogStatistics(randomProxyLog);
-        printLogStatistics(frequencyActivityLog);
-        printLogStatistics(reducedActivityLog);
+//        printLogStatistics(simulatedLog);
+////        printLogStatistics(sampleLog);
+//        printLogStatistics(clusteredLog);
+//        printLogStatistics(randomProxyLog);
+//        printLogStatistics(frequencyActivityLog);
+//        printLogStatistics(reducedActivityLog);
 
 //        // BPI 2012
 //        printLogStatistics(simulated2012Log);
@@ -330,7 +331,7 @@ public class Runner {
             if (usePrefixChecker)
                 checker = new PrefixConformanceChecker(t,1,1, false);
             else
-                checker = new RandomConformanceChecker(t,1,1, 5000);//Integer.MAX_VALUE);
+                checker = new RandomConformanceChecker(t,1,1, 1000000);//Integer.MAX_VALUE);
 
             Alignment alg;
 
@@ -339,6 +340,7 @@ public class Runner {
             int skipTo =1;
             int current = -1;
             int takeTo = 83;
+            DeviationChecker devChecker = new DeviationChecker(service);
             for (XTrace trace: inputSamplelog)
             {
                 current++;
@@ -362,6 +364,7 @@ public class Runner {
                     if(alg != null) {
                         System.out.println("Alignment cost " + alg.getTotalCost());
 //                        System.out.println(alg.toString());
+                        devChecker.processAlignment(alg);
 //                        t.printTraces();
                     }
                     else if (usePrefixChecker==false)
@@ -371,57 +374,15 @@ public class Runner {
                 }
 
 
+
+
             }
             System.out.println(String.format("Time taken for trie-based conformance checking %d milliseconds",totalTime));
 
-//            firstSampleTrace.addAll(templist);
-//
-//
-//            List<String> firstProxyTrace2 = new ArrayList<>();
-//            for (int i = 0; i < firstProxyTrace.size();i++)
-//            {
-//
-//                if (!activityToAlphabet.containsKey(firstProxyTrace.get(i)))
-//                {
-//                    charCounter++;
-//                    activityToAlphabet.put(firstProxyTrace.get(i), Character.toString((char) charCounter));
-//                    alphabetToActivity.put(Character.toString((char) charCounter), firstProxyTrace.get(i));
-//                }
-//                sbProxy.append(activityToAlphabet.get(firstProxyTrace.get(i)));
-//                firstProxyTrace2.add(activityToAlphabet.get(firstProxyTrace.get(i)));
-//
-//            }
-//            System.out.println(firstProxyTrace2.toString());
-//            List<String> firstLogTrace2 = new ArrayList<>();
-//            for (int i = 0; i < firstSampleTrace.size();i++)
-//            {
-//
-//                if (!activityToAlphabet.containsKey(firstSampleTrace.get(i)))
-//                {
-//                    charCounter++;
-//                    activityToAlphabet.put(firstSampleTrace.get(i), Character.toString((char) charCounter));
-//                    alphabetToActivity.put(Character.toString((char) charCounter), firstSampleTrace.get(i));
-//                }
-//                sbLog.append(activityToAlphabet.get(firstSampleTrace.get(i)));
-//                firstLogTrace2.add(activityToAlphabet.get(firstSampleTrace.get(i)));
-//
-//            }
-//            System.out.println(firstLogTrace2.toString());
-//
-//            t = new Trie(100);
-//            t.addTrace(firstProxyTrace2);
-//            System.out.println(t.toString());
-//            checker = new ConformanceChecker(t,1,1);
-//            System.out .println(checker.check(firstLogTrace2).toString());
-//            System.out.println("Encoded proxy trace "+sbProxy.toString());
-//            System.out.println("Encoded log trace   "+sbLog.toString());
-//            System.out.println("String distance is "+ProtoTypeSelectionAlgo.levenshteinDistanceCost(sbProxy.toString(),sbLog.toString()));
-
-            // Now I need to test the edit distance on the first trace of the proxy set against the first trace of the sample log
-
-
-//            System.out.println(t.toString());
-   //         inputProxyLog.
+            for (String label: devChecker.getAllActivities())
+            {
+                System.out.println(String.format("%s, %f",label, devChecker.getDeviationPercentage(label)));
+            }
         }
         catch(Exception e)
         {
@@ -535,11 +496,12 @@ public class Runner {
             sampleTraces.add(sb.toString());
         }
 
+        DeviationChecker deviationChecker = new DeviationChecker(service);
         // Now compute the alignments
         long start = System.currentTimeMillis();
-        int skipTo =4;
+        int skipTo =1;
         int current = -1;
-        int takeTo = 4;
+        int takeTo = 1;
         try {
             for (String logTrace : sampleTraces) {
                 current++;
@@ -564,11 +526,19 @@ public class Runner {
 //            System.out.println("Total candidate traces to inspect "+proxyTraces.size());
                 System.out.println("Alignment cost " + minCost);
 //            System.out.println(bestAlignment);
+                Alignment alg = AlignmentFactory.createAlignmentFromString(bestAlignment);
+                deviationChecker.processAlignment(alg);
             System.out.println("Log trace "+logTrace);
             System.out.println("Aligned trace "+bestTrace);
 //            System.out.println("Trace number "+proxyTracesMap.get(bestTrace));
             }
             System.out.println(String.format("Time taken for Distance-based approximate conformance checking %d milliseconds", System.currentTimeMillis() - start));
+
+            for (String label: deviationChecker.getAllActivities())
+            {
+                System.out.println(String.format("%s, %f",label, deviationChecker.getDeviationPercentage(label)));
+            }
+
         }
         catch (Exception e)
         {

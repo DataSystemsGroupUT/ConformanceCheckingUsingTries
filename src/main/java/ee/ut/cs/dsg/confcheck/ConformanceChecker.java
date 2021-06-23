@@ -23,7 +23,7 @@ public class ConformanceChecker {
     protected int leastCostSoFar  = Integer.MAX_VALUE;
 
     protected int cleanseFrequency = 100;
-    protected int maxTrials=500000;
+    protected int maxTrials=100000;
 
     protected Trie inspectedLogTraces;
     protected Random rnd;
@@ -242,8 +242,9 @@ public class ConformanceChecker {
             // Cost = worst case - what has been processed in both the log and the model
             int cost = 0;
             //int cost = (maxModelTraceSize - nd.getLevel()) + traceSuffix.size();//- (alg.getMoves().size() - alg.getTotalCost());// - Math.min((nd.getLevel()) , traceSuffix.size()));//+alg.getTotalCost();
-            cost += nd.getMinPathLengthToEnd();//+traceSuffix.size() ;
-//            int cost = nd.getMaxPathLengthToEnd()+traceSuffix.size();
+//            cost += nd.isEndOfTrace()? 0: nd.getMinPathLengthToEnd();//+traceSuffix.size() ;
+//            cost += alg.getTotalCost();
+            cost += (nd.isEndOfTrace()? 0: nd.getMinPathLengthToEnd()) +traceSuffix.size();
             // I need to add to the cost the more steps needed in the best case alignment
 //            cost+= Math.min(Math.abs(nd.getMinPathLengthToEnd() - traceSuffix.size()), Math.abs(nd.getMaxPathLengthToEnd()-traceSuffix.size()));
 //            cost+= Math.abs(nd.getMinPathLengthToEnd() - traceSuffix.size());
@@ -283,14 +284,16 @@ public class ConformanceChecker {
 //            int lookAhead=0;
 
             int cost = 0;
-            cost +=  traceSuffix.size();
-//            int cost = state.getNode().getMaxPathLengthToEnd() + traceSuffix.size() ;
+
+//            cost +=  traceSuffix.size();
+//            cost += alg.getTotalCost();
+             cost += (state.getNode().isEndOfTrace()? 0: state.getNode().getMinPathLengthToEnd()) + traceSuffix.size() ;
 //            cost += Math.min(Math.abs(state.getNode().getMinPathLengthToEnd() - traceSuffix.size()), Math.abs(state.getNode().getMaxPathLengthToEnd()-traceSuffix.size()));
             for (TrieNode nd: state.getNode().getAllChildren()) {
                 if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move
                 {
                     cost += 1;
-                   // break;
+                    break;
                 }
             }
 

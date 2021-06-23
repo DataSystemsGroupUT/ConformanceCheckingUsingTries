@@ -1,6 +1,7 @@
 package ee.ut.cs.dsg.confcheck.util;
 
 import java.util.HashMap;
+import java.util.Set;
 
 public class AlphabetService {
 
@@ -21,6 +22,11 @@ public class AlphabetService {
     public String deAlphabetize(char character)
     {
         return alphabetToActivity.get(character);
+    }
+
+    public Set<Character> getAlphabet()
+    {
+        return alphabetToActivity.keySet();
     }
 
     public void clear()

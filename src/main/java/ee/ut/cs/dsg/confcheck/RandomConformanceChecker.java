@@ -36,7 +36,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //            successiveHalving();
         int index;
         State s;
-        if (cntr % 29 == 0) {
+        if (cntr % 100 == 0) {
 
             State[] elements =  new State[nextChecks.size()];
             nextChecks.toArray(elements);
@@ -238,13 +238,14 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 event = traceSuffix.remove(0);
                 node = state.getNode().getChild(event);
             }
-            if (node != null && !node.getContent().equals(event)) // just because of hashing collision!
-                node = null;
+//            if (node != null && !node.getContent().equals(event)) // just because of hashing collision!
+//                node = null;
             List<State> newStates = new ArrayList<>();
             if (node != null) // we found a match => synchronous    move
             {
                 alg = state.getAlignment();
                 TrieNode prev;
+                State syncState;
                 do {
 //                    System.out.println("Following sync moves");
                     Move syncMove = new Move(event,event,0);
@@ -272,14 +273,12 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
 
 
-                State syncState;
+
                 int cost = 0;
-//                if (!optForLongerSubstrings)
-//                    cost= maxModelTraceSize + traceSize -(state.getNode().getLevel() + (traceSize-traceSuffix.size()) ) - (alg.getMoves().size() - alg.getTotalCost());
+
                 syncState = new State(alg,traceSuffix,prev,cost);
                 addStateToTheQueue(syncState, candidateState);
 //
-
 //                if(!optForLongerSubstrings) {
 //
 //                    newStates.add(handleLogMove(traceSuffix, state, candidateState, event));
@@ -287,6 +286,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //
 //
 //                }
+
 
             }
             // On 27th of May 2021. we need to give the option to a log move as well as a model move
@@ -300,13 +300,18 @@ public class RandomConformanceChecker extends ConformanceChecker{
             }
 
             //Now randomly add those states to the queue so that if they have the same cost we can pick them differently
-            int size = newStates.size();
-            for (int i = size; i >0;i--)
+            for (State s :newStates)
             {
-                State s = newStates.get(rnd.nextInt(i));
-                if (s != null)
+                if (s !=null)
                     addStateToTheQueue(s, candidateState);
             }
+//            int size = newStates.size();
+//            for (int i = size; i >0;i--)
+//            {
+//                State s = newStates.get(rnd.nextInt(i));
+//                if (s != null)
+//                    addStateToTheQueue(s, candidateState);
+//            }
         }
 //        if (candidateState != null)
 //            inspectedLogTraces.addTrace(trace, candidateState.getAlignment().getTotalCost());
@@ -352,17 +357,18 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 nextChecks.add(state);
 //                states.add(state);
             }
-            else {
-//                System.out.println(String.format("State is not promising cost %d is greater than the best solution so far %d",(state.getAlignment().getTotalCost()+Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd())),candidateState.getAlignment().getTotalCost()) );
-//
+            else if (verbose) {
+
+          //      System.out.println(String.format("State is not promising cost %d is greater than the best solution so far %d",(state.getAlignment().getTotalCost()+Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()),Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd()))),candidateState.getAlignment().getTotalCost()) );
+
 //                System.out.println("Least cost to check next "+nextChecks.peek().getCostSoFar());
             }
         }
         else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
-        {
+//        {
             nextChecks.add(state);
 
-        }
+//        }
 
     }
 }
