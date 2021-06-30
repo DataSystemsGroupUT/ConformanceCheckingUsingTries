@@ -103,7 +103,7 @@ public class Runner {
 //        testOnConformanceApproximationResults(clusteredLog, sampleLog,false);
 //        testVanellaConformanceApproximation(clusteredLog, sampleLog);
 
-        testOnConformanceApproximationResults(reduced2017ActivityLog, sample2017Log,false);
+//        testOnConformanceApproximationResults(simulatedLog, sampleLog,false);
 //        testVanellaConformanceApproximation(simulatedSepsisLog, clusteredSepsisLog);
 
 //        // BPI 2015
@@ -144,7 +144,7 @@ public class Runner {
 //        printLogStatistics(clusteredSepsisLog);
 //        printLogStatistics(randomSepsisProxyLog);
 //        printLogStatistics(frequencySepsisLog);
-//        printLogStatistics(reducedSepsisActivityLog);
+        printLogStatistics(reducedSepsisActivityLog);
     }
 
     private static void testBed2()
@@ -331,7 +331,7 @@ public class Runner {
             if (usePrefixChecker)
                 checker = new PrefixConformanceChecker(t,1,1, false);
             else
-                checker = new RandomConformanceChecker(t,1,1, 1000000);//Integer.MAX_VALUE);
+                checker = new RandomConformanceChecker(t,1,1, 100000);//Integer.MAX_VALUE);
 
             Alignment alg;
 
@@ -379,10 +379,10 @@ public class Runner {
             }
             System.out.println(String.format("Time taken for trie-based conformance checking %d milliseconds",totalTime));
 
-            for (String label: devChecker.getAllActivities())
-            {
-                System.out.println(String.format("%s, %f",label, devChecker.getDeviationPercentage(label)));
-            }
+//            for (String label: devChecker.getAllActivities())
+//            {
+//                System.out.println(String.format("%s, %f",label, devChecker.getDeviationPercentage(label)));
+//            }
         }
         catch(Exception e)
         {

@@ -12,7 +12,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
 
 
-    private boolean optForLongerSubstrings=false;
+    private boolean optForLongerSubstrings=true;
     private boolean verbose = false;
     private int numTrials=0;
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue) {
@@ -36,7 +36,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //            successiveHalving();
         int index;
         State s;
-        if (cntr % 100 == 0) {
+        if (cntr % 51 == 0) {
 
             State[] elements =  new State[nextChecks.size()];
             nextChecks.toArray(elements);
@@ -238,16 +238,27 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 event = traceSuffix.remove(0);
                 node = state.getNode().getChild(event);
             }
-//            if (node != null && !node.getContent().equals(event)) // just because of hashing collision!
-//                node = null;
+
             List<State> newStates = new ArrayList<>();
             if (node != null) // we found a match => synchronous    move
             {
                 alg = state.getAlignment();
-                TrieNode prev;
+                TrieNode prev=node;
                 State syncState;
                 do {
-//                    System.out.println("Following sync moves");
+//
+                    if(!optForLongerSubstrings)
+                    {
+
+                        List<String> trSuffix = new LinkedList<>();
+                        trSuffix.addAll(traceSuffix);
+                        State nonSyncState = new State(alg, trSuffix, prev,0);
+                        addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, candidateState, event), candidateState);
+
+                        for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
+                            addStateToTheQueue(s, candidateState);
+                    }
+
                     Move syncMove = new Move(event,event,0);
 
                     alg.appendMove(syncMove);
@@ -269,23 +280,12 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 if (event != null)
                     traceSuffix.add(0,event);
 
-                //go strait with sync moves as there are
-
-
-
 
                 int cost = 0;
 
                 syncState = new State(alg,traceSuffix,prev,cost);
                 addStateToTheQueue(syncState, candidateState);
-//
-//                if(!optForLongerSubstrings) {
-//
-//                    newStates.add(handleLogMove(traceSuffix, state, candidateState, event));
-//                    newStates.addAll(handleModelMoves(traceSuffix, state, candidateState));
-//
-//
-//                }
+
 
 
             }

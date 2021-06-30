@@ -23,7 +23,7 @@ public class ConformanceChecker {
     protected int leastCostSoFar  = Integer.MAX_VALUE;
 
     protected int cleanseFrequency = 100;
-    protected int maxTrials=100000;
+    protected int maxTrials=50000000;
 
     protected Trie inspectedLogTraces;
     protected Random rnd;
