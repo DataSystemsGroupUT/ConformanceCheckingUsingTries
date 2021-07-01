@@ -74,7 +74,21 @@ Consider also the following log traces to compute alignment for:
 To compute alignments using edit distance, for each trace in the log trace (the second set of traces), we need to compare it with each of the model traces (the upper set) computing the edit distance and at the end report the trace that gives the least edit distance and actually reporting the edit operations, insertions or deletions as the alignment. For instance, log trace 3 &lt;c, e&gt; would have an edit distance of 3 with model trace 5 &lt; a,b, e&gt;, whereas it has an edit distance of 2 compared to model trace 1 &lt;a, b, c, e&gt;. Note also that log trace number 6 is actually possible by the Petri net. So, in an exhaustive approach, it would have an alignment cost of 0. However, in our case, its cheapest alignment would be with model trace 3 &lt; a,b,c,d,b,d,b,e &gt; with edit distance of 4.
 </div>
 
+The trie below is constructed from the five model traces above.
+<div style="width:100px;height:850px; display: block; margin-left: auto; margin-right: auto; width: 50%;">
 
+![The trie constructed from the model traces](./src/main/resources/Trie.png "The trie constructed from model traces")
+
+</div>
+
+### Implementation
+
+This repository contains our implementation for using tries to find alignments. The most relevant code that has been used in the experimental evaluation can be found in [this class](./src/main/java/ee/ut/cs/dsg/confcheck/RandomConformanceChecker.java).
+
+Example code to run the checker as well as the baseline approach based on edit distance can be found in the [Runner.java](./src/main/java/ee/ut/cs/dsg/confcheck/Runner.java) class.
+#### Data sets
+
+You can download the data that we used for the experimantal evaluation from [this link](https://tartuulikool-my.sharepoint.com/:f:/g/personal/ahmed79_ut_ee/EgFSjN2C0KJOsHWMV6oATpUBfAgjsQtPOIt7gt4zzEnYcw?e=WbOOgH) 
 ### References
 
 [1] Josep Carmona, Boudewijn F. van Dongen, Andreas Solti, Matthias Weidlich: Conformance Checking - Relating Processes and Models. Springer 2018, ISBN 978-3-319-99413-0, pp. 1-263
