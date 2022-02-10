@@ -94,7 +94,7 @@ This repository contains our implementation for using tries to find alignments. 
 Example code to run the checker as well as the baseline approach based on edit distance can be found in the [Runner.java](./src/main/java/ee/ut/cs/dsg/confcheck/Runner.java) class.
 #### Data sets
 
-You can download the data that we used for the experimantal evaluation from [this link](https://tartuulikool-my.sharepoint.com/:f:/g/personal/ahmed79_ut_ee/EgFSjN2C0KJOsHWMV6oATpUBfAgjsQtPOIt7gt4zzEnYcw?e=WbOOgH) 
+You can download the data that we used for the experimental evaluation from [this link](https://tartuulikool-my.sharepoint.com/:f:/g/personal/ahmed79_ut_ee/EgFSjN2C0KJOsHWMV6oATpUBfAgjsQtPOIt7gt4zzEnYcw?e=WbOOgH) 
 ### References
 
 [1] Josep Carmona, Boudewijn F. van Dongen, Andreas Solti, Matthias Weidlich: Conformance Checking - Relating Processes and Models. Springer 2018, ISBN 978-3-319-99413-0, pp. 1-263

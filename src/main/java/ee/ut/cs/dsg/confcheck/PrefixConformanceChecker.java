@@ -64,13 +64,13 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
             ProtoTypeSelectionAlgo.AlignObj obj = prevAlignments.get(match.getLinkedTraces().get(0)); //we only have one linked trace here.
             linkedTraces.addAll(match.getLinkedTraces());
             minCost = obj.cost;
-            bestTrace = trie.getTrace(match.getLinkedTraces().get(0));
+            bestTrace = modelTrie.getTrace(match.getLinkedTraces().get(0));
             System.out.println("An identical trace has been seen before, just getting the previous result");
         }
         else {
 
             // Let start by walking through the log
-            match = matchPrefix(trace, traceSuffix, this.trie);
+            match = matchPrefix(trace, traceSuffix, this.modelTrie);
 
             // try a little trick to run the state-search based approach
 
@@ -84,12 +84,12 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
             {
 
                 List<TrieNode> toCheck = new LinkedList<>();
-                toCheck.addAll(trie.getRoot().getAllChildren());
+                toCheck.addAll(modelTrie.getRoot().getAllChildren());
                 TrieNode next;
                 while (toCheck.size()> 0 )
                 {
                     next = toCheck.remove(0);
-                    match = trie.match(trace, next);
+                    match = modelTrie.match(trace, next);
                     if (match==null)
                     {
                         toCheck.addAll(next.getAllChildren());
@@ -122,11 +122,11 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
 //                    obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(traceAsString.substring(match.getLevel() - 1), trie.getTrace(i).substring(match.getLevel()));
 //
 //                else
-                    obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(traceAsString, trie.getTrace(i));
+                    obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(traceAsString, modelTrie.getTrace(i));
                 if (obj.cost < minCost) {
                     minCost = obj.cost;
                     bestAlignment = obj.Alignment;
-                    bestTrace = trie.getTrace(i);
+                    bestTrace = modelTrie.getTrace(i);
                     traceIndex = i;
                     bestObj = obj;
                     if (obj.cost==0)
@@ -154,7 +154,7 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
 
     private TrieNode matchTrieSubtree(List<String> trace, TrieNode startFromHere)
     {
-        return trie.match(trace,startFromHere);
+        return modelTrie.match(trace,startFromHere);
     }
 
     private TrieNode matchPrefix(List<String> trace, List<String> traceSuffix, Trie t) {

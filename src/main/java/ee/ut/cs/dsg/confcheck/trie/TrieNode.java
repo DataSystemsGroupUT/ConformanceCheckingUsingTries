@@ -1,5 +1,6 @@
 package ee.ut.cs.dsg.confcheck.trie;
 
+import ee.ut.cs.dsg.confcheck.State;
 import ee.ut.cs.dsg.confcheck.util.Utils;
 
 import java.util.ArrayList;
@@ -17,6 +18,16 @@ public class TrieNode {
     private List<Integer> linkedTraces;
     private int level=0;
     private int numChildren=0;
+
+    public State getAlignmentState() {
+        return alignmentState;
+    }
+
+    public void setAlignmentState(State alignmentState) {
+        this.alignmentState = alignmentState;
+    }
+
+    private State alignmentState;
     private void setEndOfTrace(boolean isEndOfTrace)
     {
         this.isEndOfTrace = isEndOfTrace;

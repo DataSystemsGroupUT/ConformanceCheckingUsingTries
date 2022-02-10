@@ -12,6 +12,7 @@ public class State implements Comparable<State>{
     private List<String> tracePostfix;
     private TrieNode node;
     private int costSoFar;
+    private State parentState;
 
     public State(Alignment alignment, List<String> tracePostfix, TrieNode node, int costSoFar)
     {
@@ -20,8 +21,19 @@ public class State implements Comparable<State>{
         this.tracePostfix.addAll(tracePostfix);
         this.node = node;
         this.costSoFar = costSoFar;
+        this.parentState = null;
     }
 
+    // This new constructor was added to link back to previous states and track the cost of partial alignments
+    public State(Alignment alignment, List<String> tracePostfix, TrieNode node, int costSoFar, final State parentState)
+    {
+        this.alignment = alignment;
+        this.tracePostfix = new LinkedList<>();
+        this.tracePostfix.addAll(tracePostfix);
+        this.node = node;
+        this.costSoFar = costSoFar;
+        this.parentState = parentState;
+    }
     @Override
     public int compareTo(State other)
     {
@@ -54,5 +66,10 @@ public class State implements Comparable<State>{
     public int hashCode()
     {
         return node.hashCode();
+    }
+
+    public State getParentState()
+    {
+        return parentState;
     }
 }

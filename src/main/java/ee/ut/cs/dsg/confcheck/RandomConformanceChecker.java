@@ -4,7 +4,6 @@ import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.alignment.Move;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
-import flanagan.analysis.Stat;
 
 import java.util.*;
 
@@ -12,16 +11,25 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
 
 
-    private boolean optForLongerSubstrings=true;
-    private boolean verbose = false;
-    private int numTrials=0;
+    protected int exploitVersusExploreFrequency = 113;
+    protected int numEpochs;
+    protected boolean optForLongerSubstrings=false;
+    protected boolean verbose = false;
+    protected int numTrials=0;
+    protected boolean newCandidateStateFoundSinceLastEpoc=false;
+    protected int whichDirection=1; // 1 means the upper half of the queue, 0 means the lower half of the queue
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue) {
-        super(trie, logCost, modelCost, maxStatesInQueue);
-        rnd = new Random(19);
-        inspectedLogTraces = new Trie(trie.getMaxChildren());
+        this(trie,logCost,modelCost,maxStatesInQueue, 100000);
     }
 
-    private State pickRandom(State candidateState)
+    public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
+        super(trie, logCost, modelCost, maxStatesInQueue);
+        rnd = new Random(19);
+        numEpochs = maxTrials/10000;
+        this.maxTrials = maxTrials;
+        inspectedLogTraces = new Trie(trie.getMaxChildren());
+    }
+    protected State pickRandom(State candidateState)
     {
 
 //        toCheck.sort(new Comparator<State>() {
@@ -36,32 +44,38 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //            successiveHalving();
         int index;
         State s;
-        if (cntr % 51 == 0) {
+        if (cntr % exploitVersusExploreFrequency== 0) {
 
+//            long start = System.currentTimeMillis();
             State[] elements =  new State[nextChecks.size()];
             nextChecks.toArray(elements);
+//            System.out.println(String.format("Time taken to convert p queue to array %d", System.currentTimeMillis() - start));
 
 
 
 
 
             int upperBound = nextChecks.size();
-            int lowerBound = nextChecks.size() - upperBound;
-            index = rnd.nextInt( upperBound);
+            int lowerBound = Math.max(upperBound-  (nextChecks.size()/2)-1,1);
+            index = rnd.nextInt( lowerBound);
 
-            s = elements[lowerBound +index];
+            s = elements[(lowerBound*whichDirection)+index >= upperBound? 0:(lowerBound*whichDirection)+index];
+
+           whichDirection =  whichDirection == 0 ? 1:0;
+//            s = states.remove(lowerBound+index);
             nextChecks.remove(s);
 //            System.out.println("Getting a random state at position "+index +" from a total of "+toCheck.size() +" states.");
             cntr = 0;
         }
         else {
             s = nextChecks.poll();
+//            states.remove(s);
         }
 
 
         return s;
     }
-    private void successiveHalving()
+    protected void successiveHalving()
     {
 //        if (nextChecks.size() < 100000)
 //            return  ;
@@ -86,9 +100,10 @@ public class RandomConformanceChecker extends ConformanceChecker{
     {
 
         nextChecks.clear();
+        states.clear();
         cntr=1;
         traceSize = trace.size();
-        maxModelTraceSize = trie.getRoot().getMaxPathLengthToEnd();
+        maxModelTraceSize = modelTrie.getRoot().getMaxPathLengthToEnd();
         TrieNode node;
         Alignment alg = new Alignment();
         // Speed up by looking up identical log traces first before computing the alignment
@@ -102,7 +117,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //        }
 
         List<String> traceSuffix;
-        State state = new State(alg,trace,trie.getRoot(),0);
+        State state = new State(alg,trace, modelTrie.getRoot(),0);
         nextChecks.add(state);
 
         State candidateState = null;
@@ -112,6 +127,8 @@ public class RandomConformanceChecker extends ConformanceChecker{
         cleanseFrequency = maxTrials/20;
         while(nextChecks.size() >0  && numTrials < maxTrials)
         {
+            if (candidateState!= null && candidateState.getCostSoFar() == 0)
+                break;
             state = pickRandom(candidateState);
             if (state==null)
                 continue;
@@ -213,7 +230,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 }
                 if (candidateState == null)
                 {
-                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
+                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
                     if(verbose)
                         System.out.println("5-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
@@ -223,7 +240,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost())
                 {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
+                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
                     if (verbose)
                         System.out.println("6-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
@@ -252,9 +269,9 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
                         List<String> trSuffix = new LinkedList<>();
                         trSuffix.addAll(traceSuffix);
-                        State nonSyncState = new State(alg, trSuffix, prev,0);
+                        State nonSyncState = new State(alg, trSuffix, prev.getParent(),0);
                         addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, candidateState, event), candidateState);
-
+                        nonSyncState = new State(alg, trSuffix, prev.getParent(),0, state);
                         for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
                             addStateToTheQueue(s, candidateState);
                     }
@@ -347,6 +364,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //                System.out.println(String.format("Replacement state suffix length %d, number of model moves %d", state.getTracePostfix().size(), state.getNode().getLevel()));
                 nextChecks.poll();
                 nextChecks.add(state);
+//                states.add(state);
             }
             return;
         }
@@ -367,7 +385,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
         else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
 //        {
             nextChecks.add(state);
-
+//            states.add(state);
 //        }
 
     }
