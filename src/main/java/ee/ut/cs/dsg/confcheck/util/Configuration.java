@@ -20,6 +20,12 @@ public class Configuration {
         LEXICOGRAPHIC_DESC
 
     }
+    public enum MoveType
+    {
+        SYNCHRONOUS_MOVE,
+        LOG_MOVE,
+        MODEL_MOVE
+    }
     private ConformanceCheckerType confCheckerType;
 
     private String proxyLog;

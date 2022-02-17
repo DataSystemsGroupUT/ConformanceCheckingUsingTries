@@ -1,11 +1,11 @@
 package ee.ut.cs.dsg.confcheck;
 
-import ee.ut.cs.dsg.confcheck.RandomConformanceChecker;
-import ee.ut.cs.dsg.confcheck.State;
+
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.alignment.Move;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
+import ee.ut.cs.dsg.confcheck.util.Configuration;
 import ee.ut.cs.dsg.confcheck.util.Utils;
 
 import java.util.*;
@@ -25,8 +25,8 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
     }
 
     private int trialsPerEvent;
-    private Map<State, PriorityQueue<State>> searchSpace;
-    private boolean reuseSearchSpace =true;
+    private final Map<State, PriorityQueue<State>> searchSpace;
+    private final boolean reuseSearchSpace =false;
 
     public void setTrialsPerEvent(int tpe)
     {
@@ -38,19 +38,20 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             return null;
         TrieNode node = inspectedLogTraces.match(trace);
         if (node!=null) {
-            List<String> tracePstFix = trace.subList(node.getLevel(),trace.size());
+            List<String> tracePostfix = trace.subList(node.getLevel(),trace.size());
+            List<String> tracePrefix = trace.subList(0,node.getLevel());
             // fill the queue based on the state
             if (reuseSearchSpace) {
                 PriorityQueue<State> previousSearchSpace = searchSpace.get(node.getAlignmentState());
                 if (previousSearchSpace != null) {
                     previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(vs));
-
+//                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(
+//                            new State(trace.subList(vs.getNode().getLevel(),trace.size()),vs.getNode(),vs.getCostSoFar())));
                     if (verbose)
-                        System.out.println(String.format("Loading previous search space to resume from. Kept %d states from original %d states", nextChecks.size(), previousSearchSpace.size()));
+                        System.out.printf("Loading previous search space to resume from. Kept %d states from original %d states%n", nextChecks.size(), previousSearchSpace.size());
                 }
             }
-            State state = new State(node.getAlignmentState().getAlignment(),tracePstFix,node.getAlignmentState().getNode(),node.getAlignmentState().getCostSoFar());
-            return state;
+            return new State(node.getAlignmentState().getAlignment(),tracePostfix,node.getAlignmentState().getNode(),node.getAlignmentState().getCostSoFar());
         }
 
         return null;
@@ -59,10 +60,8 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
     private boolean isAValidState(State s, List<String> trace)
     {
         String traceString = trace.toString().replace("[","").replace("]","").replace(",","").replace(" ","");
-        if (traceString.indexOf(s.getAlignment().logProjection()) != 0)
-            return false;
-        else
-            return true;
+        //return traceString.indexOf(s.getAlignment().logProjection()) == 0;
+        return traceString.equals(s.getAlignment().logProjection());
     }
     public Alignment check(List<String> trace)
     {
@@ -75,7 +74,6 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         TrieNode node;
 
 
-        boolean stateRetrieved = false;
         List<String> traceSuffix;
         State state;
         state = getStateFromTracesTrie(trace);
@@ -83,19 +81,14 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             state = new State(new Alignment(), trace, modelTrie.getRoot(), 0);
 
         }
-        else
-        {
-          //code moved to getStateFromTracesTrie
-            stateRetrieved = true;
-        }
+
         nextChecks.add(state);
 
         State candidateState = null;
         String event;
         numTrials = 1;
-        int maxTrialsPerTrace = trialsPerEvent*traceSize;
-//        cleanseFrequency = Math.max(maxTrials/10, 100000);
-        exploitVersusExploreFrequency = 113;
+        //        cleanseFrequency = Math.max(maxTrials/10, 100000);
+     //   exploitVersusExploreFrequency = 1001 ;
         Utils.resetPrimeIndex();
         while(nextChecks.size() >0  && numTrials < maxTrials)
         {
@@ -119,7 +112,6 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 System.out.println("Queue size "+nextChecks.size());
             }
 
-            event = null;
             traceSuffix = state.getTracePostfix();
 
             // we have to check what is remaining
@@ -192,10 +184,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
                 }
-                else
-                {
-//                    System.out.println("Current alignment is more expensive "+alg.getTotalCost());
-                }
+
                 if (candidateState.getAlignment().getTotalCost()==0)
                     break;
                 else
@@ -245,19 +234,17 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             if (node != null) // we found a match => synchronous    move
             {
                 alg = state.getAlignment();
-                TrieNode prev=node;
                 State syncState;
 //                do {
 //
-                    if(!optForLongerSubstrings)
+                    if(!onMatchFollowPrefixOnly)
                     {
 
-                        List<String> trSuffix = new LinkedList<>();
-                        trSuffix.addAll(traceSuffix);
-                        State nonSyncState = new State(new Alignment(alg), trSuffix, prev.getParent(),0, state);
-                        addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, candidateState, event), candidateState);
+                        List<String> trSuffix = new LinkedList<>(traceSuffix);
+                        State nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0, state);
+                        addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
                   //      trSuffix.add(0, event);
-                        nonSyncState = new State(new Alignment(alg), trSuffix, prev.getParent(),0, state);
+                        nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0, state);
                         for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
                             addStateToTheQueue(s, candidateState);
                     }
@@ -286,7 +273,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
                 int cost = 0;
 
-                syncState = new State(alg,traceSuffix,prev,cost, state);
+                syncState = new State(alg,traceSuffix, node,cost, state);
                 addStateToTheQueue(syncState, candidateState);
 
 
@@ -298,7 +285,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 // let make the log move if there are still more moves
 
 
-                newStates.add(handleLogMove(traceSuffix, state, candidateState, event));
+                newStates.add(handleLogMove(traceSuffix, state, event));
                 newStates.addAll(handleModelMoves(traceSuffix, state, candidateState));
             }
 
@@ -312,7 +299,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         }
 
         if(verbose)
-            System.out.println(String.format("Queue Size %d and num trials %d", nextChecks.size(),numTrials));
+            System.out.printf("Queue Size %d and num trials %d%n", nextChecks.size(),numTrials);
         if (candidateState!=null)
             updateTracesTrie(candidateState);
         return candidateState != null? candidateState.getAlignment():null;
@@ -327,7 +314,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 if (exploitVersusExploreFrequency > 29) {
                     exploitVersusExploreFrequency = Utils.getPreviousPrimeFromList();
                     if (verbose)
-                        System.out.println(String.format("Exploit frequency has been increased to %d", exploitVersusExploreFrequency));
+                        System.out.printf("Exploit frequency has been increased to %d%n", exploitVersusExploreFrequency);
                 }
             }
             else
@@ -339,21 +326,15 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
     }
 
     @Override
-    protected State handleLogMove(List<String> traceSuffix, State state, State candidateState, String event) {
+    protected State handleLogMove(List<String> traceSuffix, State state, String event) {
         Alignment alg;
-        State logMoveState=null;
+        State logMoveState;
         if (event != null) {
-
             Move logMove = new Move(event, ">>",1);// logMoveCost);
             alg = state.getAlignment();
             alg.appendMove(logMove);
-
-
             int cost = 0;
-
-
             cost += (state.getNode().isEndOfTrace()? 0: state.getNode().getMinPathLengthToEnd()) + traceSuffix.size() ;
-
             for (TrieNode nd: state.getNode().getAllChildren()) {
                 if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move
                 {
@@ -361,10 +342,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                     break;
                 }
             }
-
-            logMoveState = new State(alg, traceSuffix, state.getNode(), cost, state);
-
-
+            logMoveState = new State(alg, traceSuffix, state.getNode(), costFunction.computeCost(state,traceSuffix,event, Configuration.MoveType.LOG_MOVE, this), state);
             traceSuffix.add(0, event);
             return logMoveState;
         }
@@ -375,54 +353,22 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
     protected List<State> handleModelMoves(List<String> traceSuffix, State state, State candidateState) {
         Alignment alg;
         List<State> result;
-
         // Let us make the model move
-
         List<TrieNode> nodes = state.getNode().getAllChildren();
         result = new ArrayList<>(nodes.size());
-//                if (nodes.size() > 1)
-//                    System.out.println("We have multiple children in the trie "+nodes.size());
         Move modelMove;
-//        State minModelMoveState = null ;
         for (TrieNode nd : nodes)
         {
-
-
             modelMove = new Move(">>", nd.getContent(),1);//modelMoveCost);
             alg = state.getAlignment();
             alg.appendMove(modelMove);
-
-
-
+            State dummyState = new State(alg, traceSuffix,nd,-1);
             // Cost = worst case - what has been processed in both the log and the model
             int cost = 0;
-            //int cost = (maxModelTraceSize - nd.getLevel()) + traceSuffix.size();//- (alg.getMoves().size() - alg.getTotalCost());// - Math.min((nd.getLevel()) , traceSuffix.size()));//+alg.getTotalCost();
-//            cost += nd.isEndOfTrace()? 0: nd.getMinPathLengthToEnd();//+traceSuffix.size() ;
-//            cost += alg.getTotalCost();
             cost += (nd.isEndOfTrace()? 0: nd.getMinPathLengthToEnd()) +traceSuffix.size();
-            // I need to add to the cost the more steps needed in the best case alignment
-//            cost+= Math.min(Math.abs(nd.getMinPathLengthToEnd() - traceSuffix.size()), Math.abs(nd.getMaxPathLengthToEnd()-traceSuffix.size()));
-//            cost+= Math.abs(nd.getMinPathLengthToEnd() - traceSuffix.size());
-            // we penalize model move if it causes the the difference between total trace length and model trace length to increase
-//            if (nd.getLevel() -1> (traceSize - traceSuffix.size()))
-//                cost+=1;
-//            cost-=10;
             if (traceSuffix.size() > 0 && nd.getChild(traceSuffix.get(0))!= null) // we can find a next sync move this path
                 cost-=1;
-
-//            else
-//                cost+=1;
-//            cost*=-1;
-//            if (Math.random() > 0.5)
-//                cost-=1;
-//            else
-//                cost+=10;
-            //cost--;
-//            int cost = maxModelTraceSize-nd.getLevel();
-            State modelMoveState = new State(alg, traceSuffix,nd, /*computeCostV2(nd.getMinPathLengthToEnd(), traceSuffix.size(), lookAhead,false)*/cost, state);
-//                    nextChecks.add(modelMoveState);
-//            if(modelMoveState.getCostSoFar()< state.getCostSoFar() || state.getCostSoFar() ==0)
-//                addStateToTheQueue(modelMoveState, candidateState);
+            State modelMoveState = new State(alg, traceSuffix,nd, costFunction.computeCost(dummyState,traceSuffix,null, Configuration.MoveType.MODEL_MOVE, this), state);
             result.add(modelMoveState);
         }
         return  result;
@@ -440,7 +386,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
         while(currentState !=null)
         {
-            if (reuseSearchSpace && currentState!=null && stateSize > 0)
+            if (reuseSearchSpace && stateSize > 0)
             {
                 PriorityQueue<State> currentSearchSpace = new PriorityQueue<>();
                 currentSearchSpace.addAll(nextChecks);
@@ -454,7 +400,6 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             statesBack.push(currentState);
             currentState = currentState.getParentState();
         }
-        currentState = null;
         // now keep popping from the stack and adding to the traces trie
         TrieNode currentNode = inspectedLogTraces.getRoot();
 

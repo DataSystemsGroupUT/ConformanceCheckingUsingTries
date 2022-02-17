@@ -2,6 +2,7 @@ package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.alignment.Move;
+import ee.ut.cs.dsg.confcheck.cost.CostFunction;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 
@@ -17,7 +18,17 @@ public abstract class ConformanceChecker {
     protected int maxStatesInQueue;
 //    private HashSet<State> seenBefore;
     protected ArrayList<State> states;
+
+    public int getTraceSize() {
+        return traceSize;
+    }
+
     protected int traceSize;
+
+    public int getMaxModelTraceSize() {
+        return maxModelTraceSize;
+    }
+
     protected int maxModelTraceSize;
     protected int leastCostSoFar  = Integer.MAX_VALUE;
 
@@ -31,6 +42,7 @@ public abstract class ConformanceChecker {
        this(modelTrie, 1, 1);
 
     }
+
     public ConformanceChecker(Trie modelTrie, int logCost, int modelCost)
     {
         this(modelTrie, logCost, modelCost, 10000);
@@ -41,9 +53,10 @@ public abstract class ConformanceChecker {
         this.modelTrie = modelTrie;
         this.logMoveCost = logCost;
         this.modelMoveCost = modelCost;
-        nextChecks = new PriorityQueue<>();
+
         states = new ArrayList<>();
         this.maxStatesInQueue = maxStatesInQueue;
+        nextChecks = new PriorityQueue<>(maxStatesInQueue);
 //        this.seenBefore = new HashSet<>();
     }
 
@@ -216,80 +229,9 @@ public abstract class ConformanceChecker {
 //        //return alg;
 //    }
 
-    protected List<State> handleModelMoves(List<String> traceSuffix, State state, State candidateState) {
-        Alignment alg;
-        List<State> result;
+    protected abstract List<State> handleModelMoves(List<String> traceSuffix, State state, State candidateState);
 
-        // Let us make the model move
-
-        List<TrieNode> nodes = state.getNode().getAllChildren();
-        result = new ArrayList<>(nodes.size());
-//                if (nodes.size() > 1)
-//                    System.out.println("We have multiple children in the trie "+nodes.size());
-        Move modelMove;
-//        State minModelMoveState = null ;
-        for (TrieNode nd : nodes)
-        {
-
-
-            modelMove = new Move(">>", nd.getContent(),1);//modelMoveCost);
-            alg = state.getAlignment();
-            alg.appendMove(modelMove);
-
-
-
-            // Cost = worst case - what has been processed in both the log and the model
-            int cost = alg.getTotalCost();
-
-            cost += (nd.isEndOfTrace()? 0: nd.getMinPathLengthToEnd()) +traceSuffix.size();
-//            cost += (nd.isEndOfTrace()? 0+traceSuffix.size(): nd.getMinPathLengthToEnd()) +traceSuffix.size();
-//            cost += nd.isEndOfTrace()? 0+traceSuffix.size(): Math.min(Math.abs(nd.getMinPathLengthToEnd() - traceSuffix.size()), Math.abs(nd.getMaxPathLengthToEnd()-traceSuffix.size())) ;
-            if (traceSuffix.size() > 0 && nd.getChild(traceSuffix.get(0))!= null) // we can find a next sync move this path
-                cost-=1;
-
-
-            State modelMoveState = new State(alg, traceSuffix,nd, cost);
-
-            result.add(modelMoveState);
-        }
-        return  result;
-    }
-
-    protected State handleLogMove(List<String> traceSuffix, State state, State candidateState, String event) {
-        Alignment alg;
-        State logMoveState=null;
-        if (event != null) {
-
-            Move logMove = new Move(event, ">>",1);// logMoveCost);
-            alg = state.getAlignment();
-            alg.appendMove(logMove);
-
-
-            int cost = alg.getTotalCost();
-
-
-             cost += (state.getNode().isEndOfTrace()? 0: state.getNode().getMinPathLengthToEnd()) + traceSuffix.size() ;
-//            cost += (state.getNode().isEndOfTrace()? 0+traceSuffix.size(): state.getNode().getMinPathLengthToEnd()) +traceSuffix.size();
-//            cost += state.getNode().isEndOfTrace()? 0+traceSuffix.size(): Math.min(Math.abs(state.getNode().getMinPathLengthToEnd() - traceSuffix.size()), Math.abs(state.getNode().getMaxPathLengthToEnd()-traceSuffix.size())) ;
-//            cost += );
-            for (TrieNode nd: state.getNode().getAllChildren()) {
-                if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move
-                {
-                    cost += 1;
-                    break;
-                }
-            }
-
-            logMoveState = new State(alg, traceSuffix, state.getNode(), cost);
-
-
-            // let's put the event back in the trace postfix to see how it check for model moves
-            traceSuffix.add(0, event);
-            return logMoveState;
-        }
-        else
-            return null;
-    }
+    protected abstract State handleLogMove(List<String> traceSuffix, State state, String event);
 
     protected void addStateToTheQueue(State state, State candidateState) {
 

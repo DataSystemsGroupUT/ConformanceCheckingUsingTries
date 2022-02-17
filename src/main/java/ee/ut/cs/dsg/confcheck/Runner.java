@@ -56,11 +56,6 @@ public class Runner {
 //        testBed2();
 //        System.exit(0);
 //        testBed1();
-//        System.out.println("abc".hashCode()%29);
-//        System.out.println("cab".hashCode()%29);
-//        System.out.println("bca".hashCode()%29);
-//        System.out.println(Math.abs("etoile".hashCode())%29);
-//        System.out.println("etoile".hashCode());
 //        testConformanceApproximation();
 //
 //        testJNI();
@@ -110,28 +105,10 @@ public class Runner {
         String frequency2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\freq_frequencyLog.xml";
 
 
-        // check variants
-//        init();
-//        Trie t = constructTrie(sampleSepsisLog);
-//        for (TrieNode n : t.getLeaves())
-//        {
-//            int cnt=0;
-//            for (Integer i : n.getLinkedTraces())
-//            {
-//                String s = t.getTrace(i);
-//                if (s.length() == n.getLevel())
-//                    cnt++;
-//            }
-//            System.out.println(n.getContent() +" has "+cnt +" identical traces ending at it.");
-//        }
-//        Utils.getFileHeader(originalLog2019);
-//        testOnConformanceApproximationResults(simulatedLog, clusteredLog,true);
-    // happy scenarios full match
-//       testOnConformanceApproximationResults(clusteredLog, singular,false);
-//       testVanellaConformanceApproximation(clusteredLog, singular);
 
-        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL , LogSortType.TRACE_LENGTH_ASC);
-//        testVanellaConformanceApproximation(simulatedLog, sampleLog);
+
+        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.LEXICOGRAPHIC_DESC );
+
 
 //        // BPI 2015
 //        printLogStatistics(simulatedLog);
@@ -367,9 +344,9 @@ public class Runner {
             if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
                           checker = new PrefixConformanceChecker(t,1,1, false);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
-                checker = new RandomConformanceChecker(t,1,1, 5000000, 100000);//Integer.MAX_VALUE);
+                checker = new RandomConformanceChecker(t,1,1, 5000000, 500000);//Integer.MAX_VALUE);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
-                checker = new StatefulRandomConformanceChecker(t,1,1, 5000000, 200000);//Integer.MAX_VALUE);
+                checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
             else
             {
                 testVanellaConformanceApproximation(inputProxyLogFile,inputSampleLogFile);
