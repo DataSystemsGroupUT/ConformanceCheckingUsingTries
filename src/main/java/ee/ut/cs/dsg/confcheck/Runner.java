@@ -15,6 +15,7 @@ import lpsolve.LpSolveException;
 import org.apache.commons.math3.analysis.function.Add;
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.info.XLogInfo;
 import org.deckfour.xes.info.XLogInfoFactory;
@@ -33,6 +34,7 @@ import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetFactory;
 import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetImpl;
 import org.processmining.models.semantics.petrinet.Marking;
+import org.processmining.operationalsupport.xml.OSXMLConverter;
 import org.processmining.plugins.pnml.base.FullPnmlElementFactory;
 import org.processmining.plugins.pnml.base.Pnml;
 import org.processmining.plugins.pnml.elements.extensions.opennet.PnmlLabel;
@@ -40,10 +42,16 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.*;
 import static ee.ut.cs.dsg.confcheck.util.Configuration.ConformanceCheckerType;
 import static ee.ut.cs.dsg.confcheck.util.Configuration.LogSortType;
@@ -51,63 +59,36 @@ public class Runner {
 
     private static AlphabetService service;
 
-    public static void main(String... args)
-    {
-//        testBed2();
+    public static void main(String... args) throws UnknownHostException {
+        //testBedPrefix();
+        //testBed2();
 //        System.exit(0);
-//        testBed1();
+//          testBed1();
 //        testConformanceApproximation();
 //
 //        testJNI();
 
 //        testBed3();
 //        System.exit(0);
-        String randomProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\randomLog.xml";
-        String clusteredLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\sampledClusteredLog.xml";
-        String simulatedLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\simulatedLog.xml";
-        String reducedActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\reducedLogActivity.xml";
-        String frequencyActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\frequencyLog.xml";
-        String sampleLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\sampledLog.xml";
-        String singular = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\Singular.xes";
 
-        String randomSepsisProxyLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\randomLog.xml";
-        String clusteredSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\sampledClusteredLog.xml";
-        String simulatedSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\simulatedLog.xml";
-        String frequencySepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\frequencyLog.xml";
-        String reducedSepsisActivityLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\reducedLogActivity.xml";
-        String sampleSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\sampledLog.xml";
+//            BPI2012
+          String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\simulatedLog.xml";
+          String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\frequencyLog.xml";
+          String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\sampledLog.xml";
+        //testBedPrefix("test");
 
-        // BPI 2019
-        String originalLog2019 = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\BPI_Challenge_2019.xml";
-        String random2019ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\randomLog.xml";
-        String clustered2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\sampledClusteredLog.xml";
-        String simulated2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\simulatedLog.xml";
-        String reduced2019ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\reducedLogActivity.xml";
-        String sample2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\sampledLog.xml";
-        String frequency2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\frequencyLog.xml";
-
-        // BPI 2012
-        String originalLog2012 = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\BPIC2012.xes";
-        String random2012ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\randomLog.xml";
-        String clustered2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\sampledClusteredLog.xml";
-        String simulated2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\simulatedLog.xml";
-        String reduced2012ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\reducedLogActivity.xml";
-        String sample2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\sampledLog.xml";
-        String frequency2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\frequencyLog.xml";
-
-        // BPI 2017
-        String originalLog2017 = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\BPIC2017.xes.xes";
-        String random2017ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\rand_randomLog.xml";
-        String clustered2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\sampledClusteredLog.xml";
-        String simulated2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\simulatedLog.xml";
-        String reduced2017ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\reducedLogActivity.xml";
-        String sample2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\sampledLog.xml";
-        String frequency2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\freq_frequencyLog.xml";
-
-
-
-
-        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.LEXICOGRAPHIC_DESC );
+        //BPI 2015
+        /*
+          String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\simulatedLog.xml";
+        String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml";
+        String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml";
+*/
+          testOnConformanceApproximationResults(simulatedLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
+          //testOnConformanceApproximationResults(simulatedLog, sampleLog, ConformanceCheckerType.TRIE_PREFIX, LogSortType.NONE);
+        //String trietest_1 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_1.1.xes";
+        //String trietest_2 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_2.xes";
+        //testBedPrefix("test");
+        //listenToEvents(trietest_2);
 
 
 //        // BPI 2015
@@ -151,32 +132,341 @@ public class Runner {
 //        printLogStatistics(reducedActivityLog);
     }
 
-    private static void testBed2()
-    {
+
+    private static void testBedPrefix2() {
+
+        RandomConformanceChecker cnfChecker;
+
+
+        Alignment alg;
+
+        // Test by manual traces
+
+
+
         List<String> trace = new ArrayList<>();
         trace.add("a");
-        trace.add("c");
         trace.add("b");
+        trace.add("c");
+        trace.add("d");
         trace.add("e");
 
         List<String> trace2 = new ArrayList<>();
         trace2.add("a");
         trace2.add("b");
         trace2.add("c");
-        trace2.add("d");
-        trace2.add("b");
-        trace2.add("e");
 
         List<String> trace3 = new ArrayList<>();
         trace3.add("a");
         trace3.add("b");
-        trace3.add("c");
         trace3.add("d");
-        trace3.add("b");
-        trace3.add("d");
-        trace3.add("b");
         trace3.add("e");
+        trace3.add("f");
 
+
+        Trie t = new Trie(28);
+        t.addTrace(trace);
+        t.addTrace(trace2);
+        t.addTrace(trace3);
+
+        cnfChecker = new RandomConformanceChecker(t,1,1,100000, 100000);
+        List<String> prefixCase1 = new ArrayList<>();
+
+        prefixCase1.add("a");
+        alg = cnfChecker.check2(prefixCase1, true, "Case 1");
+
+        System.out.println(alg.toString());
+
+        prefixCase1.add("b");
+        alg = cnfChecker.check2(prefixCase1, true, "Case 1");
+
+        System.out.println(alg.toString());
+
+        prefixCase1.add("e");
+        alg = cnfChecker.check2(prefixCase1, true, "Case 1");
+
+        System.out.println(alg.toString());
+
+        prefixCase1.add("c");
+        alg = cnfChecker.check2(prefixCase1, true, "Case 1");
+
+        System.out.println(alg.toString());
+
+    }
+
+    private static void testBedPrefix(String inputLog)
+    {
+
+        RandomConformanceChecker cnfChecker;
+
+
+        Alignment alg;
+
+        // Test by manual traces
+
+
+        List<String> trace = new ArrayList<>();
+        trace.add("a");
+        trace.add("b");
+        trace.add("c");
+        trace.add("d");
+        trace.add("e");
+
+        List<String> trace2 = new ArrayList<>();
+        trace2.add("a");
+        trace2.add("b");
+        trace2.add("c");
+
+        List<String> trace3 = new ArrayList<>();
+        trace3.add("a");
+        trace3.add("b");
+        trace3.add("d");
+        trace3.add("e");
+        trace3.add("f");
+
+        Trie t = new Trie(28);
+        t.addTrace(trace);
+        t.addTrace(trace2);
+        t.addTrace(trace3);
+
+        cnfChecker = new RandomConformanceChecker(t,1,1,100000, 100000);
+
+
+        List<String> prefixCase1 = new ArrayList<>();
+        String prefixCase1Id = "Case 1";
+        List<String> prefixCase2 = new ArrayList<>();
+        String prefixCase2Id = "Case 2";
+        List<String> prefixCase3 = new ArrayList<>();
+        String prefixCase3Id = "Case 3";
+        List<String> prefixCase4 = new ArrayList<>();
+        String prefixCase4Id = "Case 4";
+        List<String> prefixCase5 = new ArrayList<>();
+        String prefixCase5Id = "Case 5";
+        List<String> prefixCase6 = new ArrayList<>();
+        String prefixCase6Id = "Case 6";
+
+
+        prefixCase1.add("a");
+        alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
+
+        prefixCase1.add("b");
+        alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
+
+        prefixCase1.add("c");
+        alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
+
+        System.out.println("Case 1:");
+        System.out.println(alg.toString());
+
+
+
+        prefixCase2.add("a");
+        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+
+        prefixCase2.add("b");
+        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+
+        prefixCase2.add("e");
+        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+
+        prefixCase2.add("f");
+        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+
+        System.out.println("Case 2:");
+        System.out.println(alg.toString());
+
+
+
+        prefixCase3.add("a");
+        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+
+        prefixCase3.add("b");
+        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+
+        prefixCase3.add("c");
+        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+
+        prefixCase3.add("c");
+        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+
+        prefixCase3.add("d");
+        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+
+        prefixCase3.add("e");
+        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+
+        System.out.println("Case 3:");
+        System.out.println(alg.toString());
+
+
+
+        prefixCase4.add("b");
+        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+
+        prefixCase4.add("a");
+        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+
+        prefixCase4.add("c");
+        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+
+        prefixCase4.add("d");
+        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+
+        prefixCase4.add("e");
+        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+
+        System.out.println("Case 4:");
+        System.out.println(alg.toString());
+
+
+
+        prefixCase5.add("x");
+        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+
+        prefixCase5.add("a");
+        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+
+        prefixCase5.add("b");
+        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+
+        prefixCase5.add("c");
+        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+
+        System.out.println("Case 5:");
+        System.out.println(alg.toString());
+
+
+
+        prefixCase6.add("a");
+        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+
+        prefixCase6.add("b");
+        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+
+        prefixCase6.add("c");
+        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+
+        prefixCase6.add("x");
+        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+
+        System.out.println("Case 6:");
+        System.out.println(alg.toString());
+
+
+
+    }
+
+
+    public static void listenToEvents(String inputLog) throws UnknownHostException {
+
+        int port = 1234;
+        InetAddress address = InetAddress.getByName("127.0.0.1");
+        long eventsReceived = 0;
+        boolean execute = true;
+        OSXMLConverter converter = new OSXMLConverter();
+        init();
+        Trie t = constructTrie(inputLog);
+        System.out.println("Trie size: "+t.getSize());
+        try {
+            Socket s = new Socket(address, port);
+
+            System.out.println("Stream started");
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            String str = "";
+            String caseId;
+            String newEventName;
+            String eventLabel;
+            XTrace trace;
+            long start = System.currentTimeMillis();
+            long prevStart = start;
+
+            try {
+                FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
+                writer.write("Log path: "+inputLog);
+                writer.write("\r\n");
+                writer.write("Random Conf Checker"); // store the settings dynamically here. Conformance checker type and checker settings, cost function
+                writer.write("\r\n");
+                writer.write("\r\n");
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            ConformanceChecker cnfChecker;// = new ConformanceChecker(t);
+            cnfChecker = new RandomConformanceChecker(t,1,1,100000, 100000);
+
+            Alignment alg;
+            List<String> events = new ArrayList<>();
+
+            while (execute && (str = br.readLine()) != null) {
+                //System.out.println((eventsReceived++) + " events observed");
+                eventsReceived++;
+                if (eventsReceived % 1000 == 0)
+                {
+                    System.out.println(String.format("Events observed: %d",eventsReceived));
+                    System.out.println(String.format("Time taken in milliseconds for last 1000 events: %d",System.currentTimeMillis()- prevStart));
+                    prevStart = System.currentTimeMillis();
+                }
+
+                // extract the observed components
+                trace = (XTrace) converter.fromXML(str);
+                caseId = XConceptExtension.instance().extractName(trace);
+                newEventName = XConceptExtension.instance().extractName(trace.get(0));
+
+                // alphabetize newEventName
+                eventLabel = Character.toString(service.alphabetize(newEventName));
+
+                events.add(eventLabel);
+
+                alg = cnfChecker.prefix_check(events, caseId);
+
+                try {
+                    FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
+                    writer.write("CaseId: "+caseId);
+                    writer.write("\r\n");
+                    writer.write("Alignment: ");
+                    writer.write(alg.toString());
+                    writer.write("\r\n");
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+            br.close();
+            s.close();
+            System.out.println(String.format("Time taken in milliseconds: %d",System.currentTimeMillis()- start));
+            System.out.println(String.format("Events observed: %d",eventsReceived));
+
+        } catch (IOException e) {
+            System.out.println("Network Exception");
+        }
+
+    }
+
+    private static void testBed2()
+    {
+        List<String> trace = new ArrayList<>();
+        trace.add("a");
+        trace.add("b");
+        trace.add("c");
+        trace.add("d");
+        trace.add("e");
+
+        List<String> trace2 = new ArrayList<>();
+        trace2.add("a");
+        trace2.add("b");
+        trace2.add("c");
+
+        List<String> trace3 = new ArrayList<>();
+        trace3.add("a");
+        trace3.add("b");
+        trace3.add("d");
+        trace3.add("e");
+        trace3.add("f");
+/*
         List<String> trace4 = new ArrayList<>();
         trace4.add("a");
         trace4.add("c");
@@ -187,13 +477,13 @@ public class Runner {
         trace5.add("a");
         trace5.add("b");
         trace5.add("e");
-
+*/
         Trie t = new Trie(28);
         t.addTrace(trace);
         t.addTrace(trace2);
         t.addTrace(trace3);
-        t.addTrace(trace4);
-        t.addTrace(trace5);
+        //t.addTrace(trace4);
+        //t.addTrace(trace5);
 
 //        System.out.println(t.toString());
         // Now log traces
@@ -201,17 +491,18 @@ public class Runner {
         // we can reuse trace 4
         List<String> trace6 = new ArrayList<>();
         trace6.add("a");
-        trace6.add("e");
+        trace6.add("b");
 
         List<String> trace7 = new ArrayList<>();
+        trace7.add("x");
         trace7.add("a");
-        trace7.add("c");
         trace7.add("b");
         trace7.add("d");
-        trace7.add("e");
+        trace7.add("c");
+        trace7.add("y");
 
 
-
+/*
         List<String> trace8 = new ArrayList<>();
         trace8.add("c");
         trace8.add("e");
@@ -220,14 +511,11 @@ public class Runner {
         trace9.add("xxx");
         trace9.add("z");
         trace9.add("e");
-
+*/
         ConformanceChecker cnfChecker;// = new ConformanceChecker(t);
-        cnfChecker = new StatefulRandomConformanceChecker(t,1,1,1000, 100000);
+        cnfChecker = new RandomConformanceChecker(t,1,1,100000, 100000);
 
         Alignment alg;
-        System.out.println(trace4.toString());
-        alg = cnfChecker.check(trace4);
-        System.out.println(alg.toString());
 
         System.out.println(trace6.toString());
         alg = cnfChecker.check(trace6);
@@ -236,14 +524,11 @@ public class Runner {
         System.out.println(trace7.toString());
         alg = cnfChecker.check(trace7);
         System.out.println(alg.toString());
-
+/*
         alg = cnfChecker.check(trace7);
         System.out.println(alg.toString());
-
+*/
 //
-        System.out.println(trace8.toString());
-        alg = cnfChecker.check(trace8);
-        System.out.println(alg.toString());
 //
 //        long start = System.currentTimeMillis();
 //        System.out.println(trace9.toString());
@@ -344,7 +629,7 @@ public class Runner {
             if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
                           checker = new PrefixConformanceChecker(t,1,1, false);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
-                checker = new RandomConformanceChecker(t,1,1, 5000000, 500000);//Integer.MAX_VALUE);
+                checker = new RandomConformanceChecker(t,1,1, 1000, 1000);//Integer.MAX_VALUE);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
                 checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
             else
@@ -439,11 +724,16 @@ public class Runner {
         for (char c : actualTrace.toCharArray()) {
             trace.add(new StringBuilder().append(c).toString());
         }
+
+        //Integer traceSize = trace.size();
         start = System.currentTimeMillis();
-        alg = checker.check(trace);
+        //alg = checker.prefix_check(trace, Integer.toString(i));
+        alg = checker.check2(trace, true, Integer.toString(i));
+        //alg = checker.check(trace);
         totalTime += System.currentTimeMillis() - start;
         if (alg != null) {
             System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
+            //System.out.print(", alignment cost minus trace size: "+ (alg.getTotalCost()-traceSize));
             System.out.println(", " + alg.getTotalCost());
 //                        System.out.println(alg.toString(service));
 //            devChecker.processAlignment(alg);
@@ -451,6 +741,7 @@ public class Runner {
 //                        t.printTraces();
         } else //if (usePrefixChecker == false)
             System.out.println("Couldn't find an alignment under the given constraints");
+
         return totalTime;
     }
 
@@ -690,36 +981,14 @@ public class Runner {
         trace.add("a");
         trace.add("b");
         trace.add("c");
-        trace.add("d");
 
         List<String> trace2 = new ArrayList<>();
         trace2.add("a");
-        trace2.add("b");
-        trace2.add("x");
-        trace2.add("e");
 
-        List<String> trace3 = new ArrayList<>();
-        trace3.add("e");
-        trace3.add("v");
-        trace3.add("d");
-        trace3.add("e");
-
-
-        List<String> trace4 = new ArrayList<>();
-        trace4.add("a");
-        trace4.add("b");
-        trace4.add("c");
-
-        List<String> trace5 = new ArrayList<>();
-        trace5.add("a");
-        trace5.add("e");
 
         Trie t = new Trie(28);
         t.addTrace(trace);
         t.addTrace(trace2);
-        t.addTrace(trace3);
-        t.addTrace(trace4);
-        t.addTrace(trace5);
 
 //        List<String> trace6 = new ArrayList<>();
 //        trace6.add("a");

@@ -14,6 +14,9 @@ public abstract class ConformanceChecker {
     protected final int modelMoveCost ;
     protected PriorityQueue<State> nextChecks;
 
+    protected HashMap<String, State> tracesInBuffer;
+    protected HashMap<String, StatesBuffer> statesInBuffer;
+
     protected int cntr=1;
     protected int maxStatesInQueue;
 //    private HashSet<State> seenBefore;
@@ -57,8 +60,12 @@ public abstract class ConformanceChecker {
         states = new ArrayList<>();
         this.maxStatesInQueue = maxStatesInQueue;
         nextChecks = new PriorityQueue<>(maxStatesInQueue);
+        tracesInBuffer = new HashMap<>();
+        statesInBuffer = new HashMap<>();
 //        this.seenBefore = new HashSet<>();
     }
+
+    public abstract Alignment prefix_check(List<String> trace, String caseId);
 
     public abstract Alignment check(List<String> trace);
 //    {
@@ -353,4 +360,7 @@ public abstract class ConformanceChecker {
 
     }
 
+    public Alignment check2(List<String> trace, boolean b, String toString) {
+        return null;
+    }
 }

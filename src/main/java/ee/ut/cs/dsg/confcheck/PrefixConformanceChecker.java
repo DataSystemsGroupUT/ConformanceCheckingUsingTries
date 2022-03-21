@@ -47,6 +47,12 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
             reveresedTrace.add(trace.get(i));
         return reveresedTrace;
     }
+
+    public Alignment prefix_check(List<String> trace, String caseId)
+    {
+        Alignment dummyAlignment = new Alignment();
+        return dummyAlignment;
+    }
     public Alignment check(List<String> trace)
     {
         // Check if we have seen a similar trace before
@@ -62,12 +68,42 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
         match = inspectedLogTraces.match(trace);
         if(match != null && match.getLevel() == trace.size())// identical match
         {
-            ProtoTypeSelectionAlgo.AlignObj obj = prevAlignments.get(match.getLinkedTraces().get(0)); //we only have one linked trace here.
-            linkedTraces.addAll(match.getLinkedTraces());
-            minCost = obj.cost;
-            bestTrace = modelTrie.getTrace(match.getLinkedTraces().get(0));
-            System.out.println("An identical trace has been seen before, just getting the previous result");
+            if(match.getLevel() == 0)
+            {
+                // root node
+                match = modelTrie.getRoot();
+                boolean lastNodeReached = false;
+                while (!lastNodeReached)
+                {
+                    TrieNode shortest = match.getChildOnShortestPathToTheEnd();
+                    if (shortest.isEndOfTrace())
+                    {
+                        lastNodeReached = true;
+                    }
+                    match = shortest;
+
+                }
+                int shortestTraceIndex = match.getLinkedTraces().get(0);
+                String shortestTraceAsString = modelTrie.getTrace(shortestTraceIndex);
+                if (shortestTraceAsString.length() > match.getLevel())
+                {
+                    shortestTraceAsString = shortestTraceAsString.substring(0, match.getLevel());
+                }
+
+                ProtoTypeSelectionAlgo.AlignObj obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(traceAsString, shortestTraceAsString);
+                minCost = obj.cost;
+                System.out.println("Empty trace, returning minimum trie length");
+            }
+            else
+            {
+                ProtoTypeSelectionAlgo.AlignObj obj = prevAlignments.get(match.getLinkedTraces().get(0)); //we only have one linked trace here.
+                linkedTraces.addAll(match.getLinkedTraces());
+                minCost = obj.cost;
+                bestTrace = modelTrie.getTrace(match.getLinkedTraces().get(0));
+                System.out.println("An identical trace has been seen before, just getting the previous result");
+            }
         }
+
         else {
 
             // Let start by walking through the log
@@ -143,6 +179,9 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
 //        System.out.println("Total proxy traces "+this.trie.getRoot().getLinkedTraces().size());
 //        System.out.println("Total candidate traces to inspect "+linkedTraces.size());
         System.out.println("Alignment cost "+minCost);
+        if(minCost==6){
+            System.out.println("Stop");
+        }
 //       System.out.println(bestAlignment);
 //        System.out.println("Log trace "+traceAsString);
 //        System.out.println("Aligned trace "+bestTrace);

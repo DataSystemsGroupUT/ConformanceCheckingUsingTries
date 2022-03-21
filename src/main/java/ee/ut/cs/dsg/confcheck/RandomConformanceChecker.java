@@ -13,11 +13,12 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
 
 
-    protected int exploitVersusExploreFrequency = 181;
+    protected int exploitVersusExploreFrequency = 200;
     protected int numEpochs;
     protected boolean onMatchFollowPrefixOnly = false;
     protected boolean verbose = false;
     protected int numTrials=0;
+    //protected int execCounter=0;
     protected boolean newCandidateStateFoundSinceLastEpoc=false;
     protected int whichDirection=1; // 1 means the upper half of the queue, 0 means the lower half of the queue
     protected final CostFunction costFunction;
@@ -31,12 +32,12 @@ public class RandomConformanceChecker extends ConformanceChecker{
         this.costFunction = costFunction;
     }
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue) {
-        this(trie,logCost,modelCost,maxStatesInQueue, 100000);
+        this(trie,logCost,modelCost,maxStatesInQueue, 10000);
 
     }
 
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
-        this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new AlignmentAndProgressCostFunction());
+        this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new DualProgressiveCostFunction());
     }
     protected State pickRandom(State candidateState)
     {
@@ -105,6 +106,139 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //        }
 
     }
+    public Alignment prefix_check(List<String> trace, String caseId)
+    {
+        // check tracesInBuffer if caseId exists
+        String event;
+        State state;
+        TrieNode node;
+        TrieNode prev;
+        Alignment alg;
+        int cost;
+        boolean followWithSyncMove;
+        boolean precedeWithLogMove;
+        /*if (tracesInBuffer == null)
+        {
+            alg = new Alignment();
+            state = new State(alg,trace, modelTrie.getRoot(),0);
+            tracesInBuffer.put(caseId, state);
+        }
+        else */
+        if (tracesInBuffer.containsKey(caseId))
+        {
+            // case exists, fetch last state
+            state = tracesInBuffer.get(caseId);
+        }
+        else
+        {
+
+            // create dummy state, create key in tracesInBuffer
+            alg = new Alignment();
+            state = new State(alg,trace, modelTrie.getRoot(),0);
+            tracesInBuffer.put(caseId, state);
+        }
+
+        while (trace.size()>0)
+        {
+            event = trace.remove(0);
+            node = state.getNode().getChild(event);
+            if (node != null) // we found a match => synchronous    move
+            {
+                // EXAMPLE trie: abcde. trace seen so far: ab. We now see event c --> sync move
+                alg = state.getAlignment();
+                State syncState;
+                Move syncMove = new Move(event, event, 0);
+                alg.appendMove(syncMove);
+                prev = node;
+                cost = alg.getTotalCost();
+                state = new State(alg, trace, prev, cost);
+            }
+            else
+            {
+                // if model move would trigger a sync move, go for model move
+                followWithSyncMove = false;
+                precedeWithLogMove = false;
+                prev = null;
+                List<TrieNode> nodes = state.getNode().getAllChildren();
+                for(TrieNode nd : nodes)
+                {
+                    node = nd.getChild(event);
+                    if (node != null)
+                    {
+                        // EXAMPLE trace so far ab, we now see d. We mae a model move + sync move
+                        prev = nd;
+                        followWithSyncMove = true; // we should make a model move and follow it with sync move
+                        break;
+                    }
+                }
+                if (node == null && trace.size()>0) // model+sync move does not work. If there are events left in trace, try for a
+                {
+                    String nextEvent = trace.get(0);
+                    node = state.getNode().getChild(nextEvent);
+                    if (node != null)
+                    {
+                        // EXAMPLE trace so far ab, we now see x and c. We make a log move + sync move
+                        precedeWithLogMove = true; // we should make a log move and then we have a match from the trace suffix
+                    }
+                }
+
+
+                if (node != null)
+                {
+                    //model move
+                    if (followWithSyncMove)
+                    {
+                        Move modelMove = new Move(">>", prev.getContent(), 1);
+                        Move syncMove = new Move(event, event, 0);
+                        alg = state.getAlignment();
+                        alg.appendMove(modelMove);
+                        alg.appendMove(syncMove);
+                        cost = alg.getTotalCost()+1;
+                        state = new State(alg, trace,node,cost);
+                    }
+                    else if (precedeWithLogMove)
+                    {
+                        Move logMove = new Move(event, ">>", 1);
+                        Move syncMove = new Move(node.getContent(), node.getContent(), 0);
+                        alg = state.getAlignment();
+                        alg.appendMove(logMove);
+                        alg.appendMove(syncMove);
+                        cost = alg.getTotalCost()+1;
+                        trace.remove(0); // Remove the "nextEvent"
+                        state = new State(alg,trace,node,cost);
+
+                    }
+                    else
+                    {
+                        Move modelMove = new Move(">>", node.getContent(),1);
+                        alg = state.getAlignment();
+                        alg.appendMove(modelMove);
+
+                        cost = alg.getTotalCost()+1;
+                        state = new State(alg, trace,node,cost);
+                    }
+                }
+                else
+                {
+                    // log move
+                    Move logMove = new Move(event, ">>",1);
+                    alg = state.getAlignment();
+                    alg.appendMove(logMove);
+                    cost = alg.getTotalCost();
+                    state = new State(alg, trace,state.getNode(),cost);
+                }
+
+            }
+
+        }
+
+        // put new state to hashmap
+        tracesInBuffer.put(caseId, state);
+
+
+        return state.getAlignment();
+    }
+
     public Alignment check(List<String> trace)
     {
 
@@ -278,9 +412,9 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
                         List<String> trSuffix = new LinkedList<>();
                         trSuffix.addAll(traceSuffix);
-                        State nonSyncState = new State(alg, trSuffix, prev.getParent(),0);
+                        State nonSyncState = new State(new Alignment(alg), trSuffix, prev.getParent(),0);
                         addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
-                        nonSyncState = new State(alg, trSuffix, prev.getParent(),0, state);
+                        nonSyncState = new State(new Alignment(alg), trSuffix, prev.getParent(),0, state);
                         for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
                             addStateToTheQueue(s, candidateState);
                     }
@@ -343,8 +477,205 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //            inspectedLogTraces.addTrace(trace, candidateState.getAlignment().getTotalCost());
         if(verbose)
             System.out.println(String.format("Queue Size %d and num trials %d", nextChecks.size(),numTrials));
+       // System.out.println(execCounter);
         return candidateState != null? candidateState.getAlignment():null;
         //return alg;
+    }
+
+
+    public Alignment check2(List<String> trace, boolean prefixBased, String caseId)
+    {
+
+        nextChecks.clear();
+        states.clear();
+        cntr=1;
+        traceSize = trace.size();
+        State state;
+        StatesBuffer caseStatesInBuffer;
+        Alignment alg;
+        TrieNode node;
+        List<String> traceSuffix;
+
+        if (statesInBuffer.containsKey(caseId))
+        {
+            // case exists, fetch last state
+            caseStatesInBuffer = statesInBuffer.get(caseId);
+            state = caseStatesInBuffer.getMatchingPrefixState();
+            nextChecks = caseStatesInBuffer.getNextChecks();
+        }
+        else
+        {
+
+            // create dummy state, create key in tracesInBuffer
+            state = new State(new Alignment(),trace, modelTrie.getRoot(),0);
+            caseStatesInBuffer = new StatesBuffer(maxStatesInQueue, modelTrie.getRoot(),trace);
+            nextChecks.add(state);
+        }
+
+
+        State candidateState = null;
+        String event;
+        numTrials = 1;
+        cleanseFrequency = maxTrials/20;
+        while(nextChecks.size() >0  && numTrials < maxTrials)
+        {
+            if (candidateState!= null && candidateState.getCostSoFar() == 0)
+                break;
+            state = pickRandom(candidateState);
+            if (state==null)
+                continue;
+            numTrials++;
+
+            if (numTrials % 100000 == 0 && verbose) {
+                System.out.println("Trials so far " + numTrials);
+                System.out.println("Queue size "+nextChecks.size());
+            }
+
+            event = null;
+            traceSuffix = state.getTracePostfix();
+
+            if (traceSuffix.size() == 0 && (state.getNode().isEndOfTrace() || prefixBased))// We're done
+            {
+
+                if (candidateState == null)
+                {
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(),state.getNode(), state.getAlignment().getTotalCost());
+
+                }
+                else if (state.getAlignment().getTotalCost() < candidateState.getAlignment().getTotalCost())
+                {
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(),state.getNode(), state.getAlignment().getTotalCost());
+
+                }
+
+
+                if (candidateState.getAlignment().getTotalCost()==0)
+                    break;
+                else
+                    continue;
+            }
+            else if (traceSuffix.size() ==0)
+            {
+                alg = state.getAlignment();
+
+                node = state.getNode();
+                node = node.getChildOnShortestPathToTheEnd();
+                while (node != null)
+                {
+                    Move modelMove = new Move(">>", node.getContent(),1);
+                    alg.appendMove(modelMove);
+                    node = node.getChildOnShortestPathToTheEnd();
+                }
+                if (candidateState == null)
+                {
+                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
+                }
+                else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost())
+                {
+                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
+                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
+
+                }
+                if (candidateState.getAlignment().getTotalCost()==0)
+                    break;
+                else
+                    continue;
+
+            }
+            else if (state.getNode().isEndOfTrace() & !state.getNode().hasChildren()) // and no more children
+            {
+                alg = state.getAlignment();
+                for (String ev: state.getTracePostfix())
+                {
+                    Move logMove = new Move(ev, ">>",1);
+                    alg.appendMove(logMove);
+                }
+                if (candidateState == null)
+                {
+                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
+
+                }
+                else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost())
+                {
+                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
+                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
+
+                }
+                if (candidateState.getAlignment().getTotalCost()==0)
+                    break;
+                else
+                    continue;
+            }
+            else {
+                event = traceSuffix.remove(0);
+                node = state.getNode().getChild(event);
+            }
+
+            List<State> newStates = new ArrayList<>();
+            if (node != null) // we found a match => synchronous    move
+            {
+                alg = state.getAlignment();
+                TrieNode prev=node;
+                State syncState;
+                do {
+//
+                    if(!onMatchFollowPrefixOnly)
+                    {
+
+                        List<String> trSuffix = new LinkedList<>();
+                        trSuffix.addAll(traceSuffix);
+                        State nonSyncState = new State(alg, trSuffix, prev.getParent(),0);
+                        addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
+                        nonSyncState = new State(alg, trSuffix, prev.getParent(),0, state);
+                        for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
+                            addStateToTheQueue(s, candidateState);
+                    }
+
+                    Move syncMove = new Move(event,event,0);
+
+                    alg.appendMove(syncMove);
+                    prev = node;
+                    if (traceSuffix.size() > 0)
+                    {
+                        event = traceSuffix.remove(0);
+
+                        node = node.getChild(event);
+                    }
+                    else
+                    {
+                        event = null;
+                        node = null;
+                    }
+                }
+                while(node != null);
+                if (event != null)
+                    traceSuffix.add(0,event);
+
+
+                int cost = 0;
+
+                syncState = new State(alg,traceSuffix,prev,cost);
+                addStateToTheQueue(syncState, candidateState);
+
+
+
+            }
+            else // there is no match, we have to make the model move and the log move
+            {
+                // let make the log move if there are still more moves
+                newStates.add(handleLogMove(traceSuffix, state, event));
+                newStates.addAll(handleModelMoves(traceSuffix, state, candidateState));
+            }
+            //Now randomly add those states to the queue so that if they have the same cost we can pick them differently
+            for (State s :newStates)
+            {
+                if (s !=null)
+                    addStateToTheQueue(s, candidateState);
+            }
+
+        }
+
+        return candidateState != null? candidateState.getAlignment():null;
     }
 
     protected void addStateToTheQueue(State state, State candidateState) {

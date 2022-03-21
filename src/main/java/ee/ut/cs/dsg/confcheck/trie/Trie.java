@@ -156,6 +156,7 @@ public class Trie {
         return minLength;
     }
 
+
     public int getAvgTraceLength()
     {
         int sumlength = leaves.stream().map( node -> node.getLevel()).reduce(0, (subtotal, element) -> subtotal+element);
