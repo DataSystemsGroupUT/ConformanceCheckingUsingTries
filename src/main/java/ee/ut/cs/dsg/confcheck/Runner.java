@@ -69,7 +69,6 @@ public class Runner {
 //        testJNI();
 
 //        testBed3();
-//        System.exit(0);
 
 //            BPI2012
           String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\simulatedLog.xml";
