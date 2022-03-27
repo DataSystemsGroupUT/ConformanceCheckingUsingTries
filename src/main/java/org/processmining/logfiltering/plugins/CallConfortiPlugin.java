@@ -1,5 +1,6 @@
 package org.processmining.logfiltering.plugins;
 
+import com.raffaeleconforti.noisefiltering.event.InfrequentBehaviourFilter;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XLog;
@@ -8,13 +9,11 @@ import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 
-import com.raffaeleconforti.noisefiltering.event.InfrequentBehaviourFilter;
-
-@Plugin(name = "Call Conforti plugin", parameterLabels = { "Event Log" }, returnLabels = { "Filtered Event Log" }, returnTypes = { XLog.class })
+@Plugin(name = "Call Conforti plugin", parameterLabels = {"Event Log"}, returnLabels = {"Filtered Event Log"}, returnTypes = {XLog.class})
 public class CallConfortiPlugin {
-	@UITopiaVariant(affiliation = "RWTH Aachen University", author = "Mohammadreza", email = "FaniSani@pads.rwth-aachen.de")
-	@PluginVariant(requiredParameterLabels = { 0 })
-	public XLog filterLogUsingConforti(UIPluginContext context, XLog rawLog) {
+    @UITopiaVariant(affiliation = "RWTH Aachen University", author = "Mohammadreza", email = "FaniSani@pads.rwth-aachen.de")
+    @PluginVariant(requiredParameterLabels = {0})
+    public XLog filterLogUsingConforti(UIPluginContext context, XLog rawLog) {
         XEventClassifier xEventClassifier = XLogInfoImpl.STANDARD_CLASSIFIER;
         /*
                 
@@ -23,7 +22,7 @@ public class CallConfortiPlugin {
         /*InfrequentBehaviourFilter iffilter = new InfrequentBehaviourFilter(classifier);
                 
         XLog filteredLog = iffilter.filterLog(initialLog);*/
-        
+
         //InfrequentBehaviourFilterPlugin plugin = new InfrequentBehaviourFilterPluginLPSolve();
         
         /*AutomatonFactory automatonFactory = new AutomatonFactory(xEventClassifier);
@@ -53,18 +52,18 @@ public class CallConfortiPlugin {
         }*/
 
         //return infrequentBehaviourFilter.filterLog(context, rawLog, result);
-        
+
         //NoiseFilterResult result = new NoiseFilterResult();
         //result.setNoiseLevel(0.05);
-        
+
         //InfrequentBehaviourFilter iffilter = new InfrequentBehaviourFilter(xEventClassifier, false, false, false, false, false, 0.125, 0.5, false, -1);
-                
+
         //return iffilter.filterLog(context, log, result);
-        
+
         InfrequentBehaviourFilter filter = new InfrequentBehaviourFilter(xEventClassifier, false, true, true, true, false, 0.125, 0.9, false, -1);
-        
-        XLog filterLog =  filter.filterLog(rawLog);
+
+        XLog filterLog = filter.filterLog(rawLog);
         filterLog.size();
         return filterLog;
-	}
+    }
 }

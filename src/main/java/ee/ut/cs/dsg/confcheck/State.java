@@ -3,19 +3,17 @@ package ee.ut.cs.dsg.confcheck;
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class State implements Comparable<State>{
-    private Alignment alignment;
-    private List<String> tracePostfix;
-    private TrieNode node;
-    private int costSoFar;
-    private State parentState;
+public class State implements Comparable<State> {
+    private final Alignment alignment;
+    private final List<String> tracePostfix;
+    private final TrieNode node;
+    private final int costSoFar;
+    private final State parentState;
 
-    public State(Alignment alignment, List<String> tracePostfix, TrieNode node, int costSoFar)
-    {
+    public State(Alignment alignment, List<String> tracePostfix, TrieNode node, int costSoFar) {
         this.alignment = alignment;
         this.tracePostfix = new LinkedList<>();
         this.tracePostfix.addAll(tracePostfix);
@@ -25,8 +23,7 @@ public class State implements Comparable<State>{
     }
 
     // This new constructor was added to link back to previous states and track the cost of partial alignments
-    public State(Alignment alignment, List<String> tracePostfix, TrieNode node, int costSoFar, final State parentState)
-    {
+    public State(Alignment alignment, List<String> tracePostfix, TrieNode node, int costSoFar, final State parentState) {
         this.alignment = alignment;
         this.tracePostfix = new LinkedList<>();
         this.tracePostfix.addAll(tracePostfix);
@@ -34,9 +31,9 @@ public class State implements Comparable<State>{
         this.costSoFar = costSoFar;
         this.parentState = parentState;
     }
+
     @Override
-    public int compareTo(State other)
-    {
+    public int compareTo(State other) {
         if (this.costSoFar > other.getCostSoFar())
             return 1;
         else if (this.costSoFar < other.getCostSoFar())
@@ -63,13 +60,11 @@ public class State implements Comparable<State>{
         return costSoFar;
     }
 
-    public int hashCode()
-    {
+    public int hashCode() {
         return node.hashCode();
     }
 
-    public State getParentState()
-    {
+    public State getParentState() {
         return parentState;
     }
 }

@@ -1,22 +1,16 @@
 package org.processmining.logfiltering.legacy.plugins.logfiltering.swingx;
 
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.LayoutManager2;
-import java.awt.Point;
+import javax.swing.*;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.SizeRequirements;
-
 /**
  * LayoutManager which is like a grid, but fixes the sizes of certain rows and
  * columns to their preferred size.
- * 
+ *
  * @author R. P. Jagadeesh Chandra 'JC' Bose (adapted from pf aa t)
  * @version 0.1
  * @date 18 December 2009
@@ -25,21 +19,23 @@ public class ScrollableGridLayout implements LayoutManager2 {
     // gap between rows, columns
     private int horizontalGap, verticalGap;
     // number of rows, columns
-    private int width, height;
+    private final int width;
+    private final int height;
     // which rows, columns are fixed size
-    private boolean[] fixSizeRow, fixSizeCol;
+    private final boolean[] fixSizeRow;
+    private final boolean[] fixSizeCol;
     // map of where components appear
-    private Map<Component, Point> componentPointMap;
+    private final Map<Component, Point> componentPointMap;
     // the target container
-    private Container target;
+    private final Container target;
     // sizes of children
     private SizeRequirements[] xChildren, yChildren;
     private SizeRequirements xTotal, yTotal;
 
     // constructor
     public ScrollableGridLayout(Container target,
-        int width, int height, 
-        int hgap, int vgap) {
+                                int width, int height,
+                                int hgap, int vgap) {
         this.target = target;
         this.width = width;
         this.height = height;
@@ -103,8 +99,8 @@ public class ScrollableGridLayout implements LayoutManager2 {
             throw new RuntimeException("component with unknown "
                     + "location added");
     }
-    
-    public void removeLayoutComponent(Component comp) { 
+
+    public void removeLayoutComponent(Component comp) {
         componentPointMap.remove(comp);
     }
 
@@ -121,13 +117,13 @@ public class ScrollableGridLayout implements LayoutManager2 {
             for (int i = target.getComponentCount() - 1; i >= 0; i--) {
                 Component comp = target.getComponent(i);
 
-                if (!comp.isVisible()) 
+                if (!comp.isVisible())
                     continue;
 
                 Point pos = componentPointMap.get(comp);
 
                 if (pos == null)
-                    throw new RuntimeException("component " + comp.toString()
+                    throw new RuntimeException("component " + comp
                             + "with unknown "
                             + "location present");
                 int x = pos.x;
@@ -136,7 +132,7 @@ public class ScrollableGridLayout implements LayoutManager2 {
                 Dimension preferred_d = comp.getPreferredSize();
                 Dimension maximum_d = comp.getMaximumSize();
 
-                if (fixSizeCol[x]) 
+                if (fixSizeCol[x])
                     maximum_d.width = minimum_d.width = preferred_d.width;
                 if (fixSizeRow[y])
                     maximum_d.height = minimum_d.height = preferred_d.height;
@@ -152,7 +148,7 @@ public class ScrollableGridLayout implements LayoutManager2 {
                 if (maximum_d.width > xChildren[x].maximum)
                     xChildren[x].maximum = maximum_d.width;
                 if (maximum_d.height > yChildren[y].maximum)
-                    yChildren[y].maximum = maximum_d.height;		
+                    yChildren[y].maximum = maximum_d.height;
             }
 
             xTotal = SizeRequirements.getTiledSizeRequirements(xChildren);
@@ -164,18 +160,18 @@ public class ScrollableGridLayout implements LayoutManager2 {
     public Dimension preferredLayoutSize(Container target) {
         checkContainer(target);
         checkRequests();
-	
+
         Dimension size = new Dimension(xTotal.preferred, yTotal.preferred);
         Insets insets = target.getInsets();
 
-        size.width = (int) Math.min((long) size.width 
-                    + (long) insets.left 
-                    + insets.right, 
-                    Integer.MAX_VALUE);
-        size.height = (int) Math.min((long) size.height 
-                    + (long) insets.top 
-                    + insets.bottom, 
-                    Integer.MAX_VALUE);
+        size.width = (int) Math.min((long) size.width
+                        + (long) insets.left
+                        + insets.right,
+                Integer.MAX_VALUE);
+        size.height = (int) Math.min((long) size.height
+                        + (long) insets.top
+                        + insets.bottom,
+                Integer.MAX_VALUE);
         return size;
     }
 
@@ -183,18 +179,18 @@ public class ScrollableGridLayout implements LayoutManager2 {
     public Dimension minimumLayoutSize(Container target) {
         checkContainer(target);
         checkRequests();
-	
+
         Dimension size = new Dimension(xTotal.minimum, yTotal.minimum);
         Insets insets = target.getInsets();
 
-        size.width = (int) Math.min((long) size.width 
-                    + (long) insets.left 
-                    + insets.right, 
-                    Integer.MAX_VALUE);
-        size.height = (int) Math.min((long) size.height 
-                    + (long) insets.top 
-                    + insets.bottom, 
-                    Integer.MAX_VALUE);
+        size.width = (int) Math.min((long) size.width
+                        + (long) insets.left
+                        + insets.right,
+                Integer.MAX_VALUE);
+        size.height = (int) Math.min((long) size.height
+                        + (long) insets.top
+                        + insets.bottom,
+                Integer.MAX_VALUE);
         return size;
     }
 
@@ -202,18 +198,18 @@ public class ScrollableGridLayout implements LayoutManager2 {
     public Dimension maximumLayoutSize(Container target) {
         checkContainer(target);
         checkRequests();
-	
+
         Dimension size = new Dimension(xTotal.maximum, yTotal.maximum);
         Insets insets = target.getInsets();
 
-        size.width = (int) Math.min((long) size.width 
-                    + (long) insets.left 
-                    + insets.right, 
-                    Integer.MAX_VALUE);
-        size.height = (int) Math.min((long) size.height 
-                    + (long) insets.top 
-                    + insets.bottom, 
-                    Integer.MAX_VALUE);
+        size.width = (int) Math.min((long) size.width
+                        + (long) insets.left
+                        + insets.right,
+                Integer.MAX_VALUE);
+        size.height = (int) Math.min((long) size.height
+                        + (long) insets.top
+                        + insets.bottom,
+                Integer.MAX_VALUE);
         return size;
     }
 
@@ -232,16 +228,16 @@ public class ScrollableGridLayout implements LayoutManager2 {
 
         alloc.width -= in.left + in.right;
         alloc.height -= in.top + in.bottom;
-        SizeRequirements.calculateTiledPositions(alloc.width, 
-            xTotal,
-            xChildren, 
-            x_offsets,
-            x_spans);
-        SizeRequirements.calculateTiledPositions(alloc.height, 
-            yTotal,
-            yChildren, 
-            y_offsets,
-            y_spans);
+        SizeRequirements.calculateTiledPositions(alloc.width,
+                xTotal,
+                xChildren,
+                x_offsets,
+                x_spans);
+        SizeRequirements.calculateTiledPositions(alloc.height,
+                yTotal,
+                yChildren,
+                y_offsets,
+                y_spans);
 
         for (int i = target.getComponentCount() - 1; i >= 0; i--) {
             Component comp = target.getComponent(i);
@@ -253,30 +249,30 @@ public class ScrollableGridLayout implements LayoutManager2 {
             int x = pos.x;
             int y = pos.y;
 
-            comp.setBounds((int) Math.min((long) in.left 
-                    + (long) x_offsets[x], 
-                    Integer.MAX_VALUE),
-                (int) Math.min((long) in.top 
-                    + (long) y_offsets[y], 
-                    Integer.MAX_VALUE),
-                x_spans[x], 
-                y_spans[y]);
+            comp.setBounds((int) Math.min((long) in.left
+                                    + (long) x_offsets[x],
+                            Integer.MAX_VALUE),
+                    (int) Math.min((long) in.top
+                                    + (long) y_offsets[y],
+                            Integer.MAX_VALUE),
+                    x_spans[x],
+                    y_spans[y]);
         }
     }
 
-	public int getHgap() {
-		return horizontalGap;
-	}
+    public int getHgap() {
+        return horizontalGap;
+    }
 
-	public int getVgap() {
-		return verticalGap;
-	}
-	
-	public void setHgap(int horizontalGap){
-		this.horizontalGap = horizontalGap;
-	}
-	
-	public void setVgap(int verticalGap){
-		this.verticalGap = verticalGap;
-	}
+    public int getVgap() {
+        return verticalGap;
+    }
+
+    public void setHgap(int horizontalGap) {
+        this.horizontalGap = horizontalGap;
+    }
+
+    public void setVgap(int verticalGap) {
+        this.verticalGap = verticalGap;
+    }
 }

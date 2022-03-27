@@ -9,35 +9,35 @@ import java.util.Random;
 
 public class AntTsp {
 
-    private double c = 1.0;
+    private final double c = 1.0;
 
-    private double alpha = 1;
+    private final double alpha = 1;
 
-    private double beta = 5;
+    private final double beta = 5;
 
-    private double evaporation = 0.5;
+    private final double evaporation = 0.5;
 
-    private double Q = 500;
+    private final double Q = 500;
 
-    private double numAntFactor = 0.8;
+    private final double numAntFactor = 0.8;
 
-    private double pr = 0.01;
+    private final double pr = 0.01;
 
-    private int maxIterations = 2000;
+    private final int maxIterations = 2000;
 
     public int n = 0; // # towns
 
     public int m = 0; // # ants
 
-    private double graph[][] = null;
+    private double[][] graph = null;
 
-    private double trails[][] = null;
+    private double[][] trails = null;
 
-    private Ant ants[] = null;
+    private Ant[] ants = null;
 
-    private Random rand = new Random();
+    private final Random rand = new Random();
 
-    private double probs[] = null;
+    private double[] probs = null;
 
     private int currentIndex = 0;
 
@@ -46,9 +46,9 @@ public class AntTsp {
     public double bestTourLength;
 
     private class Ant {
-        public int tour[] = new int[graph.length];
+        public int[] tour = new int[graph.length];
 
-        public boolean visited[] = new boolean[graph.length];
+        public boolean[] visited = new boolean[graph.length];
 
         public void visitTown(int town) {
             tour[currentIndex + 1] = town;
@@ -81,7 +81,7 @@ public class AntTsp {
         int i = 0;
 
         while ((line = buf.readLine()) != null) {
-            String splitA[] = line.split(" ");
+            String[] splitA = line.split(" ");
             LinkedList<String> split = new LinkedList<String>();
             for (String s : splitA)
                 if (!s.isEmpty())
@@ -141,7 +141,7 @@ public class AntTsp {
 
 
     private int selectNextTown(Ant ant) {
-              if (rand.nextDouble() < pr) {
+        if (rand.nextDouble() < pr) {
             int t = rand.nextInt(n - currentIndex); // random town
             int j = -1;
             for (int i = 0; i < n; i++) {
@@ -216,15 +216,15 @@ public class AntTsp {
         }
     }
 
-    public static String tourToString(int tour[]) {
-        String t = new String();
+    public static String tourToString(int[] tour) {
+        String t = "";
         for (int i : tour)
             t = t + " " + i;
         return t;
     }
 
     public int[] solve() {
-            for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
             for (int j = 0; j < n; j++)
                 trails[i][j] = c;
 
@@ -243,7 +243,7 @@ public class AntTsp {
 
 
     public static void main(String[] args) {
-            if (args.length < 1) {
+        if (args.length < 1) {
             System.err.println("Please specify a TSP data file.");
             return;
         }

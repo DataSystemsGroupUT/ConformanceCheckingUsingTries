@@ -7,243 +7,243 @@ import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.Clus
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.PrototypeType;
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.SamplingType;
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.SimilarityMeasure;
+
 public class MatrixFilterParameter extends PluginParametersImpl {
-	
-	public ClusteringType getClusterType() {
-		return clusterType;
-	}
 
-	public void setClusterType(ClusteringType clusterType) {
-		this.clusterType = clusterType;
-	}
+    public ClusteringType getClusterType() {
+        return clusterType;
+    }
 
-	private double probabilityOfRemoval = 0.1;
-	private int SubsequenceLength = 2;
-	private FilterLevel FilteringMethod = FilterLevel.TRACE;
-	private XEventClassifier EventAttribute = new XEventNameClassifier();
-	private AdjustingType AdjustingThresholdMethod= AdjustingType.None;
-	private ProbabilityType ProbabilitycomutingMethod= ProbabilityType.DIRECT;
-	private double secondDoubleVariable=0.05;
-	private SamplingType samplingType= SamplingType.Hybrid;
-	private FilterSelection FilteringSelection = FilterSelection.REMOVE;
-	private SimilarityMeasure similarityMeasure = SimilarityMeasure.Levenstein;
-	private SamplingReturnType returnType= SamplingReturnType.Variants;
-	private PrototypeType prototypeType= PrototypeType.KMeansClusteringApprox;
-	private ClusteringType clusterType= ClusteringType.Manual;
-	private String dicoveryMethod= "Inductive";
-	public PrototypeType getPrototypeType() {
-		return prototypeType;
-	}
+    public void setClusterType(ClusteringType clusterType) {
+        this.clusterType = clusterType;
+    }
 
-	public void setPrototypeType(PrototypeType prototypeType) {
-		this.prototypeType = prototypeType;
-	}
+    private double probabilityOfRemoval = 0.1;
+    private int SubsequenceLength = 2;
+    private FilterLevel FilteringMethod = FilterLevel.TRACE;
+    private XEventClassifier EventAttribute = new XEventNameClassifier();
+    private AdjustingType AdjustingThresholdMethod = AdjustingType.None;
+    private ProbabilityType ProbabilitycomutingMethod = ProbabilityType.DIRECT;
+    private double secondDoubleVariable = 0.05;
+    private SamplingType samplingType = SamplingType.Hybrid;
+    private FilterSelection FilteringSelection = FilterSelection.REMOVE;
+    private SimilarityMeasure similarityMeasure = SimilarityMeasure.Levenstein;
+    private SamplingReturnType returnType = SamplingReturnType.Variants;
+    private PrototypeType prototypeType = PrototypeType.KMeansClusteringApprox;
+    private ClusteringType clusterType = ClusteringType.Manual;
+    private String dicoveryMethod = "Inductive";
 
-	public MatrixFilterParameter(){
-		super();
-	}
-			
-	public AdjustingType getAdjustingThresholdMethod() {
-		return AdjustingThresholdMethod;
-	}
+    public PrototypeType getPrototypeType() {
+        return prototypeType;
+    }
 
-	public ProbabilityType getProbabilitycomutingMethod() {
-		return ProbabilitycomutingMethod;
-	}
+    public void setPrototypeType(PrototypeType prototypeType) {
+        this.prototypeType = prototypeType;
+    }
 
-	public void setProbabilitycomutingMethod(ProbabilityType probabilitycomutingMethod) {
-		ProbabilitycomutingMethod = probabilitycomutingMethod;
-	}
+    public MatrixFilterParameter() {
+        super();
+    }
 
-	public void setAdjustingThresholdMethod(AdjustingType adjustingThresholdMethod) {
-		AdjustingThresholdMethod = adjustingThresholdMethod;
-	}
+    public AdjustingType getAdjustingThresholdMethod() {
+        return AdjustingThresholdMethod;
+    }
 
-	public FilterSelection getFilteringSelection() {
-		return FilteringSelection;
-	}
+    public ProbabilityType getProbabilitycomutingMethod() {
+        return ProbabilitycomutingMethod;
+    }
 
-	public void setFilteringSelection(FilterSelection filteringSelection) {
-		FilteringSelection = filteringSelection;
-	}
+    public void setProbabilitycomutingMethod(ProbabilityType probabilitycomutingMethod) {
+        ProbabilitycomutingMethod = probabilitycomutingMethod;
+    }
 
-	public MatrixFilterParameter(double probabilityOfRemoval, AdjustingType  adjustingThresholdMethod,int subsequencelenth ,FilterLevel filteringmethod, FilterSelection filteringSelection, 
-				ProbabilityType probabilitycomutingMethod	,XEventClassifier eventattribute) {
-		super();
-		this.probabilityOfRemoval = probabilityOfRemoval;
-		this.FilteringMethod= filteringmethod;
-		this.EventAttribute = eventattribute;
-		this.FilteringSelection = filteringSelection;
-		this.SubsequenceLength=subsequencelenth;
-		this.AdjustingThresholdMethod= adjustingThresholdMethod;
-		this.ProbabilitycomutingMethod=probabilitycomutingMethod;
-	}
+    public void setAdjustingThresholdMethod(AdjustingType adjustingThresholdMethod) {
+        AdjustingThresholdMethod = adjustingThresholdMethod;
+    }
 
-	public int getSubsequenceLength() {
-		return SubsequenceLength;
-	}
+    public FilterSelection getFilteringSelection() {
+        return FilteringSelection;
+    }
 
-	public void setSubsequenceLength(int subsequenceLength) {
-		SubsequenceLength = subsequenceLength;
-	}
+    public void setFilteringSelection(FilterSelection filteringSelection) {
+        FilteringSelection = filteringSelection;
+    }
 
-	public MatrixFilterParameter(double probabilityOfRemoval, FilterSelection filterSelection , XEventClassifier eventattribute) {
-		super();
-		this.probabilityOfRemoval = probabilityOfRemoval;
-		this.FilteringSelection=filterSelection;
-		this.EventAttribute = eventattribute;
-	}
-	public MatrixFilterParameter( XEventClassifier eventattribute) {
-		super();
-		this.EventAttribute = eventattribute;
-	}
+    public MatrixFilterParameter(double probabilityOfRemoval, AdjustingType adjustingThresholdMethod, int subsequencelenth, FilterLevel filteringmethod, FilterSelection filteringSelection,
+                                 ProbabilityType probabilitycomutingMethod, XEventClassifier eventattribute) {
+        super();
+        this.probabilityOfRemoval = probabilityOfRemoval;
+        this.FilteringMethod = filteringmethod;
+        this.EventAttribute = eventattribute;
+        this.FilteringSelection = filteringSelection;
+        this.SubsequenceLength = subsequencelenth;
+        this.AdjustingThresholdMethod = adjustingThresholdMethod;
+        this.ProbabilitycomutingMethod = probabilitycomutingMethod;
+    }
 
-	public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute) {
-		super();
-		this.EventAttribute = eventattribute;
-		this.SubsequenceLength=subsequencelenth;
-	}
+    public int getSubsequenceLength() {
+        return SubsequenceLength;
+    }
 
-	public MatrixFilterParameter(double threshold, XEventClassifier eventattribute) {
-		super();
-		this.EventAttribute = eventattribute;
-		this.probabilityOfRemoval = threshold;
-	}
+    public void setSubsequenceLength(int subsequenceLength) {
+        SubsequenceLength = subsequenceLength;
+    }
 
-	public MatrixFilterParameter(double oddRulesSupport, double highProbableRulesConf, int supportOfHighProbableRules, FilterSelection filterselection,
-			XEventClassifier eventattribute) {
-		this.probabilityOfRemoval=oddRulesSupport;
-		this.secondDoubleVariable= highProbableRulesConf;
-		this.SubsequenceLength=supportOfHighProbableRules;
-		this.FilteringSelection=filterselection;
-		this.EventAttribute=eventattribute;
-	}
+    public MatrixFilterParameter(double probabilityOfRemoval, FilterSelection filterSelection, XEventClassifier eventattribute) {
+        super();
+        this.probabilityOfRemoval = probabilityOfRemoval;
+        this.FilteringSelection = filterSelection;
+        this.EventAttribute = eventattribute;
+    }
 
-	public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute, SamplingType SampleTypeChosenItem, SamplingReturnType ReturnTypeChosenItem) {
-		super();
-		this.returnType= ReturnTypeChosenItem;
-		this.samplingType= SampleTypeChosenItem; 
-		this.EventAttribute = eventattribute;
-		this.SubsequenceLength=subsequencelenth;
-		
-	}
+    public MatrixFilterParameter(XEventClassifier eventattribute) {
+        super();
+        this.EventAttribute = eventattribute;
+    }
 
-	
-	public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute, SimilarityMeasure similarityMeasure,
-			SamplingReturnType samplingRetunType) {
-		super();
-		this.returnType= samplingRetunType;
-		this.similarityMeasure= similarityMeasure; 
-		this.EventAttribute = eventattribute;
-		this.SubsequenceLength=subsequencelenth;
-	}
+    public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute) {
+        super();
+        this.EventAttribute = eventattribute;
+        this.SubsequenceLength = subsequencelenth;
+    }
 
-	public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute, SimilarityMeasure similarityMeasure,
-			SamplingReturnType samplingRetunType, PrototypeType prototypeTypeValue) {
-		super();
-		this.SubsequenceLength=subsequencelenth;
-		this.returnType= samplingRetunType;
-		this.similarityMeasure= similarityMeasure; 
-		this.EventAttribute = eventattribute;
-		this.prototypeType= prototypeTypeValue;
-	}
+    public MatrixFilterParameter(double threshold, XEventClassifier eventattribute) {
+        super();
+        this.EventAttribute = eventattribute;
+        this.probabilityOfRemoval = threshold;
+    }
 
-	public MatrixFilterParameter(int NumerofCluster, XEventClassifier classifier, ClusteringType clusterT) {
-		
-		super();
-		this.SubsequenceLength=NumerofCluster;
-		this.EventAttribute = classifier;
-		clusterType=clusterT;
+    public MatrixFilterParameter(double oddRulesSupport, double highProbableRulesConf, int supportOfHighProbableRules, FilterSelection filterselection,
+                                 XEventClassifier eventattribute) {
+        this.probabilityOfRemoval = oddRulesSupport;
+        this.secondDoubleVariable = highProbableRulesConf;
+        this.SubsequenceLength = supportOfHighProbableRules;
+        this.FilteringSelection = filterselection;
+        this.EventAttribute = eventattribute;
+    }
 
-	}
+    public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute, SamplingType SampleTypeChosenItem, SamplingReturnType ReturnTypeChosenItem) {
+        super();
+        this.returnType = ReturnTypeChosenItem;
+        this.samplingType = SampleTypeChosenItem;
+        this.EventAttribute = eventattribute;
+        this.SubsequenceLength = subsequencelenth;
 
-	public MatrixFilterParameter(int NumerofCluster, XEventClassifier classifier, ClusteringType clusterT,  double bettaValue,
-			double  changeInClusters, String discovery) {
-		super();
-		this.SubsequenceLength=NumerofCluster;
-		this.EventAttribute = classifier;
-		this.clusterType=clusterT;
-		this.secondDoubleVariable=bettaValue;
-		this.dicoveryMethod=discovery;
-		this.probabilityOfRemoval=changeInClusters;
-		
-		// TODO Auto-generated constructor stub
-	}
+    }
 
-	public FilterLevel getFilteringMethod() {
-		return FilteringMethod;
-	}
 
-	public void setFilteringMethod(FilterLevel filteringMethod) {
-		FilteringMethod = filteringMethod;
-	}
+    public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute, SimilarityMeasure similarityMeasure,
+                                 SamplingReturnType samplingRetunType) {
+        super();
+        this.returnType = samplingRetunType;
+        this.similarityMeasure = similarityMeasure;
+        this.EventAttribute = eventattribute;
+        this.SubsequenceLength = subsequencelenth;
+    }
 
-	public SamplingType getSamplingType() {
-		return samplingType;
-	}
+    public MatrixFilterParameter(int subsequencelenth, XEventClassifier eventattribute, SimilarityMeasure similarityMeasure,
+                                 SamplingReturnType samplingRetunType, PrototypeType prototypeTypeValue) {
+        super();
+        this.SubsequenceLength = subsequencelenth;
+        this.returnType = samplingRetunType;
+        this.similarityMeasure = similarityMeasure;
+        this.EventAttribute = eventattribute;
+        this.prototypeType = prototypeTypeValue;
+    }
 
-	public void setSamplingType(SamplingType samplingType) {
-		this.samplingType = samplingType;
-	}
+    public MatrixFilterParameter(int NumerofCluster, XEventClassifier classifier, ClusteringType clusterT) {
 
-	public SamplingReturnType getReturnType() {
-		return returnType;
-	}
+        super();
+        this.SubsequenceLength = NumerofCluster;
+        this.EventAttribute = classifier;
+        clusterType = clusterT;
 
-	public void setReturnType(SamplingReturnType returnType) {
-		this.returnType = returnType;
-	}
+    }
 
-	public XEventClassifier getEventClassifier() {
-		return EventAttribute;
-	}
+    public MatrixFilterParameter(int NumerofCluster, XEventClassifier classifier, ClusteringType clusterT, double bettaValue,
+                                 double changeInClusters, String discovery) {
+        super();
+        this.SubsequenceLength = NumerofCluster;
+        this.EventAttribute = classifier;
+        this.clusterType = clusterT;
+        this.secondDoubleVariable = bettaValue;
+        this.dicoveryMethod = discovery;
+        this.probabilityOfRemoval = changeInClusters;
 
-	public void setEventClassifier(XEventClassifier eventAttribute) {
-		EventAttribute = eventAttribute;
-	}
+        // TODO Auto-generated constructor stub
+    }
 
-	public FilterLevel getFilterLevel() {
-		return FilteringMethod;
-	}
+    public FilterLevel getFilteringMethod() {
+        return FilteringMethod;
+    }
 
-	public void setFilterLevel(FilterLevel filteringMethod) {
-		FilteringMethod = filteringMethod;
-	}
+    public void setFilteringMethod(FilterLevel filteringMethod) {
+        FilteringMethod = filteringMethod;
+    }
 
-	public double getProbabilityOfRemoval() {
-		return probabilityOfRemoval;
-	}
+    public SamplingType getSamplingType() {
+        return samplingType;
+    }
 
-	public void setProbabilityOfRemoval(double probabilityOfRemoval) {
-		this.probabilityOfRemoval = probabilityOfRemoval;
-	}
+    public void setSamplingType(SamplingType samplingType) {
+        this.samplingType = samplingType;
+    }
 
-	public double getSecondDoubleVariable() {
-		return secondDoubleVariable;
-	}
+    public SamplingReturnType getReturnType() {
+        return returnType;
+    }
 
-	public void setSecondDoubleVariable(double secondDoubleVariable) {
-		this.secondDoubleVariable = secondDoubleVariable;
-	}
+    public void setReturnType(SamplingReturnType returnType) {
+        this.returnType = returnType;
+    }
 
-	public SimilarityMeasure getSimilarityMeasure() {
-		return similarityMeasure;
-	}
+    public XEventClassifier getEventClassifier() {
+        return EventAttribute;
+    }
 
-	public void setSimilarityMeasure(SimilarityMeasure similarityMeasure) {
-		this.similarityMeasure = similarityMeasure;
-	}
+    public void setEventClassifier(XEventClassifier eventAttribute) {
+        EventAttribute = eventAttribute;
+    }
 
-	public String getDicoveryMethod() {
-		return dicoveryMethod;
-	}
+    public FilterLevel getFilterLevel() {
+        return FilteringMethod;
+    }
 
-	public void setDicoveryMethod(String dicoveryMethod) {
-		this.dicoveryMethod = dicoveryMethod;
-	}
+    public void setFilterLevel(FilterLevel filteringMethod) {
+        FilteringMethod = filteringMethod;
+    }
 
-	
+    public double getProbabilityOfRemoval() {
+        return probabilityOfRemoval;
+    }
 
-	
+    public void setProbabilityOfRemoval(double probabilityOfRemoval) {
+        this.probabilityOfRemoval = probabilityOfRemoval;
+    }
+
+    public double getSecondDoubleVariable() {
+        return secondDoubleVariable;
+    }
+
+    public void setSecondDoubleVariable(double secondDoubleVariable) {
+        this.secondDoubleVariable = secondDoubleVariable;
+    }
+
+    public SimilarityMeasure getSimilarityMeasure() {
+        return similarityMeasure;
+    }
+
+    public void setSimilarityMeasure(SimilarityMeasure similarityMeasure) {
+        this.similarityMeasure = similarityMeasure;
+    }
+
+    public String getDicoveryMethod() {
+        return dicoveryMethod;
+    }
+
+    public void setDicoveryMethod(String dicoveryMethod) {
+        this.dicoveryMethod = dicoveryMethod;
+    }
+
 
 }

@@ -1,22 +1,23 @@
 package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
-import ee.ut.cs.dsg.confcheck.alignment.Move;
-import ee.ut.cs.dsg.confcheck.cost.CostFunction;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
-import ee.ut.cs.dsg.confcheck.trie.TrieNode;
+import spine.Spine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Random;
 
 public abstract class ConformanceChecker {
     protected final Trie modelTrie;
-    protected final int logMoveCost ;
-    protected final int modelMoveCost ;
-    protected PriorityQueue<State> nextChecks;
+    protected final int logMoveCost;
+    protected final int modelMoveCost;
+    protected Spine<State> nextChecks;
 
-    protected int cntr=1;
+    protected int cntr = 1;
     protected int maxStatesInQueue;
-//    private HashSet<State> seenBefore;
+    //    private HashSet<State> seenBefore;
     protected ArrayList<State> states;
 
     public int getTraceSize() {
@@ -30,33 +31,32 @@ public abstract class ConformanceChecker {
     }
 
     protected int maxModelTraceSize;
-    protected int leastCostSoFar  = Integer.MAX_VALUE;
+    protected int leastCostSoFar = Integer.MAX_VALUE;
 
     protected int cleanseFrequency = 100;
-    protected int maxTrials=200000;
+    protected int maxTrials = 200000;
 
     protected Trie inspectedLogTraces;
     protected Random rnd;
-    public ConformanceChecker(Trie modelTrie)
-    {
-       this(modelTrie, 1, 1);
+
+    public ConformanceChecker(Trie modelTrie) {
+        this(modelTrie, 1, 1);
 
     }
 
-    public ConformanceChecker(Trie modelTrie, int logCost, int modelCost)
-    {
+    public ConformanceChecker(Trie modelTrie, int logCost, int modelCost) {
         this(modelTrie, logCost, modelCost, 10000);
 
     }
-    public ConformanceChecker(Trie modelTrie, int logCost, int modelCost, int maxStatesInQueue)
-    {
+
+    public ConformanceChecker(Trie modelTrie, int logCost, int modelCost, int maxStatesInQueue) {
         this.modelTrie = modelTrie;
         this.logMoveCost = logCost;
         this.modelMoveCost = modelCost;
 
         states = new ArrayList<>();
         this.maxStatesInQueue = maxStatesInQueue;
-        nextChecks = new PriorityQueue<>(maxStatesInQueue);
+        nextChecks = new Spine<>(1024);
 //        this.seenBefore = new HashSet<>();
     }
 
@@ -243,13 +243,12 @@ public abstract class ConformanceChecker {
 //            seenBefore.add(state);
 //        if (state.getCostSoFar() < 0)
 //            return;
-        if (cntr==maxStatesInQueue) {
+        if (cntr == maxStatesInQueue) {
 //            System.out.println("Max queue size reached. New state is not added!");
             return;
         }
         cntr++;
-        if (nextChecks.size() == maxStatesInQueue)
-        {
+        if (nextChecks.size() == maxStatesInQueue) {
 //            System.out.println("Max queue size reached. New state is not added!");
 //           if (state.getCostSoFar() < nextChecks.peek().getCostSoFar())
 //            // if (state.getAlignment().getTotalCost() < nextChecks.peek().getAlignment().getTotalCost())
@@ -262,37 +261,33 @@ public abstract class ConformanceChecker {
             return;
         }
         if (candidateState != null) {
-            if ((state.getAlignment().getTotalCost() + Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()),Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd())))< candidateState.getAlignment().getTotalCost())// && state.getNode().getLevel() > candidateState.getNode().getLevel())
+            if ((state.getAlignment().getTotalCost() + Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()), Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd()))) < candidateState.getAlignment().getTotalCost())// && state.getNode().getLevel() > candidateState.getNode().getLevel())
             {
 
-                nextChecks.add(state);
+                nextChecks.push(state);
 //                states.add(state);
-            }
-            else {
+            } else {
 //                System.out.println(String.format("State is not promising cost %d is greater than the best solution so far %d",(state.getAlignment().getTotalCost()+Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd())),candidateState.getAlignment().getTotalCost()) );
 //                System.out.println("Queue size "+nextChecks.size());
 //                System.out.println("Least cost to check next "+nextChecks.peek().getCostSoFar());
             }
-        }
-        else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
+        } else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
         {
-            nextChecks.add(state);
+            nextChecks.push(state);
 //            states.add(state);
         }
-        if (cntr % cleanseFrequency == 0)
-        {
+        if (cntr % cleanseFrequency == 0) {
             cleanState(candidateState);
-            cntr=1;
+            cntr = 1;
         }
     }
-    private void cleanState(State candidateState)
-    {
-        int coundDown=cleanseFrequency;
+
+    private void cleanState(State candidateState) {
+        int coundDown = cleanseFrequency;
         State current;
         while (nextChecks.size() > cleanseFrequency & coundDown > 0) {
-            current = nextChecks.poll();
-            if (candidateState != null)
-            {
+            current = nextChecks.pollFirst();
+            if (candidateState != null) {
                 if ((current.getAlignment().getTotalCost() + Math.abs(current.getTracePostfix().size() - current.getNode().getMinPathLengthToEnd())) >= candidateState.getAlignment().getTotalCost())// && state.getNode().getLevel() > candidateState.getNode().getLevel())
                 {
 //                    System.out.println(String.format("Removing an old expensive state with cost %d, which is greater than the best solution so far %d",(current.getAlignment().getTotalCost()+Math.abs(current.getTracePostfix().size() - current.getNode().getMinPathLengthToEnd())),candidateState.getAlignment().getTotalCost()) );
@@ -300,41 +295,36 @@ public abstract class ConformanceChecker {
                     continue;
 
                 }
-            }
-            else {
-                nextChecks.add(new State(current.getAlignment(), current.getTracePostfix(), current.getNode(), (int) (current.getCostSoFar() + (1 + 10))));
+            } else {
+                nextChecks.push(new State(current.getAlignment(), current.getTracePostfix(), current.getNode(), current.getCostSoFar() + (1 + 10)));
                 coundDown--;
             }
 
         }
         //adjust the frequency of state cleaning
 
-        if(candidateState != null)
-        {
+        if (candidateState != null) {
             if (leastCostSoFar > candidateState.getAlignment().getTotalCost()) // we couldn't find a better solution since last time, we need to decrease the frequency
             {
-                cleanseFrequency = Math.min(100, (cleanseFrequency/10)+100);
-            }
-            else
-                cleanseFrequency *=10;
-    //        System.out.println("State cleansing frequency changed to " +cleanseFrequency);
+                cleanseFrequency = Math.min(100, (cleanseFrequency / 10) + 100);
+            } else
+                cleanseFrequency *= 10;
+            //        System.out.println("State cleansing frequency changed to " +cleanseFrequency);
         }
 
     }
 
-    private int computeCost(int minPathLengthToEnd, int traceSuffixLength, int cumulativeCost, boolean isLogMove)
-    {
-        int cost = isLogMove? logMoveCost: modelMoveCost;
+    private int computeCost(int minPathLengthToEnd, int traceSuffixLength, int cumulativeCost, boolean isLogMove) {
+        int cost = isLogMove ? logMoveCost : modelMoveCost;
 
         // If this is a log move, we have to add 1 to the trie length to end as we have not moved yet from the current node
         // in the trie.
-        cost += cumulativeCost + Math.abs( (/*(isLogMove? 1:0) +*/ minPathLengthToEnd) -  traceSuffixLength);
+        cost += cumulativeCost + Math.abs((/*(isLogMove? 1:0) +*/ minPathLengthToEnd) - traceSuffixLength);
         return cost;
     }
 
-    private int computeCostV2(int minPathLengthToEnd, int traceSuffixLength, int cumulativeCost, boolean isLogMove)
-    {
-        int cost =0;//isLogMove? logMoveCost: modelMoveCost;
+    private int computeCostV2(int minPathLengthToEnd, int traceSuffixLength, int cumulativeCost, boolean isLogMove) {
+        int cost = 0;//isLogMove? logMoveCost: modelMoveCost;
 
 
         // If this is a log move, we have to add 1 to the trie length to end as we have not moved yet from the current node
@@ -346,9 +336,9 @@ public abstract class ConformanceChecker {
         // Description of the cost: worst case is no alignment at all we have to do a model trace followed by the log trace
         // Then we subtract how far we went into the model model trace which is represented by the misleading name of cumulative cost
         // We also have to subtract how far did we go in the log trace
-        cost += maxModelTraceSize+traceSize -(cumulativeCost + (traceSize- traceSuffixLength));//- Math.abs( /*(isLogMove? 1:0) +*/ minPathLengthToEnd -  traceSuffixLength);
+        cost += maxModelTraceSize + traceSize - (cumulativeCost + (traceSize - traceSuffixLength));//- Math.abs( /*(isLogMove? 1:0) +*/ minPathLengthToEnd -  traceSuffixLength);
         if (cost < 0)
-            System.out.println("Cost is negative "+cost +" worst case cost is "+(maxModelTraceSize+traceSize) + "cumulative cost is "+cumulativeCost);
+            System.out.println("Cost is negative " + cost + " worst case cost is " + (maxModelTraceSize + traceSize) + "cumulative cost is " + cumulativeCost);
         return cost;
 
     }

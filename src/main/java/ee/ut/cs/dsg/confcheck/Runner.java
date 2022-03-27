@@ -1,18 +1,10 @@
 package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
-import ee.ut.cs.dsg.confcheck.alignment.AlignmentFactory;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
-import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 import ee.ut.cs.dsg.confcheck.util.AlphabetService;
-import ee.ut.cs.dsg.confcheck.util.Configuration;
-import ee.ut.cs.dsg.confcheck.StatefulRandomConformanceChecker;
-import ee.ut.cs.dsg.confcheck.util.Utils;
-import gnu.trove.impl.sync.TSynchronizedShortByteMap;
-import gnu.trove.impl.sync.TSynchronizedShortCharMap;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
-import org.apache.commons.math3.analysis.function.Add;
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.in.XesXmlParser;
@@ -22,7 +14,6 @@ import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
-import org.deckfour.xes.out.XesXmlSerializer;
 import org.processmining.logfiltering.algorithms.ProtoTypeSelectionAlgo;
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.PrototypeType;
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.SimilarityMeasure;
@@ -31,11 +22,10 @@ import org.processmining.logfiltering.parameters.SamplingReturnType;
 import org.processmining.models.connections.GraphLayoutConnection;
 import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetFactory;
-import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetImpl;
 import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.plugins.pnml.base.FullPnmlElementFactory;
 import org.processmining.plugins.pnml.base.Pnml;
-import org.processmining.plugins.pnml.elements.extensions.opennet.PnmlLabel;
+import org.processmining.plugins.pnml.base.PnmlElement;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -45,14 +35,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+
 import static ee.ut.cs.dsg.confcheck.util.Configuration.ConformanceCheckerType;
 import static ee.ut.cs.dsg.confcheck.util.Configuration.LogSortType;
+
 public class Runner {
 
     private static AlphabetService service;
 
-    public static void main(String... args)
-    {
+    public static void main(String... args) {
 //        testBed2();
 //        System.exit(0);
 //        testBed1();
@@ -62,53 +53,49 @@ public class Runner {
 
 //        testBed3();
 //        System.exit(0);
-        String randomProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\randomLog.xml";
-        String clusteredLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\sampledClusteredLog.xml";
-        String simulatedLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\simulatedLog.xml";
-        String reducedActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\reducedLogActivity.xml";
-        String frequencyActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\frequencyLog.xml";
-        String sampleLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\sampledLog.xml";
-        String singular = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\Singular.xes";
+        String randomProxyLog = "./BPI2015/randomLog.xml";
+        String clusteredLog = "./BPI2015/sampledClusteredLog.xml";
+        String simulatedLog = "./BPI2015/simulatedLog.xml";
+        String reducedActivityLog = "./BPI2015/reducedLogActivity.xml";
+        String frequencyActivityLog = "./BPI2015/frequencyLog.xml";
+        String sampleLog = "./BPI2015/sampledLog.xml";
+        String singular = "./BPI2015/Singular.xes";
 
-        String randomSepsisProxyLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\randomLog.xml";
-        String clusteredSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\sampledClusteredLog.xml";
-        String simulatedSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\simulatedLog.xml";
-        String frequencySepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\frequencyLog.xml";
-        String reducedSepsisActivityLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\reducedLogActivity.xml";
-        String sampleSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\sampledLog.xml";
+        String randomSepsisProxyLog = "./Sepsis/randomLog.xml";
+        String clusteredSepsisLog = "./Sepsis/sampledClusteredLog.xml";
+        String simulatedSepsisLog = "./Sepsis/simulatedLog.xml";
+        String frequencySepsisLog = "./Sepsis/frequencyLog.xml";
+        String reducedSepsisActivityLog = "./Sepsis/reducedLogActivity.xml";
+        String sampleSepsisLog = "./Sepsis/sampledLog.xml";
 
         // BPI 2019
-        String originalLog2019 = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\BPI_Challenge_2019.xml";
-        String random2019ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\randomLog.xml";
-        String clustered2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\sampledClusteredLog.xml";
-        String simulated2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\simulatedLog.xml";
-        String reduced2019ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\reducedLogActivity.xml";
-        String sample2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\sampledLog.xml";
-        String frequency2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\frequencyLog.xml";
+        String originalLog2019 = "./BPI2019/BPI_Challenge_2019.xml";
+        String random2019ProxyLog = "./BPI2019/randomLog.xml";
+        String clustered2019Log = "./BPI2019/sampledClusteredLog.xml";
+        String simulated2019Log = "./BPI2019/simulatedLog.xml";
+        String reduced2019ActivityLog = "./BPI2019/reducedLogActivity.xml";
+        String sample2019Log = "./BPI2019/sampledLog.xml";
+        String frequency2019Log = "./BPI2019/frequencyLog.xml";
 
         // BPI 2012
-        String originalLog2012 = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\BPIC2012.xes";
-        String random2012ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\randomLog.xml";
-        String clustered2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\sampledClusteredLog.xml";
-        String simulated2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\simulatedLog.xml";
-        String reduced2012ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\reducedLogActivity.xml";
-        String sample2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\sampledLog.xml";
-        String frequency2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\frequencyLog.xml";
+        String originalLog2012 = "./BPI2012/BPIC2012.xes";
+        String random2012ProxyLog = "./BPI2012/randomLog.xml";
+        String clustered2012Log = "./BPI2012/sampledClusteredLog.xml";
+        String simulated2012Log = "./BPI2012/simulatedLog.xml";
+        String reduced2012ActivityLog = "./BPI2012/reducedLogActivity.xml";
+        String sample2012Log = "./BPI2012/sampledLog.xml";
+        String frequency2012Log = "./BPI2012/frequencyLog.xml";
 
         // BPI 2017
-        String originalLog2017 = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\BPIC2017.xes.xes";
-        String random2017ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\rand_randomLog.xml";
-        String clustered2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\sampledClusteredLog.xml";
-        String simulated2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\simulatedLog.xml";
-        String reduced2017ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\reducedLogActivity.xml";
-        String sample2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\sampledLog.xml";
-        String frequency2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\freq_frequencyLog.xml";
+        String originalLog2017 = "./BPI2017/BPIC2017.xes.xes";
+        String random2017ProxyLog = "./BPI2017/rand_randomLog.xml";
+        String clustered2017Log = "./BPI2017/sampledClusteredLog.xml";
+        String simulated2017Log = "./BPI2017/simulatedLog.xml";
+        String reduced2017ActivityLog = "./BPI2017/reducedLogActivity.xml";
+        String sample2017Log = "./BPI2017/sampledLog.xml";
+        String frequency2017Log = "./BPI2017/freq_frequencyLog.xml";
 
-
-
-
-        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.LEXICOGRAPHIC_DESC );
-
+        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.LEXICOGRAPHIC_DESC);
 
 //        // BPI 2015
 //        printLogStatistics(simulatedLog);
@@ -151,8 +138,7 @@ public class Runner {
 //        printLogStatistics(reducedActivityLog);
     }
 
-    private static void testBed2()
-    {
+    private static void testBed2() {
         List<String> trace = new ArrayList<>();
         trace.add("a");
         trace.add("c");
@@ -211,7 +197,6 @@ public class Runner {
         trace7.add("e");
 
 
-
         List<String> trace8 = new ArrayList<>();
         trace8.add("c");
         trace8.add("e");
@@ -222,18 +207,18 @@ public class Runner {
         trace9.add("e");
 
         ConformanceChecker cnfChecker;// = new ConformanceChecker(t);
-        cnfChecker = new StatefulRandomConformanceChecker(t,1,1,1000, 100000);
+        cnfChecker = new StatefulRandomConformanceChecker(t, 1, 1, 1000, 100000);
 
         Alignment alg;
-        System.out.println(trace4.toString());
+        System.out.println(trace4);
         alg = cnfChecker.check(trace4);
         System.out.println(alg.toString());
 
-        System.out.println(trace6.toString());
+        System.out.println(trace6);
         alg = cnfChecker.check(trace6);
         System.out.println(alg.toString());
 
-        System.out.println(trace7.toString());
+        System.out.println(trace7);
         alg = cnfChecker.check(trace7);
         System.out.println(alg.toString());
 
@@ -241,7 +226,7 @@ public class Runner {
         System.out.println(alg.toString());
 
 //
-        System.out.println(trace8.toString());
+        System.out.println(trace8);
         alg = cnfChecker.check(trace8);
         System.out.println(alg.toString());
 //
@@ -264,7 +249,7 @@ public class Runner {
         int eventType = xpp.getEventType();
         Pnml pnml = new Pnml();
         synchronized (pnmlFactory) {
-            pnml.setFactory(pnmlFactory);
+            PnmlElement.setFactory(pnmlFactory);
             /*
              * Skip whatever we find until we've found a start tag.
              */
@@ -292,14 +277,12 @@ public class Runner {
         }
     }
 
-    private static void init()
-    {
+    private static void init() {
         service = new AlphabetService();
     }
 
 
-    private static void printLogStatistics(String inputLog)
-    {
+    private static void printLogStatistics(String inputLog) {
         init();
         long startTs = System.currentTimeMillis();
         Trie t = constructTrie(inputLog);
@@ -311,18 +294,17 @@ public class Runner {
         System.out.println(String.format("Avg length of a trace %d", t.getAvgTraceLength()));
         System.out.println(String.format("Number of nodes in the trie %d", t.getSize()));
         System.out.println(String.format("Total number of events %d", t.getNumberOfEvents()));
-        System.out.println(String.format("Trie construction time %d ms", (endTs-startTs)));
+        System.out.println(String.format("Trie construction time %d ms", (endTs - startTs)));
     }
 
 
-    private static void testOnConformanceApproximationResults(String inputProxyLogFile, String inputSampleLogFile, ConformanceCheckerType confCheckerType, LogSortType sortType)
-    {
+    private static void testOnConformanceApproximationResults(String inputProxyLogFile, String inputSampleLogFile, ConformanceCheckerType confCheckerType, LogSortType sortType) {
         init();
         Trie t = constructTrie(inputProxyLogFile);
 
         //Configuration variables
 
-        boolean sortTraces=true;
+        boolean sortTraces = true;
 
 //      t.printTraces();
 //        System.out.println(t);
@@ -331,59 +313,56 @@ public class Runner {
         XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
         XesXmlParser parser = new XesXmlParser();
 
-        try{
+        try {
             InputStream is = new FileInputStream(inputSampleLogFile);
             inputSamplelog = parser.parse(is).get(0);
 
 
             List<String> templist = new ArrayList<>();
             List<String> tracesToSort = new ArrayList<>();
-           // AlphabetService service = new AlphabetService();
+            // AlphabetService service = new AlphabetService();
 
             ConformanceChecker checker;
             if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
-                          checker = new PrefixConformanceChecker(t,1,1, false);
+                checker = new PrefixConformanceChecker(t, 1, 1, false);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
-                checker = new RandomConformanceChecker(t,1,1, 5000000, 500000);//Integer.MAX_VALUE);
+                checker = new RandomConformanceChecker(t, 1, 1, 5000000, 500000);//Integer.MAX_VALUE);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
-                checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
-            else
-            {
-                testVanellaConformanceApproximation(inputProxyLogFile,inputSampleLogFile);
+                checker = new StatefulRandomConformanceChecker(t, 1, 1, 50000, 420000);//Integer.MAX_VALUE);
+            else {
+                testVanellaConformanceApproximation(inputProxyLogFile, inputSampleLogFile);
                 return;
             }
 
             Alignment alg;
             HashMap<String, Integer> sampleTracesMap = new HashMap<>();
             long start;
-            long totalTime=0;
-            int skipTo =0;
+            long totalTime = 0;
+            int skipTo = 0;
             int current = -1;
             int takeTo = 100;
             DeviationChecker devChecker = new DeviationChecker(service);
             int cnt = 1;
-            for (XTrace trace: inputSamplelog)
-            {
+            for (XTrace trace : inputSamplelog) {
                 current++;
                 if (current < skipTo)
                     continue;
-                if (current> takeTo)
+                if (current > takeTo)
                     break;
                 templist = new ArrayList<String>();
 
-                for (XEvent e: trace)
-                {
+                for (XEvent e : trace) {
                     String label = e.getAttributes().get(inputSamplelog.getClassifiers().get(0).getDefiningAttributeKeys()[0]).toString();
                     templist.add(Character.toString(service.alphabetize(label)));
                 }
 //                System.out.println(templist.toString());
 
                 StringBuilder sb = new StringBuilder(templist.size());
-                sb.append(cnt).append((char)63); // we prefix the trace with its ID
+                sb.append(cnt).append((char) 63); // we prefix the trace with its ID
 
-                Arrays.stream(templist.toArray()).forEach( e-> sb.append(e));
+                Arrays.stream(templist.toArray()).forEach(e -> sb.append(e));
 
-                sampleTracesMap.put(sb.toString(),cnt);
+                sampleTracesMap.put(sb.toString(), cnt);
                 cnt++;
 
                 tracesToSort.add(sb.toString());
@@ -398,10 +377,8 @@ public class Runner {
 
             System.out.println("Trace#, Alignment cost");
 
-            if (sortType == LogSortType.LEXICOGRAPHIC_DESC || sortType == LogSortType.TRACE_LENGTH_DESC)
-            {
-                for (int i = tracesToSort.size() -1; i>=0; i--)
-                {
+            if (sortType == LogSortType.LEXICOGRAPHIC_DESC || sortType == LogSortType.TRACE_LENGTH_DESC) {
+                for (int i = tracesToSort.size() - 1; i >= 0; i--) {
                     totalTime = computeAlignment(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i);
                 }
             }
@@ -413,15 +390,13 @@ public class Runner {
             }
 
 
-            System.out.println(String.format("Time taken for trie-based conformance checking %d milliseconds",totalTime));
+            System.out.println(String.format("Time taken for trie-based conformance checking %d milliseconds", totalTime));
 
 //            for (String label: devChecker.getAllActivities())
 //            {
 //                System.out.println(String.format("%s, %f",label, devChecker.getDeviationPercentage(label)));
 //            }
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -431,10 +406,10 @@ public class Runner {
         Alignment alg;
         List<String> trace = new ArrayList<String>();
 
-        int pos = tracesToSort.get(i).indexOf((char)63);
-        int traceNum = Integer.parseInt(tracesToSort.get(i).substring(0,pos));
+        int pos = tracesToSort.get(i).indexOf((char) 63);
+        int traceNum = Integer.parseInt(tracesToSort.get(i).substring(0, pos));
 
-        String actualTrace = tracesToSort.get(i).substring(pos+1);
+        String actualTrace = tracesToSort.get(i).substring(pos + 1);
 //        System.out.println(actualTrace);
         for (char c : actualTrace.toCharArray()) {
             trace.add(new StringBuilder().append(c).toString());
@@ -454,8 +429,7 @@ public class Runner {
         return totalTime;
     }
 
-    private static XLog loadLog(String inputProxyLogFile)
-    {
+    private static XLog loadLog(String inputProxyLogFile) {
         XLog inputProxyLog;//, inputSamplelog;
         XEventClass dummyEvClass = new XEventClass("DUMMY", 99999);
         XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
@@ -467,15 +441,13 @@ public class Runner {
 //            XLogInfo logInfo = inputProxyLog.getInfo(eventClassifier);
 //            logInfo = XLogInfoFactory.createLogInfo(inputProxyLog, inputProxyLog.getClassifiers().get(0));
             return inputProxyLog;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
-    private static Trie constructTrie(String inputProxyLogFile)
-    {
+
+    private static Trie constructTrie(String inputProxyLogFile) {
         XLog inputProxyLog = loadLog(inputProxyLogFile);
         XEventClass dummyEvClass = new XEventClass("DUMMY", 99999);
         XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
@@ -483,7 +455,7 @@ public class Runner {
 
         try {
 
-            XLogInfo logInfo ;
+            XLogInfo logInfo;
             logInfo = XLogInfoFactory.createLogInfo(inputProxyLog, inputProxyLog.getClassifiers().get(0));
             int count = 0;
             for (XEventClass clazz : logInfo.getNameClasses().getClasses()) {
@@ -496,7 +468,7 @@ public class Runner {
             Trie t = new Trie(count);
             List<String> templist;
 //            count=1;
-            count=1;
+            count = 1;
 //            System.out.println("Proxy log size "+inputProxyLog.size());
             for (XTrace trace : inputProxyLog) {
                 templist = new ArrayList<String>();
@@ -507,7 +479,7 @@ public class Runner {
                 }
 //                count++;
                 //System.out.println(templist.toString());
-                if (templist.size() > 0 ) {
+                if (templist.size() > 0) {
 
 //                    System.out.println(templist.toString());
 //                    if (count == 37)
@@ -521,15 +493,13 @@ public class Runner {
                 count++;
             }
             return t;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
-    private static void testVanellaConformanceApproximation(String inputProxyLogFile, String inputSampleLogFile)
-    {
+
+    private static void testVanellaConformanceApproximation(String inputProxyLogFile, String inputSampleLogFile) {
         XLog proxyLog, sampleLog;
         StringBuilder sb;
         List<String> proxyTraces = new ArrayList<>();
@@ -549,7 +519,7 @@ public class Runner {
             proxyTraces.add(sb.toString());
 
         }
-        int cnt=1;
+        int cnt = 1;
         for (XTrace trace : sampleLog) {
             sb = new StringBuilder();
             for (XEvent e : trace) {
@@ -558,14 +528,14 @@ public class Runner {
                 sb.append(service.alphabetize(label));
             }
             sampleTraces.add(sb.toString());
-            sampleTracesMap.put(sb.toString(),cnt);
+            sampleTracesMap.put(sb.toString(), cnt);
             cnt++;
         }
 
         DeviationChecker deviationChecker = new DeviationChecker(service);
         // Now compute the alignments
-        long start=System.currentTimeMillis(),timeTaken=0 ;
-        int skipTo =0;
+        long start = System.currentTimeMillis(), timeTaken = 0;
+        int skipTo = 0;
         int current = -1;
         int takeTo = 100;
         try {
@@ -607,24 +577,22 @@ public class Runner {
 //            System.out.println("Aligned trace "+bestTrace);
 //            System.out.println("Trace number "+sampleTracesMap.get(bestTrace));
             }
-            System.out.println(String.format("Time taken for Distance-based approximate conformance checking %d milliseconds", timeTaken ));
+            System.out.println(String.format("Time taken for Distance-based approximate conformance checking %d milliseconds", timeTaken));
 
 //            for (String label: deviationChecker.getAllActivities())
 //            {
 //                System.out.println(String.format("%s, %f",label, deviationChecker.getDeviationPercentage(label)));
 //            }
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println(String.format("Time taken for Distance-based approximate conformance checking %d milliseconds", System.currentTimeMillis() - start));
             e.printStackTrace();
 
         }
 
     }
-    private static void testConformanceApproximation()
-    {
+
+    private static void testConformanceApproximation() {
         //This method is used to test the approach by Fani Sani
         XEventClass dummyEvClass = new XEventClass("DUMMY", 99999);
         XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
@@ -636,13 +604,13 @@ public class Runner {
             inputLog = parser.parse(is).get(0);
             Pnml pnml = importPnmlFromStream(new FileInputStream("C:\\Work\\DSG\\Data\\IM_Petrinet.pnml"));
             Petrinet pn = PetrinetFactory.newPetrinet(pnml.getLabel());
-            Marking imk=new Marking();
+            Marking imk = new Marking();
             Collection<Marking> fmks = new HashSet<>();
             GraphLayoutConnection glc = new GraphLayoutConnection(pn);
-            pnml.convertToNet(pn,imk, fmks,glc);
+            pnml.convertToNet(pn, imk, fmks, glc);
             MatrixFilterParameter parameter = new MatrixFilterParameter(10, inputLog.getClassifiers().get(0), SimilarityMeasure.Levenstein, SamplingReturnType.Traces, PrototypeType.KMeansClusteringApprox);
             //now the target
-            String result = ProtoTypeSelectionAlgo.apply(inputLog,pn,parameter,null);
+            String result = ProtoTypeSelectionAlgo.apply(inputLog, pn, parameter, null);
 
             System.out.println(result);
 
@@ -655,8 +623,8 @@ public class Runner {
 
 
     }
-    private static void testJNI()
-    {
+
+    private static void testJNI() {
         try {
             // Create a problem with 4 variables and 0 constraints
             LpSolve solver = LpSolve.makeLp(0, 4);
@@ -680,11 +648,11 @@ public class Runner {
 
             // delete the problem and free memory
             solver.deleteLp();
-        }
-        catch (LpSolveException e) {
+        } catch (LpSolveException e) {
             e.printStackTrace();
         }
     }
+
     private static void testBed1() {
         List<String> trace = new ArrayList<>();
         trace.add("a");
@@ -736,38 +704,35 @@ public class Runner {
         trace6.add("x");
 
 //        System.out.println(t.toString());
-        ConformanceChecker cnfChecker = new RandomConformanceChecker(t,1,1,1000);
+        ConformanceChecker cnfChecker = new RandomConformanceChecker(t, 1, 1, 1000);
 
         Alignment alg = cnfChecker.check(trace6);
 
         System.out.println(alg.toString());
     }
 
-    private static void testBed3()
-    {
+    private static void testBed3() {
         String model = "AEFwBCDCJIKLOMlmGonpqtMrZuvN\u0081OPQRSTUV\\[`WabHXgYcdfeheji";
         String trace = "FGHBCDEAJICKLMlmOonptqusrvNOPQRSTUVWabMhg[i^Y\\_]c`eXZjdfe";
 
         List<String> modelTrace = new ArrayList<>(model.length());
 
 
-        for (char c : model.toCharArray())
-        {
+        for (char c : model.toCharArray()) {
             modelTrace.add(String.valueOf(c));
         }
 
         List<String> traceTrace = new ArrayList<>(model.length());
 
 
-        for (char c : trace.toCharArray())
-        {
+        for (char c : trace.toCharArray()) {
             traceTrace.add(String.valueOf(c));
         }
 
         Trie t = new Trie(100);
         t.addTrace(modelTrace);
         long start = System.currentTimeMillis();
-        ConformanceChecker cnfChecker = new RandomConformanceChecker(t,1,1,100000);
+        ConformanceChecker cnfChecker = new RandomConformanceChecker(t, 1, 1, 100000);
         Alignment alg = cnfChecker.check(traceTrace);
         long total = System.currentTimeMillis() - start;
         System.out.println(alg.toString());

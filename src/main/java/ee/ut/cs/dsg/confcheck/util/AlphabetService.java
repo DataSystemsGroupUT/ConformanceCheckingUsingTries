@@ -9,30 +9,26 @@ public class AlphabetService {
     HashMap<Character, String> alphabetToActivity = new HashMap<>();
     int charCounter = 64;
 
-    public char alphabetize(String label)
-    {
-        if (!activityToAlphabet.containsKey(label))
-        {
+    public char alphabetize(String label) {
+        if (!activityToAlphabet.containsKey(label)) {
             charCounter++;
             activityToAlphabet.put(label, (char) charCounter);
             alphabetToActivity.put((char) charCounter, label);
         }
         return activityToAlphabet.get(label);
     }
-    public String deAlphabetize(char character)
-    {
+
+    public String deAlphabetize(char character) {
         return alphabetToActivity.get(character);
     }
 
-    public Set<Character> getAlphabet()
-    {
+    public Set<Character> getAlphabet() {
         return alphabetToActivity.keySet();
     }
 
-    public void clear()
-    {
+    public void clear() {
         activityToAlphabet.clear();
         alphabetToActivity.clear();
-        charCounter=64;
+        charCounter = 64;
     }
 }

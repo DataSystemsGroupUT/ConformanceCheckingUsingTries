@@ -1,82 +1,81 @@
-     package org.processmining.logfiltering.algorithms;
+package org.processmining.logfiltering.algorithms;
 
-
-
-     import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetEdge;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
 import org.processmining.models.graphbased.directed.petrinet.elements.Transition;
 
-     public class PetrinetUtilsCombo {
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-     	public static Set<Transition> getNextTransitions(Place place, Petrinet net) {
+public class PetrinetUtilsCombo {
 
-     		assert net.getPlaces().contains(place);
+    public static Set<Transition> getNextTransitions(Place place, Petrinet net) {
 
-     		Set<Transition> nextTransitions = new HashSet<Transition>();
+        assert net.getPlaces().contains(place);
 
-     		for (PetrinetEdge<?, ?> e : net.getOutEdges(place)) {
-     			if (e.getTarget() instanceof Transition)
-     				nextTransitions.add((Transition) e.getTarget());
-     		}
-     		return nextTransitions;
-     	}
+        Set<Transition> nextTransitions = new HashSet<Transition>();
 
-     	public static Set<Place> getPreviousPlaces(Transition transition, Petrinet net) {
+        for (PetrinetEdge<?, ?> e : net.getOutEdges(place)) {
+            if (e.getTarget() instanceof Transition)
+                nextTransitions.add((Transition) e.getTarget());
+        }
+        return nextTransitions;
+    }
 
-     		assert net.getTransitions().contains(transition);
+    public static Set<Place> getPreviousPlaces(Transition transition, Petrinet net) {
 
-     		Set<Place> previousPlaces = new HashSet<Place>();
-     		for (PetrinetEdge<?, ?> e : net.getInEdges(transition)) {
-     			if (e.getSource() instanceof Place)
-     				previousPlaces.add((Place) e.getSource());
-     		}
+        assert net.getTransitions().contains(transition);
 
-     		return previousPlaces;
-     	}
+        Set<Place> previousPlaces = new HashSet<Place>();
+        for (PetrinetEdge<?, ?> e : net.getInEdges(transition)) {
+            if (e.getSource() instanceof Place)
+                previousPlaces.add((Place) e.getSource());
+        }
 
-     	public static Set<Place> getNextPlaces(Transition transition, Petrinet net) {
+        return previousPlaces;
+    }
 
-     		assert net.getTransitions().contains(transition);
+    public static Set<Place> getNextPlaces(Transition transition, Petrinet net) {
 
-     		Set<Place> previousPlaces = new HashSet<Place>();
-     		for (PetrinetEdge<?, ?> e : net.getOutEdges(transition)) {
-     			if (e.getTarget() instanceof Place)
-     				previousPlaces.add((Place) e.getTarget());
-     		}
+        assert net.getTransitions().contains(transition);
 
-     		return previousPlaces;
-     	}
+        Set<Place> previousPlaces = new HashSet<Place>();
+        for (PetrinetEdge<?, ?> e : net.getOutEdges(transition)) {
+            if (e.getTarget() instanceof Place)
+                previousPlaces.add((Place) e.getTarget());
+        }
 
-     	public static boolean isTransitionEnabled(Transition transition, Map<Place, Integer> markings, Petrinet net) {
+        return previousPlaces;
+    }
 
-     		for (Place p : getPreviousPlaces(transition, net)) {
-     			//if any inboud place does not have tokens, the transition cannot be fired
-     			if (markings.get(p) == 0)
-     				return false;
-     		}
-     		return true;
-     	}
+    public static boolean isTransitionEnabled(Transition transition, Map<Place, Integer> markings, Petrinet net) {
 
-     	public static Map<Place, Integer> fireTransition(Transition transition, Map<Place, Integer> markings,
-     			Petrinet net) {
+        for (Place p : getPreviousPlaces(transition, net)) {
+            //if any inboud place does not have tokens, the transition cannot be fired
+            if (markings.get(p) == 0)
+                return false;
+        }
+        return true;
+    }
 
-     		//consume tokens
-     		for (Place p : getPreviousPlaces(transition, net)) {
-     			markings.put(p, markings.get(p) - 1);
-     		}
+    public static Map<Place, Integer> fireTransition(Transition transition, Map<Place, Integer> markings,
+                                                     Petrinet net) {
 
-     		//produce tokens
-     		for (Place p : getNextPlaces(transition, net)) {
-     			markings.put(p, markings.get(p) + 1);
-     		}
+        //consume tokens
+        for (Place p : getPreviousPlaces(transition, net)) {
+            markings.put(p, markings.get(p) - 1);
+        }
 
-     		return markings;
-     	}
+        //produce tokens
+        for (Place p : getNextPlaces(transition, net)) {
+            markings.put(p, markings.get(p) + 1);
+        }
 
-     }
+        return markings;
+    }
+
+}
 

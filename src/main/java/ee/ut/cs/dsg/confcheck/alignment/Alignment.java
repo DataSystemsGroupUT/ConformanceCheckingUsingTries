@@ -6,97 +6,89 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Alignment {
-    private List<Move> moves;
+    private final List<Move> moves;
     private int totalCost;
 
-    public Alignment(Alignment other)
-    {
+    public Alignment(Alignment other) {
         this.moves = other.getMoves();
         this.totalCost = other.getTotalCost();
     }
-    public Alignment()
-    {
+
+    public Alignment() {
         this(0);
     }
-    public Alignment(int totalCost)
-    {
+
+    public Alignment(int totalCost) {
         this.moves = new ArrayList<>();
         this.totalCost = totalCost;
     }
 
-    public void appendMove(Move move)
-    {
+    public void appendMove(Move move) {
         appendMove(move, move.getCost());
     }
-    public void appendMove(Move move, int oracleCost)
-    {
+
+    public void appendMove(Move move, int oracleCost) {
         moves.add(move);
-        totalCost+=oracleCost;
+        totalCost += oracleCost;
     }
 
     public int getTotalCost() {
         return totalCost;
     }
 
-    public String toString()
-    {
+    public String toString() {
         StringBuilder result = new StringBuilder();
         StringBuilder logTrace = new StringBuilder();
         StringBuilder modelTrace = new StringBuilder();
         result.append(String.format("Total cost:%d\n", totalCost));
-        for (Move m: moves)
-        {
-            result.append(m.toString()+"\n");
+        for (Move m : moves) {
+            result.append(m.toString() + "\n");
             if (!m.getLogMove().equals(">>"))
                 logTrace.append(m.getLogMove());
-            if(!m.getModelMove().equals(">>"))
+            if (!m.getModelMove().equals(">>"))
                 modelTrace.append(m.getModelMove());
         }
-        result.append("Log: "+logTrace.toString()+"\n");
-        result.append("Mod: "+modelTrace.toString());
+        result.append("Log: " + logTrace + "\n");
+        result.append("Mod: " + modelTrace);
         return result.toString();
 
     }
 
-    public String toString(AlphabetService service)
-    {
+    public String toString(AlphabetService service) {
         StringBuilder result = new StringBuilder();
         StringBuilder logTrace = new StringBuilder();
         StringBuilder modelTrace = new StringBuilder();
         result.append(String.format("Total cost:%d\n", totalCost));
-        for (Move m: moves)
-        {
-            result.append(m.toString(service)+"\n");
+        for (Move m : moves) {
+            result.append(m.toString(service) + "\n");
             if (!m.getLogMove().equals(">>"))
-                logTrace.append( service.deAlphabetize(m.getLogMove().charAt(0)));
-            if(!m.getModelMove().equals(">>"))
+                logTrace.append(service.deAlphabetize(m.getLogMove().charAt(0)));
+            if (!m.getModelMove().equals(">>"))
                 modelTrace.append(service.deAlphabetize(m.getModelMove().charAt(0)));
         }
-        result.append("Log: "+logTrace.toString()+"\n");
-        result.append("Mod: "+modelTrace.toString());
+        result.append("Log: " + logTrace + "\n");
+        result.append("Mod: " + modelTrace);
         return result.toString();
 
     }
 
-    public List<Move> getMoves()
-    {
-        List<Move> result= new ArrayList<>();
+    public List<Move> getMoves() {
+        List<Move> result = new ArrayList<>();
         result.addAll(moves);
         return result;
     }
-    public int hashCode()
-    {
+
+    public int hashCode() {
         return this.toString().hashCode();
     }
 
-    public String logProjection()
-    {
+    public String logProjection() {
         StringBuilder sb = new StringBuilder();
         this.getMoves().stream().filter(x -> !x.getLogMove().equals(">>")).forEach(e -> sb.append(e.getLogMove().trim()));
         return sb.toString();
     }
-    public String modelProjection()
-    {
+
+    public String modelProjection() {
         StringBuilder sb = new StringBuilder();
         this.getMoves().stream().filter(x -> !x.getModelMove().equals(">>")).forEach(e -> sb.append(e));
         return sb.toString();

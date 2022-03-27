@@ -1,24 +1,31 @@
 package org.processmining.logfiltering.legacy.plugins.logfiltering.listener;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.Combination;
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.FilterLevel;
 import org.processmining.logfiltering.legacy.plugins.logfiltering.enumtypes.FilterType;
 
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+
 public interface LogFilteringSettingsListener {
-	public void setFilterLevel(FilterLevel filterLevel);
-	public void setCombination(Combination combination);
-	public void setAttributeFilterTypeMap(Map<String, FilterType> attributeFilterType);
-	public void setAttributeSelectedValueSetMap(Map<String, Set<String>> attributeValueSetMap);
-	public void setAttributeStartDateThresholdMap(
-			Map<String, Date> attributeStartDateMap);
-	public void setAttributeEndDateThresholdMap(
-			Map<String, Date> attributeEndDateMap);
-	public void setAttributeMaxValueThresholdMap(
-			Map<String, Double> attributeMaxValueThresholdMap);
-	public void setAttributeMinValueThresholdMap(
-			Map<String, Double> attributeMinValueThresholdMap);
+    void setFilterLevel(FilterLevel filterLevel);
+
+    void setCombination(Combination combination);
+
+    void setAttributeFilterTypeMap(Map<String, FilterType> attributeFilterType);
+
+    void setAttributeSelectedValueSetMap(Map<String, Set<String>> attributeValueSetMap);
+
+    void setAttributeStartDateThresholdMap(
+            Map<String, Date> attributeStartDateMap);
+
+    void setAttributeEndDateThresholdMap(
+            Map<String, Date> attributeEndDateMap);
+
+    void setAttributeMaxValueThresholdMap(
+            Map<String, Double> attributeMaxValueThresholdMap);
+
+    void setAttributeMinValueThresholdMap(
+            Map<String, Double> attributeMinValueThresholdMap);
 }

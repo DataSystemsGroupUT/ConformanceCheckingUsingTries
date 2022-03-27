@@ -16,7 +16,7 @@ import java.util.*;
  * Rather than starting the alignment from scratch, we can search the traces trie and exit at the latest common prefix
  */
 public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
-   // private final Trie tracesTrie;
+    // private final Trie tracesTrie;
 
     public StatefulRandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
         super(trie, logCost, modelCost, maxStatesInQueue, maxTrials);
@@ -26,49 +26,47 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
     private int trialsPerEvent;
     private final Map<State, PriorityQueue<State>> searchSpace;
-    private final boolean reuseSearchSpace =false;
+    private final boolean reuseSearchSpace = false;
 
-    public void setTrialsPerEvent(int tpe)
-    {
+    public void setTrialsPerEvent(int tpe) {
         trialsPerEvent = tpe;
     }
-    private State getStateFromTracesTrie(List<String> trace)
-    {
+
+    private State getStateFromTracesTrie(List<String> trace) {
         if (trace.size() == 0)
             return null;
         TrieNode node = inspectedLogTraces.match(trace);
-        if (node!=null) {
-            List<String> tracePostfix = trace.subList(node.getLevel(),trace.size());
-            List<String> tracePrefix = trace.subList(0,node.getLevel());
+        if (node != null) {
+            List<String> tracePostfix = trace.subList(node.getLevel(), trace.size());
+            List<String> tracePrefix = trace.subList(0, node.getLevel());
             // fill the queue based on the state
             if (reuseSearchSpace) {
                 PriorityQueue<State> previousSearchSpace = searchSpace.get(node.getAlignmentState());
                 if (previousSearchSpace != null) {
-                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(vs));
+                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.push(vs));
 //                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(
 //                            new State(trace.subList(vs.getNode().getLevel(),trace.size()),vs.getNode(),vs.getCostSoFar())));
                     if (verbose)
                         System.out.printf("Loading previous search space to resume from. Kept %d states from original %d states%n", nextChecks.size(), previousSearchSpace.size());
                 }
             }
-            return new State(node.getAlignmentState().getAlignment(),tracePostfix,node.getAlignmentState().getNode(),node.getAlignmentState().getCostSoFar());
+            return new State(node.getAlignmentState().getAlignment(), tracePostfix, node.getAlignmentState().getNode(), node.getAlignmentState().getCostSoFar());
         }
 
         return null;
     }
 
-    private boolean isAValidState(State s, List<String> trace)
-    {
-        String traceString = trace.toString().replace("[","").replace("]","").replace(",","").replace(" ","");
+    private boolean isAValidState(State s, List<String> trace) {
+        String traceString = trace.toString().replace("[", "").replace("]", "").replace(",", "").replace(" ", "");
         //return traceString.indexOf(s.getAlignment().logProjection()) == 0;
         return traceString.equals(s.getAlignment().logProjection());
     }
-    public Alignment check(List<String> trace)
-    {
+
+    public Alignment check(List<String> trace) {
 
         nextChecks.clear();
         states.clear();
-        cntr=1;
+        cntr = 1;
         traceSize = trace.size();
         maxModelTraceSize = modelTrie.getRoot().getMaxPathLengthToEnd();
         TrieNode node;
@@ -82,20 +80,19 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
         }
 
-        nextChecks.add(state);
+        nextChecks.push(state);
 
         State candidateState = null;
         String event;
         numTrials = 1;
         //        cleanseFrequency = Math.max(maxTrials/10, 100000);
-     //   exploitVersusExploreFrequency = 1001 ;
+        //   exploitVersusExploreFrequency = 1001 ;
         Utils.resetPrimeIndex();
-        while(nextChecks.size() >0  && numTrials < maxTrials)
-        {
+        while (nextChecks.size() > 0 && numTrials < maxTrials) {
 
 //            adaptiveExploreExploit();
             // as we are using old search spaces, there might be some invalid states from other prefixes.
-            if (candidateState!= null && candidateState.getCostSoFar() == 0)
+            if (candidateState != null && candidateState.getCostSoFar() == 0)
                 break;
             state = pickRandom(candidateState);
             Alignment alg;
@@ -103,13 +100,13 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 //            {
 //                state = pickRandom(candidateState);
 //            }
-            if (state==null)
+            if (state == null)
                 continue;
             numTrials++;
 
             if (numTrials % 100000 == 0 && verbose) {
                 System.out.println("Trials so far " + numTrials);
-                System.out.println("Queue size "+nextChecks.size());
+                System.out.println("Queue size " + nextChecks.size());
             }
 
             traceSuffix = state.getTracePostfix();
@@ -119,37 +116,32 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             {
                 //return state.getAlignment();
 
-                if (candidateState == null)
-                {
+                if (candidateState == null) {
 
-                    if(verbose)
-                        System.out.println("1-Better alignment reached with cost "+state.getAlignment().getTotalCost());
+                    if (verbose)
+                        System.out.println("1-Better alignment reached with cost " + state.getAlignment().getTotalCost());
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
 //                    cntr=0;
-                }
-                else if (state.getAlignment().getTotalCost() < candidateState.getAlignment().getTotalCost())
-                {
+                } else if (state.getAlignment().getTotalCost() < candidateState.getAlignment().getTotalCost()) {
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
 
                     if (verbose)
-                        System.out.println("2-Better alignment reached with cost "+state.getAlignment().getTotalCost());
+                        System.out.println("2-Better alignment reached with cost " + state.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 
 //                    cntr=0;
                 }
-                candidateState = new State(state.getAlignment(), state.getTracePostfix(),state.getNode(), state.getAlignment().getTotalCost(), state);
-                newCandidateStateFoundSinceLastEpoc=true;
+                candidateState = new State(state.getAlignment(), state.getTracePostfix(), state.getNode(), state.getAlignment().getTotalCost(), state);
+                newCandidateStateFoundSinceLastEpoc = true;
                 // candidates.add(candidateState);
 //                System.out.println("Remaining alignments to check " +toCheck.size());
 //                System.out.println("Best alignment so far " +candidateState.getCostSoFar());
 //                return candidateState.getAlignment();
-                if (candidateState.getAlignment().getTotalCost()==0)
+                if (candidateState.getAlignment().getTotalCost() == 0)
                     break;
                 else
                     continue;
-            }
-            else if (traceSuffix.size() ==0)
-            {
+            } else if (traceSuffix.size() == 0) {
                 // we still have model moves to do
                 // we should pick the shortest path to an end node
 //                System.out.println("Log trace ended! We can only follow the shortest path of the model behavior to the end");
@@ -157,75 +149,65 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
                 node = state.getNode();
                 node = node.getChildOnShortestPathToTheEnd();
-                while (node != null)
-                {
-                    Move modelMove = new Move(">>", node.getContent(),1);
+                while (node != null) {
+                    Move modelMove = new Move(">>", node.getContent(), 1);
                     alg.appendMove(modelMove);
                     node = node.getChildOnShortestPathToTheEnd();
                 }
 //                System.out.println("Alignment found costs "+alg.getTotalCost());
-                if (candidateState == null)
-                {
+                if (candidateState == null) {
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost(), state);
-                    newCandidateStateFoundSinceLastEpoc=true;
-                    if(verbose)
-                        System.out.println("3-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
+                    candidateState = new State(alg, traceSuffix, null, alg.getTotalCost(), state);
+                    newCandidateStateFoundSinceLastEpoc = true;
+                    if (verbose)
+                        System.out.println("3-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
-                }
-                else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost())
-                {
+                } else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost(), state);
-                    newCandidateStateFoundSinceLastEpoc=true;
+                    candidateState = new State(alg, traceSuffix, null, alg.getTotalCost(), state);
+                    newCandidateStateFoundSinceLastEpoc = true;
                     if (verbose)
-                        System.out.println("4-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
+                        System.out.println("4-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
                 }
 
-                if (candidateState.getAlignment().getTotalCost()==0)
+                if (candidateState.getAlignment().getTotalCost() == 0)
                     break;
                 else
                     continue;
 
-            }
-            else if (state.getNode().isEndOfTrace() & !state.getNode().hasChildren()) // and no more children
+            } else if (state.getNode().isEndOfTrace() & !state.getNode().hasChildren()) // and no more children
             {
 //                System.out.println("Model trace ended! We can only follow the remaining log trace to the end");
                 alg = state.getAlignment();
-                for (String ev: state.getTracePostfix())
-                {
-                    Move logMove = new Move(ev, ">>",1);
+                for (String ev : state.getTracePostfix()) {
+                    Move logMove = new Move(ev, ">>", 1);
                     alg.appendMove(logMove);
                 }
-                if (candidateState == null)
-                {
-                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost(),state);
-                    newCandidateStateFoundSinceLastEpoc=true;
-                    if(verbose)
-                        System.out.println("5-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
+                if (candidateState == null) {
+                    candidateState = new State(alg, new ArrayList<>(), null, alg.getTotalCost(), state);
+                    newCandidateStateFoundSinceLastEpoc = true;
+                    if (verbose)
+                        System.out.println("5-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
 //                    cntr=0;
-                }
-                else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost())
-                {
+                } else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost(), state);
-                    newCandidateStateFoundSinceLastEpoc=true;
+                    candidateState = new State(alg, new ArrayList<>(), null, alg.getTotalCost(), state);
+                    newCandidateStateFoundSinceLastEpoc = true;
                     if (verbose)
-                        System.out.println("6-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
+                        System.out.println("6-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
                 }
-                if (candidateState.getAlignment().getTotalCost()==0)
+                if (candidateState.getAlignment().getTotalCost() == 0)
                     break;
                 else
                     continue;
-            }
-            else {
+            } else {
                 event = traceSuffix.remove(0);
                 node = state.getNode().getChild(event);
             }
@@ -237,21 +219,20 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 State syncState;
 //                do {
 //
-                    if(!onMatchFollowPrefixOnly)
-                    {
+                if (!onMatchFollowPrefixOnly) {
 
-                        List<String> trSuffix = new LinkedList<>(traceSuffix);
-                        State nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0, state);
-                        addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
-                  //      trSuffix.add(0, event);
-                        nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0, state);
-                        for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
-                            addStateToTheQueue(s, candidateState);
-                    }
+                    List<String> trSuffix = new LinkedList<>(traceSuffix);
+                    State nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(), 0, state);
+                    addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
+                    //      trSuffix.add(0, event);
+                    nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(), 0, state);
+                    for (State s : handleModelMoves(trSuffix, nonSyncState, candidateState))
+                        addStateToTheQueue(s, candidateState);
+                }
 
-                    Move syncMove = new Move(event,event,0);
+                Move syncMove = new Move(event, event, 0);
 
-                    alg.appendMove(syncMove); // <== something wrong in this object alg it is referenced by other states
+                alg.appendMove(syncMove); // <== something wrong in this object alg it is referenced by other states
 //                    prev = node;
 //                    if (traceSuffix.size() > 0)
 //                    {
@@ -273,9 +254,8 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
                 int cost = 0;
 
-                syncState = new State(alg,traceSuffix, node,cost, state);
+                syncState = new State(alg, traceSuffix, node, cost, state);
                 addStateToTheQueue(syncState, candidateState);
-
 
 
             }
@@ -290,25 +270,23 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             }
 
             //Now randomly add those states to the queue so that if they have the same cost we can pick them differently
-            for (State s :newStates)
-            {
-                if (s !=null)
+            for (State s : newStates) {
+                if (s != null)
                     addStateToTheQueue(s, candidateState);
             }
 
         }
 
-        if(verbose)
-            System.out.printf("Queue Size %d and num trials %d%n", nextChecks.size(),numTrials);
-        if (candidateState!=null)
+        if (verbose)
+            System.out.printf("Queue Size %d and num trials %d%n", nextChecks.size(), numTrials);
+        if (candidateState != null)
             updateTracesTrie(candidateState);
-        return candidateState != null? candidateState.getAlignment():null;
+        return candidateState != null ? candidateState.getAlignment() : null;
         //return alg;
     }
 
     private void adaptiveExploreExploit() {
-        if (numTrials% 50000 == 0 )
-        {
+        if (numTrials % 50000 == 0) {
             if (!newCandidateStateFoundSinceLastEpoc) // we have to exploit more
             {
                 if (exploitVersusExploreFrequency > 29) {
@@ -316,9 +294,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                     if (verbose)
                         System.out.printf("Exploit frequency has been increased to %d%n", exploitVersusExploreFrequency);
                 }
-            }
-            else
-            {
+            } else {
                 newCandidateStateFoundSinceLastEpoc = false;
                 exploitVersusExploreFrequency = Utils.getNextPrimeFromList();
             }
@@ -330,23 +306,22 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         Alignment alg;
         State logMoveState;
         if (event != null) {
-            Move logMove = new Move(event, ">>",1);// logMoveCost);
+            Move logMove = new Move(event, ">>", 1);// logMoveCost);
             alg = state.getAlignment();
             alg.appendMove(logMove);
             int cost = 0;
-            cost += (state.getNode().isEndOfTrace()? 0: state.getNode().getMinPathLengthToEnd()) + traceSuffix.size() ;
-            for (TrieNode nd: state.getNode().getAllChildren()) {
+            cost += (state.getNode().isEndOfTrace() ? 0 : state.getNode().getMinPathLengthToEnd()) + traceSuffix.size();
+            for (TrieNode nd : state.getNode().getAllChildren()) {
                 if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move
                 {
                     cost += 1;
                     break;
                 }
             }
-            logMoveState = new State(alg, traceSuffix, state.getNode(), costFunction.computeCost(state,traceSuffix,event, Configuration.MoveType.LOG_MOVE, this), state);
+            logMoveState = new State(alg, traceSuffix, state.getNode(), costFunction.computeCost(state, traceSuffix, event, Configuration.MoveType.LOG_MOVE, this), state);
             traceSuffix.add(0, event);
             return logMoveState;
-        }
-        else
+        } else
             return null;
     }
 
@@ -357,43 +332,39 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         List<TrieNode> nodes = state.getNode().getAllChildren();
         result = new ArrayList<>(nodes.size());
         Move modelMove;
-        for (TrieNode nd : nodes)
-        {
-            modelMove = new Move(">>", nd.getContent(),1);//modelMoveCost);
+        for (TrieNode nd : nodes) {
+            modelMove = new Move(">>", nd.getContent(), 1);//modelMoveCost);
             alg = state.getAlignment();
             alg.appendMove(modelMove);
-            State dummyState = new State(alg, traceSuffix,nd,-1);
+            State dummyState = new State(alg, traceSuffix, nd, -1);
             // Cost = worst case - what has been processed in both the log and the model
             int cost = 0;
-            cost += (nd.isEndOfTrace()? 0: nd.getMinPathLengthToEnd()) +traceSuffix.size();
-            if (traceSuffix.size() > 0 && nd.getChild(traceSuffix.get(0))!= null) // we can find a next sync move this path
-                cost-=1;
-            State modelMoveState = new State(alg, traceSuffix,nd, costFunction.computeCost(dummyState,traceSuffix,null, Configuration.MoveType.MODEL_MOVE, this), state);
+            cost += (nd.isEndOfTrace() ? 0 : nd.getMinPathLengthToEnd()) + traceSuffix.size();
+            if (traceSuffix.size() > 0 && nd.getChild(traceSuffix.get(0)) != null) // we can find a next sync move this path
+                cost -= 1;
+            State modelMoveState = new State(alg, traceSuffix, nd, costFunction.computeCost(dummyState, traceSuffix, null, Configuration.MoveType.MODEL_MOVE, this), state);
             result.add(modelMoveState);
         }
-        return  result;
+        return result;
     }
 
-    private void updateTracesTrie(final State candidateState)
-    {
+    private void updateTracesTrie(final State candidateState) {
         int stateSize = nextChecks.size();
-
-
 
         Stack<State> statesBack = new Stack<State>();
         State currentState = candidateState.getParentState();
         int alignmentSize = currentState.getAlignment().getMoves().size();
 
-        while(currentState !=null)
-        {
-            if (reuseSearchSpace && stateSize > 0)
-            {
+        while (currentState != null) {
+            if (reuseSearchSpace && stateSize > 0) {
                 PriorityQueue<State> currentSearchSpace = new PriorityQueue<>();
-                currentSearchSpace.addAll(nextChecks);
+                for (int i = 0; i < nextChecks.size(); i++) {
+                    currentSearchSpace.add(nextChecks.get(i));
+                }
 //                PriorityQueue<State> currentSearchSpace = nextChecks;
                 //   currentSearchSpace.addAll(prevStates);
                 currentSearchSpace.add(currentState);
-                searchSpace.put(currentState,currentSearchSpace);
+                searchSpace.put(currentState, currentSearchSpace);
 
             }
 
@@ -404,13 +375,12 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         TrieNode currentNode = inspectedLogTraces.getRoot();
 
         int i = 0;
-        while(!statesBack.isEmpty())
-        {
+        while (!statesBack.isEmpty()) {
 
             currentState = statesBack.pop();
-            if (currentState.getAlignment().getMoves().size()==0)// this has not found any matches before as this a trace with a unique prefix so far.
+            if (currentState.getAlignment().getMoves().size() == 0)// this has not found any matches before as this a trace with a unique prefix so far.
             {
-    //            i = statesBack.size();
+                //            i = statesBack.size();
                 continue;
             }
             // If this is a sync move, we might have many entries in the alignment with cost 0
@@ -440,9 +410,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 currentNode = child;
                 i++;
             }
-            while(i < alignmentSize && i < moves.size());
-
-
+            while (i < alignmentSize && i < moves.size());
 
 
         }

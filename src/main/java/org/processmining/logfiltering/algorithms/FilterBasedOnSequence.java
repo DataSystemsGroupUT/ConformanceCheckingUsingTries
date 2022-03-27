@@ -1,14 +1,6 @@
 package org.processmining.logfiltering.algorithms;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.extension.XExtension;
@@ -26,22 +18,22 @@ import org.processmining.logfiltering.algorithms.SPMF.RuleGrowth.Sequence;
 import org.processmining.logfiltering.algorithms.SPMF.RuleGrowth.SequenceDatabase;
 import org.processmining.logfiltering.parameters.SequenceFilterParameter;
 
-
-
+import java.io.IOException;
+import java.util.*;
 
 
 public class FilterBasedOnSequence {
-	
-	public static XLog apply(XLog InputLog, SequenceFilterParameter parameters) throws IOException{
-		
-		
-		/////////////////Initialization/////////////////////////////////////////////
-		XEventClassifier EventCol =parameters.getEventClassifier();
-		int oddDistance= parameters.getOddDistance();
-		XLog OutputLog = (XLog) InputLog.clone();
+
+    public static XLog apply(XLog InputLog, SequenceFilterParameter parameters) throws IOException {
+
+
+        /////////////////Initialization/////////////////////////////////////////////
+        XEventClassifier EventCol = parameters.getEventClassifier();
+        int oddDistance = parameters.getOddDistance();
+        XLog OutputLog = (XLog) InputLog.clone();
 //		LogProperties LogProp = new LogProperties(OutputLog); 
-		XLogInfo logInfo = XLogInfoFactory.createLogInfo(InputLog, parameters.getEventClassifier());
-		int LogSize= 0;
+        XLogInfo logInfo = XLogInfoFactory.createLogInfo(InputLog, parameters.getEventClassifier());
+        int LogSize = 0;
 //		Map<String, String> eventAttributeTypeMap = LogProp. getEventAttributeTypeMap();
 //		SortedSet<String> eventAttributeSet = new TreeSet<String>();
 //		XAttributeMap eventAttributeMap;
@@ -51,42 +43,42 @@ public class FilterBasedOnSequence {
 //		Set<String> ActivitySet = eventAttributeValueSetMap.get(EventCol.getDefiningAttributeKeys()[0]);
 //		String [] Activities = ActivitySet.toArray(new String[ActivitiesSize]);
 //		List<String> ActivityList = java.util.Arrays.asList(Activities); 
-		double HighSupportThreshold=parameters.getHighSupportPattern();
-		double ConfHighConfRules = parameters.getConfHighConfRules();
-		double SuppHighConfRules = parameters. getSuppHighConfRules();
-		double SuppOrdinaryRules= parameters.getSuppOrdinaryRules();
-		double ConfOridnaryRules= parameters.getConfOridnaryRules();
-		//FilterLevel FilteringMethod=parameters.getFilterLevel();
-		int i=0;
-		int i2=0;
-		//////////////////////////////// Computing Activities Frequency /////////////////////
-		String SequeceDatabase = "";
-		String SequeceDatabase2 = "";
-		String ReverseSequenecDatabase= "";
-		int counter =0;
-		
-		int index = 1;
-		Set<String> EventNames = new HashSet<String>();
-		for (XEventClass clazz : logInfo.getNameClasses().getClasses()){
-			EventNames.add(clazz.toString());
-		}
-		
-		Map<String, Integer> encodeMap = new HashMap<String, Integer>();
-		Map<Integer, String> decodeMap = new HashMap<Integer, String>();
-		
-		for(String eventname : EventNames){
-			encodeMap.put(eventname, index);
-			decodeMap.put(index, eventname);
-			index++;
-		}
-		SequenceDatabase ReverseRuleSequencesDatabase= new SequenceDatabase(); 
-		SequenceDatabase ReverseRuleSequencesDatabase2= new SequenceDatabase(); 
-		SequenceDatabase RuleSequencesDatabase= new SequenceDatabase();
-		SequenceDatabase RuleSequencesDatabase2= new SequenceDatabase(); 
-		PatternSequenceDatabase patternSequenceDatabase = new PatternSequenceDatabase();
-		PatternSequenceDatabase patternSequenceDatabase2 = new PatternSequenceDatabase();
-		PatternSequenceDatabase Reverse_patternSequenceDatabase = new PatternSequenceDatabase();
-		PatternSequenceDatabase Reverse_patternSequenceDatabase2 = new PatternSequenceDatabase();
+        double HighSupportThreshold = parameters.getHighSupportPattern();
+        double ConfHighConfRules = parameters.getConfHighConfRules();
+        double SuppHighConfRules = parameters.getSuppHighConfRules();
+        double SuppOrdinaryRules = parameters.getSuppOrdinaryRules();
+        double ConfOridnaryRules = parameters.getConfOridnaryRules();
+        //FilterLevel FilteringMethod=parameters.getFilterLevel();
+        int i = 0;
+        int i2 = 0;
+        //////////////////////////////// Computing Activities Frequency /////////////////////
+        String SequeceDatabase = "";
+        String SequeceDatabase2 = "";
+        String ReverseSequenecDatabase = "";
+        int counter = 0;
+
+        int index = 1;
+        Set<String> EventNames = new HashSet<String>();
+        for (XEventClass clazz : logInfo.getNameClasses().getClasses()) {
+            EventNames.add(clazz.toString());
+        }
+
+        Map<String, Integer> encodeMap = new HashMap<String, Integer>();
+        Map<Integer, String> decodeMap = new HashMap<Integer, String>();
+
+        for (String eventname : EventNames) {
+            encodeMap.put(eventname, index);
+            decodeMap.put(index, eventname);
+            index++;
+        }
+        SequenceDatabase ReverseRuleSequencesDatabase = new SequenceDatabase();
+        SequenceDatabase ReverseRuleSequencesDatabase2 = new SequenceDatabase();
+        SequenceDatabase RuleSequencesDatabase = new SequenceDatabase();
+        SequenceDatabase RuleSequencesDatabase2 = new SequenceDatabase();
+        PatternSequenceDatabase patternSequenceDatabase = new PatternSequenceDatabase();
+        PatternSequenceDatabase patternSequenceDatabase2 = new PatternSequenceDatabase();
+        PatternSequenceDatabase Reverse_patternSequenceDatabase = new PatternSequenceDatabase();
+        PatternSequenceDatabase Reverse_patternSequenceDatabase2 = new PatternSequenceDatabase();
 //		for(XTrace trace : OutputLog){
 //			LogSize++;
 //			for (XEvent event : trace){
@@ -98,193 +90,193 @@ public class FilterBasedOnSequence {
 //			SequeceDatabase+=-2+"\r\n";
 //			SequeceDatabase2+=-2+"\r\n";
 //		}
-		List<int[]> PatternSequences = new ArrayList<int[]>();
-		List<int[]> PatternSequences2 = new ArrayList<int[]>();
-		List<int[]> ReveresePatternSequences = new ArrayList<int[]>();
-		List<int[]> ReveresePatternSequences2 = new ArrayList<int[]>();
-		PatternSequences = new ArrayList<int[]>();
-		List<Integer> Ruleitemset = new ArrayList<Integer>();
-		List<Integer> Ruleitemset2 = new ArrayList<Integer>();
-		for(XTrace trace : OutputLog){
-			LogSize++;
-			Sequence sequence = new Sequence(RuleSequencesDatabase.size());
-			Sequence sequence2 = new Sequence(RuleSequencesDatabase2.size());
-			int eventcounter=0;
-			int[] patternSequence = new int [(trace.size()*2)+1] ; 
-			//ReverseSequenecDatabase=-2 + "\r\n"+ ReverseSequenecDatabase ;
-			for (XEvent event : trace){
-				
-				i= encodeMap.get(event.getAttributes().get(EventCol.getDefiningAttributeKeys()[0]).toString());
-				i2= encodeMap.get(event.getAttributes().get(EventCol.getDefiningAttributeKeys()[0]).toString());
-				//ReverseSequenecDatabase= i +" -1 "+ ReverseSequenecDatabase  ;
-				SequeceDatabase+=i + " ";
-				SequeceDatabase2+=i + " ";
-				Ruleitemset= new ArrayList<Integer>();
-				Ruleitemset.add(i);
-				Ruleitemset2= new ArrayList<Integer>();
-				Ruleitemset2.add(i2);
-				sequence.addItemset(Ruleitemset);
-				sequence2.addItemset(Ruleitemset2);
-				patternSequence[eventcounter] = i;
-				eventcounter++;
-				patternSequence[eventcounter] = -1;
-				eventcounter++;
-				}
-			patternSequence[eventcounter] = -2;
-			RuleSequencesDatabase.addSequence(sequence);
-			RuleSequencesDatabase2.addSequence(sequence2);
-			int[] patternSequence2 = patternSequence.clone();
-			int[] reversePatternSequence=new int [patternSequence2.length];
-			for (int j = 0; j < reversePatternSequence.length-2; j++) {
-				reversePatternSequence[j]=patternSequence2[patternSequence2.length-3-j];
-			}
-			reversePatternSequence[reversePatternSequence.length-1]=-2;
-			reversePatternSequence[reversePatternSequence.length-2]=-1;
-			int [] reversePatternSequence2=reversePatternSequence.clone();
-			PatternSequences.add(patternSequence);
-			PatternSequences2.add(patternSequence2);
-			ReveresePatternSequences.add(reversePatternSequence);
-			ReveresePatternSequences2.add(reversePatternSequence2);
-			SequeceDatabase+="\r\n";
-			SequeceDatabase2+="\r\n";
- 			
-		}
-		
-		patternSequenceDatabase.setSequences(PatternSequences);
-		patternSequenceDatabase2.setSequences(PatternSequences2);
-		Reverse_patternSequenceDatabase.setSequences(ReveresePatternSequences);
-		Reverse_patternSequenceDatabase2.setSequences(ReveresePatternSequences2);
-		String [] Traces = SequeceDatabase.split("\r\n");
-		for (int j = 0; j < Traces.length; j++) {
-			Sequence sequence = new Sequence(ReverseRuleSequencesDatabase.size());
-			Sequence sequence2 = new Sequence(ReverseRuleSequencesDatabase2.size());
-			String[] tempTrace= Traces[j].split(" ");
-			for (int k = tempTrace.length-1; k >= 0; k--) {
-				Ruleitemset= new ArrayList<Integer>();
-				Ruleitemset.add(Integer.parseInt(tempTrace[k]));
-				Ruleitemset2= new ArrayList<Integer>();
-				Ruleitemset2.add(Integer.parseInt(tempTrace[k]));
-				sequence.addItemset(Ruleitemset);
-				sequence2.addItemset(Ruleitemset2);
-			}
-			ReverseRuleSequencesDatabase.addSequence(sequence);
-			ReverseRuleSequencesDatabase2.addSequence(sequence2);
-		}
-	
-		//////////////////////////////////////Odd Patterns/////////////////////////////////////
-		SequenceMiner Allpatterns  = new SequenceMiner();
-		Allpatterns.setMaximumPatternLength(parameters.getOddDistance());
-		Allpatterns.apply (patternSequenceDatabase, 0.0);
-		String[] AllPatternsItems=Allpatterns.getResultedPatterns();
-		List<List<Integer>> AllPatternsTraces = Allpatterns.getTraceIDs();
-		
-		
-		SequenceMiner ordinarypatterns  = new SequenceMiner();	
-		ordinarypatterns.setMaximumPatternLength(parameters.getOddDistance());
-		ordinarypatterns.apply (patternSequenceDatabase2, parameters.getHighSupportPattern());
-		String[] OrdinaryPatternsItems=ordinarypatterns.getResultedPatterns();
-		List<List<Integer>> OridnaryPatternsTraces = ordinarypatterns.getTraceIDs();
-	
-		 				///////////////Find Odds from All and ordinaries//////////////
-	
-		List<List<Integer>> OddPatterns=new ArrayList<List<Integer>>(AllPatternsItems.length-OrdinaryPatternsItems.length); 
-		for (int j = 0; j < AllPatternsItems.length; j++) {
-			 counter =0;
-			for (int j2 = 0; j2 < OrdinaryPatternsItems.length; j2++) {
-				if (OrdinaryPatternsItems[j2].equals(AllPatternsItems[j])) {
-					counter++;
-				}
-			}
-			if(counter==0) {
-				OddPatterns.add(AllPatternsTraces.get(j));
-			}
-		}
-	 
-		////////////////////////////Odd Patterns REVERSE////////////////////////////
-		
-		SequenceMiner RevereseAllpatterns  = new SequenceMiner();
-		RevereseAllpatterns.setMaximumPatternLength(parameters.getOddDistance());
-		RevereseAllpatterns.apply (Reverse_patternSequenceDatabase,  0.0);
-		String[] ReverseAllPatternsItems = RevereseAllpatterns.getResultedPatterns();
-		List<List<Integer>> RevereseAllPatternsTraces = RevereseAllpatterns.getTraceIDs();
-		
-		
-		SequenceMiner Reverseordinarypatterns  = new SequenceMiner();
-		Reverseordinarypatterns.setMaximumPatternLength(parameters.getOddDistance());
-		Reverseordinarypatterns.apply (Reverse_patternSequenceDatabase2, parameters.getHighSupportPattern());
-		String[] RevereseOrdinaryPatternsItems=Reverseordinarypatterns.getResultedPatterns();
-		List<List<Integer>> REvereseOridnaryPatternsTraces = Reverseordinarypatterns.getTraceIDs();
-	
-		 				///////////////Find Odds from All and ordinaries//////////////
-	
-		List<List<Integer>> RevereseOddPatterns=new ArrayList<List<Integer>>(ReverseAllPatternsItems.length-RevereseOrdinaryPatternsItems.length); 
-		for (int j = 0; j < ReverseAllPatternsItems.length; j++) {
-			 counter =0;
-			for (int j2 = 0; j2 < RevereseOrdinaryPatternsItems.length; j2++) {
-				if (RevereseOrdinaryPatternsItems[j2].equals(ReverseAllPatternsItems[j])) {
-					counter++;
-				}
-			}
-			if(counter==0) {
-				RevereseOddPatterns.add(RevereseAllPatternsTraces.get(j));
-			}
-		}
-		Set<Integer> OddTraces = new HashSet<>();
-		List<Integer> tempp=null;
-		if (OddTraces.size()==0 &&  !RevereseOddPatterns.isEmpty()) {
-			tempp= RevereseOddPatterns.get(0);
-			OddTraces.addAll(tempp);
-		}
-		for (int j = 0; j < RevereseOddPatterns.size(); j++) {
-			tempp= RevereseOddPatterns.get(j);
-			OddTraces.addAll(tempp);
-		}
-		if (OddTraces.size()==0 &&  !OddPatterns.isEmpty()) {
-			tempp= OddPatterns.get(0);
-			OddTraces.addAll(tempp);
-		}
-		for (int j = 0; j < OddPatterns.size(); j++) {
-			tempp= OddPatterns.get(j);
-			OddTraces.addAll(tempp);
-		}
-		
-		
-	    /////////////////////////////////////////////////Rules//////////////////////////////////////
-		//double minsup = 0.15;
-		//double minconf = 0.9;
-		//int windowSize = 15;
-		
-		//AlgoTRuleGrowth algo = new AlgoTRuleGrowth();
-		//algo.runAlgorithm(minsup, minconf, TempSeqAddress, OutputRules, windowSize);
-		//String [] inputRules =algo.inputRules();
-		//String [] outputRules= algo.outputRules();
+        List<int[]> PatternSequences = new ArrayList<int[]>();
+        List<int[]> PatternSequences2 = new ArrayList<int[]>();
+        List<int[]> ReveresePatternSequences = new ArrayList<int[]>();
+        List<int[]> ReveresePatternSequences2 = new ArrayList<int[]>();
+        PatternSequences = new ArrayList<int[]>();
+        List<Integer> Ruleitemset = new ArrayList<Integer>();
+        List<Integer> Ruleitemset2 = new ArrayList<Integer>();
+        for (XTrace trace : OutputLog) {
+            LogSize++;
+            Sequence sequence = new Sequence(RuleSequencesDatabase.size());
+            Sequence sequence2 = new Sequence(RuleSequencesDatabase2.size());
+            int eventcounter = 0;
+            int[] patternSequence = new int[(trace.size() * 2) + 1];
+            //ReverseSequenecDatabase=-2 + "\r\n"+ ReverseSequenecDatabase ;
+            for (XEvent event : trace) {
 
-		////////////////////////////////////////////////Rule Miner Using RuleGrowth  for High Confidence Rules//////////////////////////////
-	 
-		int RuleGrowthMinSupp_Relative = (int)(SuppHighConfRules * RuleSequencesDatabase.size());
-		double RuleGrowthMinConf = ConfHighConfRules;
-		AlgoRULEGROWTH RuleGrowthalgo = new AlgoRULEGROWTH();
-		if(parameters.getOddDistance()>2) {
-			RuleGrowthalgo.setMaxAntecedentSize(parameters.getOddDistance()-1);
-		}
-		RuleGrowthalgo.runAlgorithm(RuleSequencesDatabase, RuleGrowthMinSupp_Relative, RuleGrowthMinConf);
-		String [] inputRules =RuleGrowthalgo.inputRules();
-		String [] outputRules= RuleGrowthalgo.outputRules();
-		List<Set<Integer>> highFittedTraces = RuleGrowthalgo.FittedTraces();
-		List<Set<Integer>> AntecedentsTraces = RuleGrowthalgo.AntecedenceTraces();
-		
-		for (int j = 0; j < AntecedentsTraces.size(); j++) {
-			//Integer[] Ant = AntecedentsTraces.get(j).toArray(new Integer[AntecedentsTraces.get(j).size()]);
-			//Integer[] rule = highFittedTraces.get(j).toArray(new Integer[highFittedTraces.get(j).size()]);
-			Set<Integer> Ant = AntecedentsTraces.get(j);
-			Set<Integer> rule = highFittedTraces.get(j);
-			for(Integer a : Ant) {
-				if(!rule.contains(a)) {
-					OddTraces .add(a);
-				}
-			}
-			
-		}
+                i = encodeMap.get(event.getAttributes().get(EventCol.getDefiningAttributeKeys()[0]).toString());
+                i2 = encodeMap.get(event.getAttributes().get(EventCol.getDefiningAttributeKeys()[0]).toString());
+                //ReverseSequenecDatabase= i +" -1 "+ ReverseSequenecDatabase  ;
+                SequeceDatabase += i + " ";
+                SequeceDatabase2 += i + " ";
+                Ruleitemset = new ArrayList<Integer>();
+                Ruleitemset.add(i);
+                Ruleitemset2 = new ArrayList<Integer>();
+                Ruleitemset2.add(i2);
+                sequence.addItemset(Ruleitemset);
+                sequence2.addItemset(Ruleitemset2);
+                patternSequence[eventcounter] = i;
+                eventcounter++;
+                patternSequence[eventcounter] = -1;
+                eventcounter++;
+            }
+            patternSequence[eventcounter] = -2;
+            RuleSequencesDatabase.addSequence(sequence);
+            RuleSequencesDatabase2.addSequence(sequence2);
+            int[] patternSequence2 = patternSequence.clone();
+            int[] reversePatternSequence = new int[patternSequence2.length];
+            for (int j = 0; j < reversePatternSequence.length - 2; j++) {
+                reversePatternSequence[j] = patternSequence2[patternSequence2.length - 3 - j];
+            }
+            reversePatternSequence[reversePatternSequence.length - 1] = -2;
+            reversePatternSequence[reversePatternSequence.length - 2] = -1;
+            int[] reversePatternSequence2 = reversePatternSequence.clone();
+            PatternSequences.add(patternSequence);
+            PatternSequences2.add(patternSequence2);
+            ReveresePatternSequences.add(reversePatternSequence);
+            ReveresePatternSequences2.add(reversePatternSequence2);
+            SequeceDatabase += "\r\n";
+            SequeceDatabase2 += "\r\n";
+
+        }
+
+        patternSequenceDatabase.setSequences(PatternSequences);
+        patternSequenceDatabase2.setSequences(PatternSequences2);
+        Reverse_patternSequenceDatabase.setSequences(ReveresePatternSequences);
+        Reverse_patternSequenceDatabase2.setSequences(ReveresePatternSequences2);
+        String[] Traces = SequeceDatabase.split("\r\n");
+        for (int j = 0; j < Traces.length; j++) {
+            Sequence sequence = new Sequence(ReverseRuleSequencesDatabase.size());
+            Sequence sequence2 = new Sequence(ReverseRuleSequencesDatabase2.size());
+            String[] tempTrace = Traces[j].split(" ");
+            for (int k = tempTrace.length - 1; k >= 0; k--) {
+                Ruleitemset = new ArrayList<Integer>();
+                Ruleitemset.add(Integer.parseInt(tempTrace[k]));
+                Ruleitemset2 = new ArrayList<Integer>();
+                Ruleitemset2.add(Integer.parseInt(tempTrace[k]));
+                sequence.addItemset(Ruleitemset);
+                sequence2.addItemset(Ruleitemset2);
+            }
+            ReverseRuleSequencesDatabase.addSequence(sequence);
+            ReverseRuleSequencesDatabase2.addSequence(sequence2);
+        }
+
+        //////////////////////////////////////Odd Patterns/////////////////////////////////////
+        SequenceMiner Allpatterns = new SequenceMiner();
+        SequenceMiner.setMaximumPatternLength(parameters.getOddDistance());
+        Allpatterns.apply(patternSequenceDatabase, 0.0);
+        String[] AllPatternsItems = SequenceMiner.getResultedPatterns();
+        List<List<Integer>> AllPatternsTraces = SequenceMiner.getTraceIDs();
+
+
+        SequenceMiner ordinarypatterns = new SequenceMiner();
+        SequenceMiner.setMaximumPatternLength(parameters.getOddDistance());
+        ordinarypatterns.apply(patternSequenceDatabase2, parameters.getHighSupportPattern());
+        String[] OrdinaryPatternsItems = SequenceMiner.getResultedPatterns();
+        List<List<Integer>> OridnaryPatternsTraces = SequenceMiner.getTraceIDs();
+
+        ///////////////Find Odds from All and ordinaries//////////////
+
+        List<List<Integer>> OddPatterns = new ArrayList<List<Integer>>(AllPatternsItems.length - OrdinaryPatternsItems.length);
+        for (int j = 0; j < AllPatternsItems.length; j++) {
+            counter = 0;
+            for (int j2 = 0; j2 < OrdinaryPatternsItems.length; j2++) {
+                if (OrdinaryPatternsItems[j2].equals(AllPatternsItems[j])) {
+                    counter++;
+                }
+            }
+            if (counter == 0) {
+                OddPatterns.add(AllPatternsTraces.get(j));
+            }
+        }
+
+        ////////////////////////////Odd Patterns REVERSE////////////////////////////
+
+        SequenceMiner RevereseAllpatterns = new SequenceMiner();
+        SequenceMiner.setMaximumPatternLength(parameters.getOddDistance());
+        RevereseAllpatterns.apply(Reverse_patternSequenceDatabase, 0.0);
+        String[] ReverseAllPatternsItems = SequenceMiner.getResultedPatterns();
+        List<List<Integer>> RevereseAllPatternsTraces = SequenceMiner.getTraceIDs();
+
+
+        SequenceMiner Reverseordinarypatterns = new SequenceMiner();
+        SequenceMiner.setMaximumPatternLength(parameters.getOddDistance());
+        Reverseordinarypatterns.apply(Reverse_patternSequenceDatabase2, parameters.getHighSupportPattern());
+        String[] RevereseOrdinaryPatternsItems = SequenceMiner.getResultedPatterns();
+        List<List<Integer>> REvereseOridnaryPatternsTraces = SequenceMiner.getTraceIDs();
+
+        ///////////////Find Odds from All and ordinaries//////////////
+
+        List<List<Integer>> RevereseOddPatterns = new ArrayList<List<Integer>>(ReverseAllPatternsItems.length - RevereseOrdinaryPatternsItems.length);
+        for (int j = 0; j < ReverseAllPatternsItems.length; j++) {
+            counter = 0;
+            for (int j2 = 0; j2 < RevereseOrdinaryPatternsItems.length; j2++) {
+                if (RevereseOrdinaryPatternsItems[j2].equals(ReverseAllPatternsItems[j])) {
+                    counter++;
+                }
+            }
+            if (counter == 0) {
+                RevereseOddPatterns.add(RevereseAllPatternsTraces.get(j));
+            }
+        }
+        Set<Integer> OddTraces = new HashSet<>();
+        List<Integer> tempp = null;
+        if (OddTraces.size() == 0 && !RevereseOddPatterns.isEmpty()) {
+            tempp = RevereseOddPatterns.get(0);
+            OddTraces.addAll(tempp);
+        }
+        for (int j = 0; j < RevereseOddPatterns.size(); j++) {
+            tempp = RevereseOddPatterns.get(j);
+            OddTraces.addAll(tempp);
+        }
+        if (OddTraces.size() == 0 && !OddPatterns.isEmpty()) {
+            tempp = OddPatterns.get(0);
+            OddTraces.addAll(tempp);
+        }
+        for (int j = 0; j < OddPatterns.size(); j++) {
+            tempp = OddPatterns.get(j);
+            OddTraces.addAll(tempp);
+        }
+
+
+        /////////////////////////////////////////////////Rules//////////////////////////////////////
+        //double minsup = 0.15;
+        //double minconf = 0.9;
+        //int windowSize = 15;
+
+        //AlgoTRuleGrowth algo = new AlgoTRuleGrowth();
+        //algo.runAlgorithm(minsup, minconf, TempSeqAddress, OutputRules, windowSize);
+        //String [] inputRules =algo.inputRules();
+        //String [] outputRules= algo.outputRules();
+
+        ////////////////////////////////////////////////Rule Miner Using RuleGrowth  for High Confidence Rules//////////////////////////////
+
+        int RuleGrowthMinSupp_Relative = (int) (SuppHighConfRules * RuleSequencesDatabase.size());
+        double RuleGrowthMinConf = ConfHighConfRules;
+        AlgoRULEGROWTH RuleGrowthalgo = new AlgoRULEGROWTH();
+        if (parameters.getOddDistance() > 2) {
+            RuleGrowthalgo.setMaxAntecedentSize(parameters.getOddDistance() - 1);
+        }
+        RuleGrowthalgo.runAlgorithm(RuleSequencesDatabase, RuleGrowthMinSupp_Relative, RuleGrowthMinConf);
+        String[] inputRules = RuleGrowthalgo.inputRules();
+        String[] outputRules = RuleGrowthalgo.outputRules();
+        List<Set<Integer>> highFittedTraces = RuleGrowthalgo.FittedTraces();
+        List<Set<Integer>> AntecedentsTraces = RuleGrowthalgo.AntecedenceTraces();
+
+        for (int j = 0; j < AntecedentsTraces.size(); j++) {
+            //Integer[] Ant = AntecedentsTraces.get(j).toArray(new Integer[AntecedentsTraces.get(j).size()]);
+            //Integer[] rule = highFittedTraces.get(j).toArray(new Integer[highFittedTraces.get(j).size()]);
+            Set<Integer> Ant = AntecedentsTraces.get(j);
+            Set<Integer> rule = highFittedTraces.get(j);
+            for (Integer a : Ant) {
+                if (!rule.contains(a)) {
+                    OddTraces.add(a);
+                }
+            }
+
+        }
 	/*	Set<Integer> fittedTraces=null;
 		// fittedTraces = Arrays.asList(highFittedTraces.get(0).toArray(new Integer[highFittedTraces.get(0).size()]));
 		if (!highFittedTraces.isEmpty()) {
@@ -294,30 +286,30 @@ public class FilterBasedOnSequence {
 			Set<Integer> s2 = highFittedTraces.get(j);
 			fittedTraces.retainAll(s2);
 		}
-	*/	
-		//////////////////////////ReverseHighSupport Rules//////////////////
-		AlgoRULEGROWTH RuleGrowthalgoReverse = new AlgoRULEGROWTH();
-		if(parameters.getOddDistance()>2) {
-			RuleGrowthalgoReverse.setMaxAntecedentSize(parameters.getOddDistance()-1);
-		}
-		RuleGrowthalgoReverse.runAlgorithm(ReverseRuleSequencesDatabase, RuleGrowthMinSupp_Relative, RuleGrowthMinConf);
-		String [] HighReverseinputRules =RuleGrowthalgoReverse.inputRules();
-		String [] HighReverseoutputRules= RuleGrowthalgoReverse.outputRules();
-		List<Set<Integer>> ReveresehighFittedTraces = RuleGrowthalgoReverse.FittedTraces();
-		List<Set<Integer>> ReverseAntecedentsTraces = RuleGrowthalgoReverse.AntecedenceTraces();
-		
-		for (int j = 0; j < ReverseAntecedentsTraces.size(); j++) {
-			//Integer[] Ant = AntecedentsTraces.get(j).toArray(new Integer[AntecedentsTraces.get(j).size()]);
-			//Integer[] rule = highFittedTraces.get(j).toArray(new Integer[highFittedTraces.get(j).size()]);
-			Set<Integer> Ant = ReverseAntecedentsTraces.get(j);
-			Set<Integer> rule = ReveresehighFittedTraces.get(j);
-			for(Integer a : Ant) {
-				if(!rule.contains(a)) {
-					OddTraces .add(a);
-				}
-			}
-			
-		}
+	*/
+        //////////////////////////ReverseHighSupport Rules//////////////////
+        AlgoRULEGROWTH RuleGrowthalgoReverse = new AlgoRULEGROWTH();
+        if (parameters.getOddDistance() > 2) {
+            RuleGrowthalgoReverse.setMaxAntecedentSize(parameters.getOddDistance() - 1);
+        }
+        RuleGrowthalgoReverse.runAlgorithm(ReverseRuleSequencesDatabase, RuleGrowthMinSupp_Relative, RuleGrowthMinConf);
+        String[] HighReverseinputRules = RuleGrowthalgoReverse.inputRules();
+        String[] HighReverseoutputRules = RuleGrowthalgoReverse.outputRules();
+        List<Set<Integer>> ReveresehighFittedTraces = RuleGrowthalgoReverse.FittedTraces();
+        List<Set<Integer>> ReverseAntecedentsTraces = RuleGrowthalgoReverse.AntecedenceTraces();
+
+        for (int j = 0; j < ReverseAntecedentsTraces.size(); j++) {
+            //Integer[] Ant = AntecedentsTraces.get(j).toArray(new Integer[AntecedentsTraces.get(j).size()]);
+            //Integer[] rule = highFittedTraces.get(j).toArray(new Integer[highFittedTraces.get(j).size()]);
+            Set<Integer> Ant = ReverseAntecedentsTraces.get(j);
+            Set<Integer> rule = ReveresehighFittedTraces.get(j);
+            for (Integer a : Ant) {
+                if (!rule.contains(a)) {
+                    OddTraces.add(a);
+                }
+            }
+
+        }
 		
 	/*	List<Set<Integer>> ReverseHighFittedTraces = RuleGrowthalgoReverse.FittedTraces();	
 		if (fittedTraces==null &&!ReverseHighFittedTraces.isEmpty()) {
@@ -431,24 +423,24 @@ public class FilterBasedOnSequence {
 			}
 	}
 		
-*/		
-		
+*/
+
 /////////////////////////////////////////////Start Phase 1 Filtering//////////////////////////////////////////
 
-		XFactory factory = XFactoryRegistry.instance().currentDefault();
-		XLog outputLog = factory.createLog();
-		for (XExtension extension : InputLog.getExtensions()) {
-			outputLog.getExtensions().add(extension);
-		}
-		
-		outputLog.setAttributes((XAttributeMap) InputLog.getAttributes().clone());
-		//////////////////////////////////Pattern with high Support  And  Rules with high confidence////////////////////////////////////	 
-		counter=0;
-		for (XTrace trace : OutputLog){
-		int TraceFlag =0;
-		if(OddTraces.contains(counter)) {
-			TraceFlag++;
-		}
+        XFactory factory = XFactoryRegistry.instance().currentDefault();
+        XLog outputLog = factory.createLog();
+        for (XExtension extension : InputLog.getExtensions()) {
+            outputLog.getExtensions().add(extension);
+        }
+
+        outputLog.setAttributes((XAttributeMap) InputLog.getAttributes().clone());
+        //////////////////////////////////Pattern with high Support  And  Rules with high confidence////////////////////////////////////
+        counter = 0;
+        for (XTrace trace : OutputLog) {
+            int TraceFlag = 0;
+            if (OddTraces.contains(counter)) {
+                TraceFlag++;
+            }
 		
 		
 		
@@ -557,17 +549,17 @@ loop4:		for (int j = 0; j < Trace.length-1; j++) {
 		}
 
 
-*/		
-		////////////////////////////////////////////////////////
-		//	System.out.println(" ***************=="+ counter + "***************"+ TraceFlag);
-		counter++;  
-		if (TraceFlag < 1)
-			outputLog.add(trace);
-	}
-	
-	
-	return outputLog;
-	}
-	
-	
+*/
+            ////////////////////////////////////////////////////////
+            //	System.out.println(" ***************=="+ counter + "***************"+ TraceFlag);
+            counter++;
+            if (TraceFlag < 1)
+                outputLog.add(trace);
+        }
+
+
+        return outputLog;
+    }
+
+
 }
