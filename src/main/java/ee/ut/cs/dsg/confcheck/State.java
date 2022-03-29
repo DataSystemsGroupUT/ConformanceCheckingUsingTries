@@ -46,6 +46,11 @@ public class State implements Comparable<State>{
 
     }
 
+    public void addTracePostfix(List <String> tracePostfix)
+    {
+        this.tracePostfix.addAll(tracePostfix);
+    }
+
     public Alignment getAlignment() {
         Alignment copy = new Alignment(alignment);
         return copy;

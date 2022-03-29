@@ -412,9 +412,9 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
                         List<String> trSuffix = new LinkedList<>();
                         trSuffix.addAll(traceSuffix);
-                        State nonSyncState = new State(new Alignment(alg), trSuffix, prev.getParent(),0);
+                        State nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0);
                         addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
-                        nonSyncState = new State(new Alignment(alg), trSuffix, prev.getParent(),0, state);
+                        nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0, state);
                         for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
                             addStateToTheQueue(s, candidateState);
                     }
@@ -428,6 +428,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
                         event = traceSuffix.remove(0);
 
                         node = node.getChild(event);
+
                     }
                     else
                     {
@@ -491,17 +492,26 @@ public class RandomConformanceChecker extends ConformanceChecker{
         cntr=1;
         traceSize = trace.size();
         State state;
+        State previousState;
         StatesBuffer caseStatesInBuffer;
         Alignment alg;
         TrieNode node;
         List<String> traceSuffix;
 
+
         if (statesInBuffer.containsKey(caseId))
         {
             // case exists, fetch last state
             caseStatesInBuffer = statesInBuffer.get(caseId);
-            state = caseStatesInBuffer.getMatchingPrefixState();
+            previousState = caseStatesInBuffer.getMatchingPrefixState();
+            state = new State(previousState.getAlignment(), trace, previousState.getNode(), previousState.getCostSoFar());
             nextChecks = caseStatesInBuffer.getNextChecks();
+            for (State c : nextChecks)
+            {
+                c.addTracePostfix(trace);
+            }
+            nextChecks.add(state);
+            // are the other nextChecks missing the correct trace suffix?
         }
         else
         {
@@ -509,6 +519,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
             // create dummy state, create key in tracesInBuffer
             state = new State(new Alignment(),trace, modelTrie.getRoot(),0);
             caseStatesInBuffer = new StatesBuffer(maxStatesInQueue, modelTrie.getRoot(),trace);
+            statesInBuffer.put(caseId, caseStatesInBuffer);
             nextChecks.add(state);
         }
 
@@ -517,6 +528,11 @@ public class RandomConformanceChecker extends ConformanceChecker{
         String event;
         numTrials = 1;
         cleanseFrequency = maxTrials/20;
+
+        System.out.println("---");
+        System.out.println("We start");
+        System.out.println("Next checks size: " + nextChecks.size());
+        System.out.println("States done: "+numTrials);
         while(nextChecks.size() >0  && numTrials < maxTrials)
         {
             if (candidateState!= null && candidateState.getCostSoFar() == 0)
@@ -674,6 +690,10 @@ public class RandomConformanceChecker extends ConformanceChecker{
             }
 
         }
+        System.out.println("Reached end");
+        System.out.println("Next checks size: " + nextChecks.size());
+        System.out.println("States done: "+numTrials);
+        caseStatesInBuffer.updateBuffer(candidateState, new PriorityQueue<>(nextChecks));
 
         return candidateState != null? candidateState.getAlignment():null;
     }

@@ -50,6 +50,9 @@
       <root url="jar://$PROJECT_DIR$/lib/trove4j-3.0.3.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/EfficientStorage-latest.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/LpSolve-latest.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/OperationalSupport-latest.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/xstream-1.4.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/collections-generic-4.01.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$PROJECT_DIR$/lib/PetriNets-latest.jar!/" />
@@ -72,6 +75,9 @@
       <root url="jar://$PROJECT_DIR$/lib/HybridILPMiner-latest.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/ProjectedRecallAndPrecision-latest.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/EfficientStorage-latest.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/OperationalSupport-latest.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/xstream-1.4.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/collections-generic-4.01.jar!/" />
     </JAVADOC>
     <SOURCES>
       <root url="jar://$PROJECT_DIR$/lib/approxlib-1.0.jar!/" />
@@ -96,6 +102,9 @@
       <root url="jar://$PROJECT_DIR$/lib/ProjectedRecallAndPrecision-latest.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/EfficientStorage-latest.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/LpSolve-latest.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/OperationalSupport-latest.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/xstream-1.4.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/collections-generic-4.01.jar!/" />
     </SOURCES>
   </library>
 </component>

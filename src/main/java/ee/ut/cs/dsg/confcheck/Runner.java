@@ -82,7 +82,7 @@ public class Runner {
         String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml";
         String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml";
 */
-          testOnConformanceApproximationResults(simulatedLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
+          testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
           //testOnConformanceApproximationResults(simulatedLog, sampleLog, ConformanceCheckerType.TRIE_PREFIX, LogSortType.NONE);
         //String trietest_1 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_1.1.xes";
         //String trietest_2 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_2.xes";
@@ -628,7 +628,7 @@ public class Runner {
             if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
                           checker = new PrefixConformanceChecker(t,1,1, false);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
-                checker = new RandomConformanceChecker(t,1,1, 1000, 1000);//Integer.MAX_VALUE);
+                checker = new RandomConformanceChecker(t,1,1, 100000, 100000);//Integer.MAX_VALUE);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
                 checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
             else
@@ -724,11 +724,28 @@ public class Runner {
             trace.add(new StringBuilder().append(c).toString());
         }
 
+        System.out.println("Case id: "+Integer.toString(i));
+        System.out.println(trace);
+
         //Integer traceSize = trace.size();
         start = System.currentTimeMillis();
         //alg = checker.prefix_check(trace, Integer.toString(i));
-        alg = checker.check2(trace, true, Integer.toString(i));
+        //alg = checker.check2(trace, true, Integer.toString(i));
         //alg = checker.check(trace);
+
+
+        alg = null;
+        if (i==17) {
+            for (String e : trace) {
+                List<String> tempList = new ArrayList<String>();
+                tempList.add(e);
+                alg = checker.check2(tempList, true, Integer.toString((i)));
+                //System.out.println(", " + alg.getTotalCost());
+                System.out.println(alg.toString());
+            }
+        }
+
+
         totalTime += System.currentTimeMillis() - start;
         if (alg != null) {
             System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
@@ -740,6 +757,7 @@ public class Runner {
 //                        t.printTraces();
         } else //if (usePrefixChecker == false)
             System.out.println("Couldn't find an alignment under the given constraints");
+
 
         return totalTime;
     }
@@ -799,7 +817,7 @@ public class Runner {
                 //System.out.println(templist.toString());
                 if (templist.size() > 0 ) {
 
-//                    System.out.println(templist.toString());
+                   // System.out.println(templist.toString());
 //                    if (count == 37)
 //                    StringBuilder sb = new StringBuilder();
 //                    templist.stream().forEach(e -> sb.append(e));
