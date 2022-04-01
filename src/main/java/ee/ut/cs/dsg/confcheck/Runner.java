@@ -107,7 +107,7 @@ public class Runner {
 
 
 
-        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.LEXICOGRAPHIC_DESC );
+        testOnConformanceApproximationResults(frequencyActivityLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.TRACE_LENGTH_ASC );
 
 
 //        // BPI 2015
@@ -344,9 +344,9 @@ public class Runner {
             if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
                           checker = new PrefixConformanceChecker(t,1,1, false);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
-                checker = new RandomConformanceChecker(t,1,1, 5000000, 500000);//Integer.MAX_VALUE);
+                checker = new RandomConformanceChecker(t,1,1, 50000, 10000000);//Integer.MAX_VALUE);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
-                checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
+                checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 1000000);//Integer.MAX_VALUE);
             else
             {
                 testVanellaConformanceApproximation(inputProxyLogFile,inputSampleLogFile);

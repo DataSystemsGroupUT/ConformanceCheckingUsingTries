@@ -13,7 +13,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
 
 
-    protected int exploitVersusExploreFrequency = 181;
+    protected int exploitVersusExploreFrequency = 113;
     protected int numEpochs;
     protected boolean onMatchFollowPrefixOnly = false;
     protected boolean verbose = false;
@@ -36,9 +36,9 @@ public class RandomConformanceChecker extends ConformanceChecker{
     }
 
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
-        this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new AlignmentAndProgressCostFunction());
+        this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new DualProgressiveCostFunction());
     }
-    protected State pickRandom(State candidateState)
+    protected State pickRandom()
     {
 
 //        toCheck.sort(new Comparator<State>() {
@@ -138,7 +138,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
         {
             if (candidateState!= null && candidateState.getCostSoFar() == 0)
                 break;
-            state = pickRandom(candidateState);
+            state = pickRandom();
             if (state==null)
                 continue;
             numTrials++;

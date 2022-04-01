@@ -44,9 +44,9 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             if (reuseSearchSpace) {
                 PriorityQueue<State> previousSearchSpace = searchSpace.get(node.getAlignmentState());
                 if (previousSearchSpace != null) {
-                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(vs));
-//                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(
-//                            new State(trace.subList(vs.getNode().getLevel(),trace.size()),vs.getNode(),vs.getCostSoFar())));
+//                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(vs));
+                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(
+                            new State(vs.getAlignment(), trace.subList(vs.getNode().getLevel(),trace.size()),vs.getNode(),vs.getCostSoFar())));
                     if (verbose)
                         System.out.printf("Loading previous search space to resume from. Kept %d states from original %d states%n", nextChecks.size(), previousSearchSpace.size());
                 }
@@ -97,7 +97,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             // as we are using old search spaces, there might be some invalid states from other prefixes.
             if (candidateState!= null && candidateState.getCostSoFar() == 0)
                 break;
-            state = pickRandom(candidateState);
+            state = pickRandom();
             Alignment alg;
 //            while (stateRetrieved && !isAValidState(state,trace))
 //            {
