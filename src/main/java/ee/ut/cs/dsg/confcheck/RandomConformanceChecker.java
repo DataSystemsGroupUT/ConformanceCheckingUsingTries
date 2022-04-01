@@ -529,10 +529,6 @@ public class RandomConformanceChecker extends ConformanceChecker{
         numTrials = 1;
         cleanseFrequency = maxTrials/20;
 
-        System.out.println("---");
-        System.out.println("We start");
-        System.out.println("Next checks size: " + nextChecks.size());
-        System.out.println("States done: "+numTrials);
         while(nextChecks.size() >0  && numTrials < maxTrials)
         {
             if (candidateState!= null && candidateState.getCostSoFar() == 0)
@@ -690,9 +686,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
             }
 
         }
-        System.out.println("Reached end");
-        System.out.println("Next checks size: " + nextChecks.size());
-        System.out.println("States done: "+numTrials);
+
         caseStatesInBuffer.updateBuffer(candidateState, new PriorityQueue<>(nextChecks));
 
         return candidateState != null? candidateState.getAlignment():null;

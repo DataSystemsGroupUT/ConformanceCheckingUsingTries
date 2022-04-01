@@ -71,10 +71,10 @@ public class Runner {
 //        testBed3();
 
 //            BPI2012
-          String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\simulatedLog.xml";
-          String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\frequencyLog.xml";
-          String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\sampledLog.xml";
-        //testBedPrefix("test");
+          //String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\simulatedLog.xml";
+          //String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\frequencyLog.xml";
+          //String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\sampledLog.xml";
+        testBedPrefix();
 
         //BPI 2015
         /*
@@ -82,7 +82,7 @@ public class Runner {
         String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml";
         String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml";
 */
-          testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
+          //testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
           //testOnConformanceApproximationResults(simulatedLog, sampleLog, ConformanceCheckerType.TRIE_PREFIX, LogSortType.NONE);
         //String trietest_1 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_1.1.xes";
         //String trietest_2 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_2.xes";
@@ -193,7 +193,7 @@ public class Runner {
 
     }
 
-    private static void testBedPrefix(String inputLog)
+    private static void testBedPrefix()
     {
 
         RandomConformanceChecker cnfChecker;
@@ -248,9 +248,11 @@ public class Runner {
         prefixCase1.add("a");
         alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
 
+        prefixCase1.clear();
         prefixCase1.add("b");
         alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
 
+        prefixCase1.clear();
         prefixCase1.add("c");
         alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
 
@@ -262,12 +264,15 @@ public class Runner {
         prefixCase2.add("a");
         alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
 
+        prefixCase2.clear();
         prefixCase2.add("b");
         alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
 
+        prefixCase2.clear();
         prefixCase2.add("e");
         alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
 
+        prefixCase2.clear();
         prefixCase2.add("f");
         alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
 
@@ -279,18 +284,23 @@ public class Runner {
         prefixCase3.add("a");
         alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
 
+        prefixCase3.clear();
         prefixCase3.add("b");
         alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
 
+        prefixCase3.clear();
         prefixCase3.add("c");
         alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
 
+        prefixCase3.clear();
         prefixCase3.add("c");
         alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
 
+        prefixCase3.clear();
         prefixCase3.add("d");
         alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
 
+        prefixCase3.clear();
         prefixCase3.add("e");
         alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
 
@@ -302,15 +312,19 @@ public class Runner {
         prefixCase4.add("b");
         alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
 
+        prefixCase4.clear();
         prefixCase4.add("a");
         alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
 
+        prefixCase4.clear();
         prefixCase4.add("c");
         alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
 
+        prefixCase4.clear();
         prefixCase4.add("d");
         alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
 
+        prefixCase4.clear();
         prefixCase4.add("e");
         alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
 
@@ -322,12 +336,15 @@ public class Runner {
         prefixCase5.add("x");
         alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
 
+        prefixCase5.clear();
         prefixCase5.add("a");
         alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
 
+        prefixCase5.clear();
         prefixCase5.add("b");
         alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
 
+        prefixCase5.clear();
         prefixCase5.add("c");
         alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
 
@@ -339,12 +356,15 @@ public class Runner {
         prefixCase6.add("a");
         alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
 
+        prefixCase6.clear();
         prefixCase6.add("b");
         alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
 
+        prefixCase6.clear();
         prefixCase6.add("c");
         alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
 
+        prefixCase6.clear();
         prefixCase6.add("x");
         alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
 
@@ -724,17 +744,25 @@ public class Runner {
             trace.add(new StringBuilder().append(c).toString());
         }
 
-        System.out.println("Case id: "+Integer.toString(i));
-        System.out.println(trace);
+        //System.out.println("Case id: "+Integer.toString(i));
+        //System.out.println(trace);
 
         //Integer traceSize = trace.size();
         start = System.currentTimeMillis();
         //alg = checker.prefix_check(trace, Integer.toString(i));
         //alg = checker.check2(trace, true, Integer.toString(i));
         //alg = checker.check(trace);
-
-
         alg = null;
+
+        for (String e : trace) {
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(e);
+            alg = checker.check2(tempList, true, Integer.toString((i)));
+            //System.out.println(", " + alg.getTotalCost());
+            //System.out.println(alg.toString());
+        }
+
+        /*alg = null;
         if (i==17) {
             for (String e : trace) {
                 List<String> tempList = new ArrayList<String>();
@@ -743,7 +771,7 @@ public class Runner {
                 //System.out.println(", " + alg.getTotalCost());
                 System.out.println(alg.toString());
             }
-        }
+        }*/
 
 
         totalTime += System.currentTimeMillis() - start;
