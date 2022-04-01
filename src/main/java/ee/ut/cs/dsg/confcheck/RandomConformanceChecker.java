@@ -278,9 +278,9 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
                         List<String> trSuffix = new LinkedList<>();
                         trSuffix.addAll(traceSuffix);
-                        State nonSyncState = new State(alg, trSuffix, prev.getParent(),0);
+                        State nonSyncState = new State(alg, trSuffix, node.getParent(),0);
                         addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
-                        nonSyncState = new State(alg, trSuffix, prev.getParent(),0, state);
+                        nonSyncState = new State(alg, trSuffix, node.getParent(),0, state);
                         for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
                             addStateToTheQueue(s, candidateState);
                     }
