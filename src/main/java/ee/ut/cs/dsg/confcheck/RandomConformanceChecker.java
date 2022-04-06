@@ -10,9 +10,6 @@ import ee.ut.cs.dsg.confcheck.util.Configuration;
 import java.util.*;
 
 public class RandomConformanceChecker extends ConformanceChecker{
-
-
-
     protected int exploitVersusExploreFrequency = 113;
     protected int numEpochs;
     protected boolean onMatchFollowPrefixOnly = false;
@@ -55,29 +52,22 @@ public class RandomConformanceChecker extends ConformanceChecker{
         State s;
         if (cntr % exploitVersusExploreFrequency== 0) {
 
-//            long start = System.currentTimeMillis();
-            State[] elements =  new State[nextChecks.size()];
-            nextChecks.toArray(elements);
-
-
-
-
-
+//            long start = System.currentTimeMillis()
 
             int upperBound = nextChecks.size();
             int lowerBound = Math.max(upperBound-  (nextChecks.size()/2)-1,1);
             index = rnd.nextInt( lowerBound);
 
-            s = elements[(lowerBound*whichDirection)+index >= upperBound? 0:(lowerBound*whichDirection)+index];
+            s = nextChecks.get((lowerBound*whichDirection)+index >= upperBound? 0:(lowerBound*whichDirection)+index);
 //            s = states.remove((lowerBound*whichDirection)+index >= upperBound? 0:(lowerBound*whichDirection)+index);
             whichDirection =  whichDirection == 0 ? 1:0;
 
-            nextChecks.remove(s);
+            nextChecks.delete(s);
 
             cntr = 0;
         }
         else {
-            s = nextChecks.poll();
+            s = nextChecks.pollFirst();
             states.remove(s);
         }
 
@@ -88,17 +78,17 @@ public class RandomConformanceChecker extends ConformanceChecker{
     {
 //        if (nextChecks.size() < 100000)
 //            return  ;
-        List<State> result = new ArrayList<>(nextChecks.size()/2);
-        State[] elements = new State[nextChecks.size()];
-        nextChecks.toArray(elements);
-
-        Arrays.sort(elements);
-        int quantile = nextChecks.size()/4;
-        nextChecks.clear();
-        for(int i = 0; i < quantile*4; i+=2)
-        {
-            nextChecks.add(elements[i]);
-        }
+//        List<State> result = new ArrayList<>(nextChecks.size()/2);
+//        State[] elements = new State[nextChecks.size()];
+//        nextChecks.toArray(elements);
+//
+//        Arrays.sort(elements);
+//        int quantile = nextChecks.size()/4;
+//        nextChecks.clear();
+//        for(int i = 0; i < quantile*4; i+=2)
+//        {
+//            nextChecks.add(elements[i]);
+//        }
 //        for (int i = quantile*2; i < quantile*3; i++)
 //        {
 //            nextChecks.add(elements[i]);
@@ -127,7 +117,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
         List<String> traceSuffix;
         State state = new State(alg,trace, modelTrie.getRoot(),0);
-        nextChecks.add(state);
+        nextChecks.push(state);
 
         State candidateState = null;
         String event;
@@ -275,7 +265,6 @@ public class RandomConformanceChecker extends ConformanceChecker{
 //
                     if(!onMatchFollowPrefixOnly)
                     {
-
                         List<String> trSuffix = new LinkedList<>();
                         trSuffix.addAll(traceSuffix);
                         State nonSyncState = new State(alg, trSuffix, node.getParent(),0);
@@ -311,8 +300,6 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
                 syncState = new State(alg,traceSuffix,prev,cost);
                 addStateToTheQueue(syncState, candidateState);
-
-
 
             }
             // On 27th of May 2021. we need to give the option to a log move as well as a model move
@@ -355,13 +342,13 @@ public class RandomConformanceChecker extends ConformanceChecker{
         {
 //            if (verbose)
 //                System.out.println("Max queue size reached. New state is not added!");
-           if (state.getCostSoFar() < nextChecks.peek().getCostSoFar())
+           if (state.getCostSoFar() < nextChecks.peekFirst().getCostSoFar())
             // if (state.getAlignment().getTotalCost() < nextChecks.peek().getAlignment().getTotalCost())
             {
 //                System.out.println(String.format("Adding a good candidate whose cost is %d which is less that the least cost so far %d", state.getAlignment().getTotalCost(), nextChecks.peek().getAlignment().getTotalCost()));
 //                System.out.println(String.format("Replacement state suffix length %d, number of model moves %d", state.getTracePostfix().size(), state.getNode().getLevel()));
-                nextChecks.poll();
-                nextChecks.add(state);
+                nextChecks.pollFirst();
+                nextChecks.push(state);
 //                states.add(state);
             }
             return;
@@ -370,7 +357,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
             if ((state.getAlignment().getTotalCost()+Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()),Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd())))  < candidateState.getAlignment().getTotalCost())// && state.getNode().getLevel() > candidateState.getNode().getLevel())
             {
 
-                nextChecks.add(state);
+                nextChecks.push(state);
 //                states.add(state);
             }
             else if (verbose) {
@@ -382,7 +369,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
         }
         else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
 //        {
-            nextChecks.add(state);
+            nextChecks.push(state);
 //            states.add(state);
 //        }
 

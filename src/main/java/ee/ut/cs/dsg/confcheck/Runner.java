@@ -62,52 +62,49 @@ public class Runner {
 
 //        testBed3();
 //        System.exit(0);
-        String randomProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\randomLog.xml";
-        String clusteredLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\sampledClusteredLog.xml";
-        String simulatedLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\simulatedLog.xml";
-        String reducedActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\reducedLogActivity.xml";
-        String frequencyActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\frequencyLog.xml";
-        String sampleLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\sampledLog.xml";
-        String singular = "C:\\Work\\DSG\\Data\\Logs\\BPI2015\\Singular.xes";
+        String randomProxyLog = "./BPI2015/randomLog.xml";
+        String clusteredLog = "./BPI2015/sampledClusteredLog.xml";
+        String simulatedLog = "./BPI2015/simulatedLog.xml";
+        String reducedActivityLog = "./BPI2015/reducedLogActivity.xml";
+        String frequencyActivityLog = "./BPI2015/frequencyLog.xml";
+        String sampleLog = "./BPI2015/sampledLog.xml";
+        String singular = "./BPI2015/Singular.xes";
 
-        String randomSepsisProxyLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\randomLog.xml";
-        String clusteredSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\sampledClusteredLog.xml";
-        String simulatedSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\simulatedLog.xml";
-        String frequencySepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\frequencyLog.xml";
-        String reducedSepsisActivityLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\reducedLogActivity.xml";
-        String sampleSepsisLog = "C:\\Work\\DSG\\Data\\Logs\\Sepsis\\sampledLog.xml";
+        String randomSepsisProxyLog = "./Sepsis/randomLog.xml";
+        String clusteredSepsisLog = "./Sepsis/sampledClusteredLog.xml";
+        String simulatedSepsisLog = "./Sepsis/simulatedLog.xml";
+        String frequencySepsisLog = "./Sepsis/frequencyLog.xml";
+        String reducedSepsisActivityLog = "./Sepsis/reducedLogActivity.xml";
+        String sampleSepsisLog = "./Sepsis/sampledLog.xml";
 
         // BPI 2019
-        String originalLog2019 = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\BPI_Challenge_2019.xml";
-        String random2019ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\randomLog.xml";
-        String clustered2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\sampledClusteredLog.xml";
-        String simulated2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\simulatedLog.xml";
-        String reduced2019ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\reducedLogActivity.xml";
-        String sample2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\sampledLog.xml";
-        String frequency2019Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2019\\frequencyLog.xml";
+        String originalLog2019 = "./BPI2019/BPI_Challenge_2019.xml";
+        String random2019ProxyLog = "./BPI2019/randomLog.xml";
+        String clustered2019Log = "./BPI2019/sampledClusteredLog.xml";
+        String simulated2019Log = "./BPI2019/simulatedLog.xml";
+        String reduced2019ActivityLog = "./BPI2019/reducedLogActivity.xml";
+        String sample2019Log = "./BPI2019/sampledLog.xml";
+        String frequency2019Log = "./BPI2019/frequencyLog.xml";
 
         // BPI 2012
-        String originalLog2012 = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\BPIC2012.xes";
-        String random2012ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\randomLog.xml";
-        String clustered2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\sampledClusteredLog.xml";
-        String simulated2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\simulatedLog.xml";
-        String reduced2012ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\reducedLogActivity.xml";
-        String sample2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\sampledLog.xml";
-        String frequency2012Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2012\\frequencyLog.xml";
+        String originalLog2012 = "./BPI2012/BPIC2012.xes";
+        String random2012ProxyLog = "./BPI2012/randomLog.xml";
+        String clustered2012Log = "./BPI2012/sampledClusteredLog.xml";
+        String simulated2012Log = "./BPI2012/simulatedLog.xml";
+        String reduced2012ActivityLog = "./BPI2012/reducedLogActivity.xml";
+        String sample2012Log = "./BPI2012/sampledLog.xml";
+        String frequency2012Log = "./BPI2012/frequencyLog.xml";
 
         // BPI 2017
-        String originalLog2017 = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\BPIC2017.xes.xes";
-        String random2017ProxyLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\rand_randomLog.xml";
-        String clustered2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\sampledClusteredLog.xml";
-        String simulated2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\simulatedLog.xml";
-        String reduced2017ActivityLog = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\reducedLogActivity.xml";
-        String sample2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\sampledLog.xml";
-        String frequency2017Log = "C:\\Work\\DSG\\Data\\Logs\\BPI2017\\freq_frequencyLog.xml";
-
-
-
-
-        testOnConformanceApproximationResults(frequencyActivityLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.TRACE_LENGTH_ASC );
+        String originalLog2017 = "./BPI2017/BPIC2017.xes.xes";
+        String random2017ProxyLog = "./BPI2017/rand_randomLog.xml";
+        String clustered2017Log = "./BPI2017/sampledClusteredLog.xml";
+        String simulated2017Log = "./BPI2017/simulatedLog.xml";
+        String reduced2017ActivityLog = "./BPI2017/reducedLogActivity.xml";
+        String sample2017Log = "./BPI2017/sampledLog.xml";
+        String frequency2017Log = "./BPI2017/freq_frequencyLog.xml";
+        
+        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM_STATEFUL, LogSortType.TRACE_LENGTH_ASC );
 
 
 //        // BPI 2015

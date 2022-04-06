@@ -1,10 +1,8 @@
 package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
-import ee.ut.cs.dsg.confcheck.alignment.Move;
-import ee.ut.cs.dsg.confcheck.cost.CostFunction;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
-import ee.ut.cs.dsg.confcheck.trie.TrieNode;
+import ee.ut.cs.dsg.spine.Spine;
 
 import java.util.*;
 
@@ -12,7 +10,7 @@ public abstract class ConformanceChecker {
     protected final Trie modelTrie;
     protected final int logMoveCost ;
     protected final int modelMoveCost ;
-    protected PriorityQueue<State> nextChecks;
+    protected Spine<State> nextChecks;
 
     protected int cntr=1;
     protected int maxStatesInQueue;
@@ -56,7 +54,7 @@ public abstract class ConformanceChecker {
 
         states = new ArrayList<>();
         this.maxStatesInQueue = maxStatesInQueue;
-        nextChecks = new PriorityQueue<>(maxStatesInQueue);
+        nextChecks = new Spine<>(maxStatesInQueue);
 //        this.seenBefore = new HashSet<>();
     }
 
@@ -265,7 +263,7 @@ public abstract class ConformanceChecker {
             if ((state.getAlignment().getTotalCost() + Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()),Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd())))< candidateState.getAlignment().getTotalCost())// && state.getNode().getLevel() > candidateState.getNode().getLevel())
             {
 
-                nextChecks.add(state);
+                nextChecks.push(state);
 //                states.add(state);
             }
             else {
@@ -276,7 +274,7 @@ public abstract class ConformanceChecker {
         }
         else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
         {
-            nextChecks.add(state);
+            nextChecks.push(state);
 //            states.add(state);
         }
         if (cntr % cleanseFrequency == 0)
@@ -290,7 +288,7 @@ public abstract class ConformanceChecker {
         int coundDown=cleanseFrequency;
         State current;
         while (nextChecks.size() > cleanseFrequency & coundDown > 0) {
-            current = nextChecks.poll();
+            current = nextChecks.pollFirst();
             if (candidateState != null)
             {
                 if ((current.getAlignment().getTotalCost() + Math.abs(current.getTracePostfix().size() - current.getNode().getMinPathLengthToEnd())) >= candidateState.getAlignment().getTotalCost())// && state.getNode().getLevel() > candidateState.getNode().getLevel())
@@ -302,7 +300,7 @@ public abstract class ConformanceChecker {
                 }
             }
             else {
-                nextChecks.add(new State(current.getAlignment(), current.getTracePostfix(), current.getNode(), (int) (current.getCostSoFar() + (1 + 10))));
+                nextChecks.push(new State(current.getAlignment(), current.getTracePostfix(), current.getNode(), (int) (current.getCostSoFar() + (1 + 10))));
                 coundDown--;
             }
 
