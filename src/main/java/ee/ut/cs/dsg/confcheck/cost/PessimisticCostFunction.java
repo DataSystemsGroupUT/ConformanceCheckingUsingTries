@@ -15,7 +15,7 @@ public class PessimisticCostFunction implements CostFunction {
         int cost = state.getAlignment().getTotalCost();
         cost += conformanceChecker.getMaxModelTraceSize() + conformanceChecker.getTraceSize();
         cost -= state.getNode().getLevel();
-        cost -= conformanceChecker.getTraceSize() - suffix.size();
+        cost -= (conformanceChecker.getTraceSize() - suffix.size());
         if (mt == Configuration.MoveType.LOG_MOVE) {
             for (TrieNode nd : state.getNode().getAllChildren()) {
                 if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move

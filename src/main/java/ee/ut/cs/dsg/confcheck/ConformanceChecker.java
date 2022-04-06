@@ -2,7 +2,7 @@ package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
-import spine.Spine;
+import ee.ut.cs.dsg.spine.Spine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ public abstract class ConformanceChecker {
     protected int cntr = 1;
     protected int maxStatesInQueue;
     //    private HashSet<State> seenBefore;
-    protected ArrayList<State> states;
+//    protected ArrayList<State> states;
 
     public int getTraceSize() {
         return traceSize;
@@ -35,7 +35,7 @@ public abstract class ConformanceChecker {
 
     protected int cleanseFrequency = 100;
     protected int maxTrials = 200000;
-
+    protected int remainingTrials=0;
     protected Trie inspectedLogTraces;
     protected Random rnd;
 
@@ -54,7 +54,7 @@ public abstract class ConformanceChecker {
         this.logMoveCost = logCost;
         this.modelMoveCost = modelCost;
 
-        states = new ArrayList<>();
+//        states = new ArrayList<>();
         this.maxStatesInQueue = maxStatesInQueue;
         nextChecks = new Spine<>(1024);
 //        this.seenBefore = new HashSet<>();

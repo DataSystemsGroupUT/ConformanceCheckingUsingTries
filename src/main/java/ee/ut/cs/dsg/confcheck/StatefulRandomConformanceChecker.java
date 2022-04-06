@@ -65,7 +65,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
     public Alignment check(List<String> trace) {
 
         nextChecks.clear();
-        states.clear();
+//        states.clear();
         cntr = 1;
         traceSize = trace.size();
         maxModelTraceSize = modelTrie.getRoot().getMaxPathLengthToEnd();
@@ -79,6 +79,13 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             state = new State(new Alignment(), trace, modelTrie.getRoot(), 0);
 
         }
+        else
+        {
+            if (verbose)
+            {
+                System.out.println(String.format("State retrieved! Saved prefix length: %d", state.getNode().getLevel()));
+            }
+        }
 
         nextChecks.push(state);
 
@@ -88,7 +95,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         //        cleanseFrequency = Math.max(maxTrials/10, 100000);
         //   exploitVersusExploreFrequency = 1001 ;
         Utils.resetPrimeIndex();
-        while (nextChecks.size() > 0 && numTrials < maxTrials) {
+        while (nextChecks.size() > 0 && numTrials < (maxTrials+remainingTrials)) {
 
 //            adaptiveExploreExploit();
             // as we are using old search spaces, there might be some invalid states from other prefixes.
@@ -281,6 +288,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             System.out.printf("Queue Size %d and num trials %d%n", nextChecks.size(), numTrials);
         if (candidateState != null)
             updateTracesTrie(candidateState);
+        remainingTrials = (maxTrials+remainingTrials) - numTrials;
         return candidateState != null ? candidateState.getAlignment() : null;
         //return alg;
     }

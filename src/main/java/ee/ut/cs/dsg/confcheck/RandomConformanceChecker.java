@@ -2,45 +2,44 @@ package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.alignment.Move;
-import ee.ut.cs.dsg.confcheck.cost.AlignmentAndProgressCostFunction;
-import ee.ut.cs.dsg.confcheck.cost.CostFunction;
+import ee.ut.cs.dsg.confcheck.cost.*;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 import ee.ut.cs.dsg.confcheck.util.Configuration;
 
 import java.util.*;
 
-public class RandomConformanceChecker extends ConformanceChecker {
+public class RandomConformanceChecker extends ConformanceChecker{
 
 
-    protected final CostFunction costFunction;
-    protected int exploitVersusExploreFrequency = 181;
+
+    protected int exploitVersusExploreFrequency = 191;
     protected int numEpochs;
     protected boolean onMatchFollowPrefixOnly = false;
     protected boolean verbose = false;
-    protected int numTrials = 0;
-    protected boolean newCandidateStateFoundSinceLastEpoc = false;
-    protected int whichDirection = 1; // 1 means the upper half of the queue, 0 means the lower half of the queue
-
-    public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials, CostFunction costFunction) {
+    protected int numTrials=0;
+    protected boolean newCandidateStateFoundSinceLastEpoc=false;
+    protected int whichDirection=1; // 1 means the upper half of the queue, 0 means the lower half of the queue
+    protected final CostFunction costFunction;
+    public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials, CostFunction costFunction)
+    {
         super(trie, logCost, modelCost, maxStatesInQueue);
         rnd = new Random(19);
-        numEpochs = maxTrials / 10000;
+        numEpochs = maxTrials/10000;
         this.maxTrials = maxTrials;
         inspectedLogTraces = new Trie(trie.getMaxChildren());
         this.costFunction = costFunction;
     }
-
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue) {
-        this(trie, logCost, modelCost, maxStatesInQueue, 100000);
+        this(trie,logCost,modelCost,maxStatesInQueue, 100000);
 
     }
 
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
-        this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new AlignmentAndProgressCostFunction());
+        this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new DualProgressiveCostFunction());
     }
-
-    protected State pickRandom(State candidateState) {
+    protected State pickRandom(State candidateState)
+    {
 
 //        toCheck.sort(new Comparator<State>() {
 //            @Override
@@ -50,57 +49,89 @@ public class RandomConformanceChecker extends ConformanceChecker {
 //        });
 
         //= (State[]) nextChecks.toArray();
-//        if (numTrials % cleanseFrequency == 0)
-//            successiveHalving();
+        if (numTrials % cleanseFrequency == 0)
+            cleanState(candidateState);
         int index;
-        State s;
+        State state;
         if (cntr % exploitVersusExploreFrequency == 0) {
 
-//            long start = System.currentTimeMillis();
-            int upperBound = nextChecks.size();
-            int lowerBound = Math.max(upperBound - (nextChecks.size() / 2) - 1, 1);
-            index = rnd.nextInt(lowerBound);
 
-            s = nextChecks.get((lowerBound * whichDirection) + index >= upperBound ? 0 : (lowerBound * whichDirection) + index);
+//            int upperBound = nextChecks.size();
+            int upperBound = Math.max(nextChecks.size()/10,1);
+//            int lowerBound = Math.max(upperBound - (upperBound / 2) - 1, 1);
+            int lowerBound = 0;
+//            index = rnd.nextInt(lowerBound);
+            index = rnd.nextInt(upperBound);
+//            int itemIndex = (lowerBound * whichDirection) + index >= upperBound ? 0 : (lowerBound * whichDirection) + index;
+            int itemIndex = lowerBound + index;
+//            if(verbose)
+//            {
+//                System.out.println(String.format("Exploration getting a state at position %d", itemIndex));
+//            }
+            state = nextChecks.get(itemIndex);
+
 //            s = states.remove((lowerBound*whichDirection)+index >= upperBound? 0:(lowerBound*whichDirection)+index);
-            whichDirection = whichDirection == 0 ? 1 : 0;
+//            whichDirection = whichDirection == 0 ? 1 : 0;
 
-            nextChecks.delete(s);
+            nextChecks.delete(state);
 
             cntr = 0;
         } else {
-            s = nextChecks.pollFirst();
-            states.remove(s);
+            state = nextChecks.pollFirst();
+//            states.remove(s);
         }
 
 
-        return s;
+        return state;
     }
+    protected void cleanState(State candidateState)
+    {
 
-    protected void successiveHalving() {
-//        if (nextChecks.size() < 100000)
-//            return  ;
-//        List<State> result = new ArrayList<>(nextChecks.size() / 2);
+        if (candidateState != null){
+            ArrayList<State> toDelete = new ArrayList<>(nextChecks.size()/2);
+            for (int i = 0; i < nextChecks.size(); i++)
+            {
+                State state = nextChecks.get(i);
+                if (!((state.getAlignment().getTotalCost() + Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()), Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd()))) < candidateState.getAlignment().getTotalCost()))// && state.getNode().getLevel() > candidateState.getNode().getLevel())
+                {
+                    toDelete.add(state);
+
+                }
+            }
+            for (State s: toDelete)
+            {
+                nextChecks.delete(s);
+            }
+
+        }
+    }
+    protected void successiveHalving()
+    {
+////        if (nextChecks.size() < 100000)
+////            return  ;
+//        List<State> result = new ArrayList<>(nextChecks.size()/2);
 //        State[] elements = new State[nextChecks.size()];
 //        nextChecks.toArray(elements);
-
+//
 //        Arrays.sort(elements);
-//        int quantile = nextChecks.size() / 4;
+//        int quantile = nextChecks.size()/4;
 //        nextChecks.clear();
-//        for (int i = 0; i < quantile * 4; i += 2) {
-//            nextChecks.add(elements[i]);
-//        }
-//        for (int i = quantile*2; i < quantile*3; i++)
+//        for(int i = 0; i < quantile*4; i+=2)
 //        {
 //            nextChecks.add(elements[i]);
 //        }
-    }
+////        for (int i = quantile*2; i < quantile*3; i++)
+////        {
+////            nextChecks.add(elements[i]);
+////        }
 
-    public Alignment check(List<String> trace) {
+    }
+    public Alignment check(List<String> trace)
+    {
 
         nextChecks.clear();
-        states.clear();
-        cntr = 1;
+//        states.clear();
+        cntr=1;
         traceSize = trace.size();
         maxModelTraceSize = modelTrie.getRoot().getMaxPathLengthToEnd();
         TrieNode node;
@@ -123,18 +154,19 @@ public class RandomConformanceChecker extends ConformanceChecker {
         String event;
         numTrials = 1;
 //        cleanseFrequency = Math.max(maxTrials/10, 100000);
-        cleanseFrequency = maxTrials / 20;
-        while (nextChecks.size() > 0 && numTrials < maxTrials) {
-            if (candidateState != null && candidateState.getCostSoFar() == 0)
+        cleanseFrequency = maxTrials/20;
+        while(nextChecks.size() >0  && numTrials < maxTrials)
+        {
+            if (candidateState!= null && candidateState.getCostSoFar() == 0)
                 break;
             state = pickRandom(candidateState);
-            if (state == null)
+            if (state==null)
                 continue;
             numTrials++;
 
             if (numTrials % 100000 == 0 && verbose) {
                 System.out.println("Trials so far " + numTrials);
-                System.out.println("Queue size " + nextChecks.size());
+                System.out.println("Queue size "+nextChecks.size());
             }
 
             event = null;
@@ -145,17 +177,20 @@ public class RandomConformanceChecker extends ConformanceChecker {
             {
                 //return state.getAlignment();
 
-                if (candidateState == null) {
-                    candidateState = new State(state.getAlignment(), state.getTracePostfix(), state.getNode(), state.getAlignment().getTotalCost());
-                    if (verbose)
-                        System.out.println("1-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
+                if (candidateState == null)
+                {
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(),state.getNode(), state.getAlignment().getTotalCost());
+                    if(verbose)
+                        System.out.println("1-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
 //                    cntr=0;
-                } else if (state.getAlignment().getTotalCost() < candidateState.getAlignment().getTotalCost()) {
+                }
+                else if (state.getAlignment().getTotalCost() < candidateState.getAlignment().getTotalCost())
+                {
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(state.getAlignment(), state.getTracePostfix(), state.getNode(), state.getAlignment().getTotalCost());
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(),state.getNode(), state.getAlignment().getTotalCost());
                     if (verbose)
-                        System.out.println("2-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
+                        System.out.println("2-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 
 //                    cntr=0;
@@ -165,11 +200,13 @@ public class RandomConformanceChecker extends ConformanceChecker {
 //                System.out.println("Remaining alignments to check " +toCheck.size());
 //                System.out.println("Best alignment so far " +candidateState.getCostSoFar());
 //                return candidateState.getAlignment();
-                if (candidateState.getAlignment().getTotalCost() == 0)
+                if (candidateState.getAlignment().getTotalCost()==0)
                     break;
                 else
                     continue;
-            } else if (traceSuffix.size() == 0) {
+            }
+            else if (traceSuffix.size() ==0)
+            {
                 // we still have model moves to do
                 // we should pick the shortest path to an end node
 //                System.out.println("Log trace ended! We can only follow the shortest path of the model behavior to the end");
@@ -177,62 +214,74 @@ public class RandomConformanceChecker extends ConformanceChecker {
 
                 node = state.getNode();
                 node = node.getChildOnShortestPathToTheEnd();
-                while (node != null) {
-                    Move modelMove = new Move(">>", node.getContent(), 1);
+                while (node != null)
+                {
+                    Move modelMove = new Move(">>", node.getContent(),1);
                     alg.appendMove(modelMove);
                     node = node.getChildOnShortestPathToTheEnd();
                 }
 //                System.out.println("Alignment found costs "+alg.getTotalCost());
-                if (candidateState == null) {
+                if (candidateState == null)
+                {
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(alg, traceSuffix, null, alg.getTotalCost());
-                    if (verbose)
-                        System.out.println("3-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
+                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
+                    if(verbose)
+                        System.out.println("3-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
-                } else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
+                }
+                else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost())
+                {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(alg, traceSuffix, null, alg.getTotalCost());
+                    candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
                     if (verbose)
-                        System.out.println("4-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
+                        System.out.println("4-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
-                } else {
+                }
+                else
+                {
 //                    System.out.println("Current alignment is more expensive "+alg.getTotalCost());
                 }
-                if (candidateState.getAlignment().getTotalCost() == 0)
+                if (candidateState.getAlignment().getTotalCost()==0)
                     break;
                 else
                     continue;
 
-            } else if (state.getNode().isEndOfTrace() & !state.getNode().hasChildren()) // and no more children
+            }
+            else if (state.getNode().isEndOfTrace() & !state.getNode().hasChildren()) // and no more children
             {
 //                System.out.println("Model trace ended! We can only follow the remaining log trace to the end");
                 alg = state.getAlignment();
-                for (String ev : state.getTracePostfix()) {
-                    Move logMove = new Move(ev, ">>", 1);
+                for (String ev: state.getTracePostfix())
+                {
+                    Move logMove = new Move(ev, ">>",1);
                     alg.appendMove(logMove);
                 }
-                if (candidateState == null) {
-                    candidateState = new State(alg, new ArrayList<>(), null, alg.getTotalCost());
-                    if (verbose)
-                        System.out.println("5-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
+                if (candidateState == null)
+                {
+                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
+                    if(verbose)
+                        System.out.println("5-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
 //                    cntr=0;
-                } else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
+                }
+                else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost())
+                {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
-                    candidateState = new State(alg, new ArrayList<>(), null, alg.getTotalCost());
+                    candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
                     if (verbose)
-                        System.out.println("6-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
+                        System.out.println("6-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
 //                    cntr=0;
                 }
-                if (candidateState.getAlignment().getTotalCost() == 0)
+                if (candidateState.getAlignment().getTotalCost()==0)
                     break;
                 else
                     continue;
-            } else {
+            }
+            else {
                 event = traceSuffix.remove(0);
                 node = state.getNode().getChild(event);
             }
@@ -241,18 +290,19 @@ public class RandomConformanceChecker extends ConformanceChecker {
             if (node != null) // we found a match => synchronous    move
             {
                 alg = state.getAlignment();
-                TrieNode prev = node;
+                TrieNode prev=node;
                 State syncState;
                 do {
 //
-                    if (!onMatchFollowPrefixOnly) {
+                    if(!onMatchFollowPrefixOnly)
+                    {
 
                         List<String> trSuffix = new LinkedList<>();
                         trSuffix.addAll(traceSuffix);
-                        State nonSyncState = new State(alg, trSuffix, prev.getParent(), 0);
+                        State nonSyncState = new State(alg, trSuffix, node.getParent(),0);
                         addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
-                        nonSyncState = new State(alg, trSuffix, prev.getParent(), 0, state);
-                        for (State s : handleModelMoves(trSuffix, nonSyncState, candidateState))
+                        nonSyncState = new State(alg, trSuffix, node.getParent(),0, state);
+                        for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
                             addStateToTheQueue(s, candidateState);
                     }
 
@@ -260,25 +310,29 @@ public class RandomConformanceChecker extends ConformanceChecker {
 
                     alg.appendMove(syncMove);
                     prev = node;
-                    if (traceSuffix.size() > 0) {
+                    if (traceSuffix.size() > 0)
+                    {
                         event = traceSuffix.remove(0);
 
                         node = node.getChild(event);
-                    } else {
+                    }
+                    else
+                    {
                         event = null;
                         node = null;
                     }
                 }
-                while (node != null);
+                while(node != null);
                 // put the event back that caused non sync move
                 if (event != null)
-                    traceSuffix.add(0, event);
+                    traceSuffix.add(0,event);
 
-
-                int cost = 0;
+                State dummyState = new State(alg, traceSuffix,prev,-1);
+                int cost = costFunction.computeCost(dummyState,traceSuffix,event, Configuration.MoveType.SYNCHRONOUS_MOVE,this);
 
                 syncState = new State(alg, traceSuffix, prev, cost);
                 addStateToTheQueue(syncState, candidateState);
+
 
 
             }
@@ -293,8 +347,9 @@ public class RandomConformanceChecker extends ConformanceChecker {
             }
 
             //Now randomly add those states to the queue so that if they have the same cost we can pick them differently
-            for (State s : newStates) {
-                if (s != null)
+            for (State s :newStates)
+            {
+                if (s !=null)
                     addStateToTheQueue(s, candidateState);
             }
 //            int size = newStates.size();
@@ -307,9 +362,9 @@ public class RandomConformanceChecker extends ConformanceChecker {
         }
 //        if (candidateState != null)
 //            inspectedLogTraces.addTrace(trace, candidateState.getAlignment().getTotalCost());
-        if (verbose)
-            System.out.println(String.format("Queue Size %d and num trials %d", nextChecks.size(), numTrials));
-        return candidateState != null ? candidateState.getAlignment() : null;
+        if(verbose)
+            System.out.println(String.format("Queue Size %d and num trials %d", nextChecks.size(),numTrials));
+        return candidateState != null? candidateState.getAlignment():null;
         //return alg;
     }
 
@@ -317,10 +372,11 @@ public class RandomConformanceChecker extends ConformanceChecker {
 
 
         cntr++;
-        if (nextChecks.size() == maxStatesInQueue) {
+        if (nextChecks.size() == maxStatesInQueue)
+        {
 //            if (verbose)
 //                System.out.println("Max queue size reached. New state is not added!");
-            if (state.getCostSoFar() < nextChecks.peekFirst().getCostSoFar())
+           if (state.getCostSoFar() < nextChecks.pollFirst().getCostSoFar())
             // if (state.getAlignment().getTotalCost() < nextChecks.peek().getAlignment().getTotalCost())
             {
 //                System.out.println(String.format("Adding a good candidate whose cost is %d which is less that the least cost so far %d", state.getAlignment().getTotalCost(), nextChecks.peek().getAlignment().getTotalCost()));
@@ -337,13 +393,15 @@ public class RandomConformanceChecker extends ConformanceChecker {
 
                 nextChecks.push(state);
 //                states.add(state);
-            } else if (verbose) {
+            }
+            else if (verbose) {
 
-                //      System.out.println(String.format("State is not promising cost %d is greater than the best solution so far %d",(state.getAlignment().getTotalCost()+Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()),Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd()))),candidateState.getAlignment().getTotalCost()) );
+          //      System.out.println(String.format("State is not promising cost %d is greater than the best solution so far %d",(state.getAlignment().getTotalCost()+Math.min(Math.abs(state.getTracePostfix().size() - state.getNode().getMinPathLengthToEnd()),Math.abs(state.getTracePostfix().size() - state.getNode().getMaxPathLengthToEnd()))),candidateState.getAlignment().getTotalCost()) );
 
 //                System.out.println("Least cost to check next "+nextChecks.peek().getCostSoFar());
             }
-        } else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
+        }
+        else //if (state.getCostSoFar()< (nextChecks.size() == 0? Integer.MAX_VALUE: nextChecks.peek().getCostSoFar()))
 //        {
             nextChecks.push(state);
 //            states.add(state);
@@ -359,20 +417,21 @@ public class RandomConformanceChecker extends ConformanceChecker {
         List<TrieNode> nodes = state.getNode().getAllChildren();
         result = new ArrayList<>(nodes.size());
         Move modelMove;
-        for (TrieNode nd : nodes) {
-            modelMove = new Move(">>", nd.getContent(), 1);//modelMoveCost);
+        for (TrieNode nd : nodes)
+        {
+            modelMove = new Move(">>", nd.getContent(),1);//modelMoveCost);
             alg = state.getAlignment();
             alg.appendMove(modelMove);
-            State dummyState = new State(alg, traceSuffix, nd, -1);
+            State dummyState = new State(alg, traceSuffix,nd,-1);
             // Cost = worst case - what has been processed in both the log and the model
-            //           int cost = alg.getTotalCost();
+ //           int cost = alg.getTotalCost();
 //            cost += (nd.isEndOfTrace()? 0: nd.getMinPathLengthToEnd()) +traceSuffix.size();
 //            if (traceSuffix.size() > 0 && nd.getChild(traceSuffix.get(0))!= null) // we can find a next sync move this path
 //                cost-=1;
-            State modelMoveState = new State(alg, traceSuffix, nd, costFunction.computeCost(dummyState, traceSuffix, null, Configuration.MoveType.MODEL_MOVE, this));
+            State modelMoveState = new State(alg, traceSuffix,nd, costFunction.computeCost(dummyState,traceSuffix,null, Configuration.MoveType.MODEL_MOVE, this));
             result.add(modelMoveState);
         }
-        return result;
+        return  result;
     }
 
     @Override
@@ -380,12 +439,12 @@ public class RandomConformanceChecker extends ConformanceChecker {
         Alignment alg;
         State logMoveState;
         if (event != null) {
-            Move logMove = new Move(event, ">>", 1);// logMoveCost);
+            Move logMove = new Move(event, ">>",1);// logMoveCost);
             alg = state.getAlignment();
             alg.appendMove(logMove);
             int cost = alg.getTotalCost();
-            cost += (state.getNode().isEndOfTrace() ? 0 : state.getNode().getMinPathLengthToEnd()) + traceSuffix.size();
-            for (TrieNode nd : state.getNode().getAllChildren()) {
+            cost += (state.getNode().isEndOfTrace()? 0: state.getNode().getMinPathLengthToEnd()) + traceSuffix.size() ;
+            for (TrieNode nd: state.getNode().getAllChildren()) {
                 if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move
                 {
                     cost += 1;
@@ -393,13 +452,14 @@ public class RandomConformanceChecker extends ConformanceChecker {
                 }
             }
 
-            logMoveState = new State(alg, traceSuffix, state.getNode(), costFunction.computeCost(state, traceSuffix, event, Configuration.MoveType.LOG_MOVE, this));
+            logMoveState = new State(alg, traceSuffix, state.getNode(), costFunction.computeCost(state,traceSuffix,event, Configuration.MoveType.LOG_MOVE, this));
 
 
             // let's put the event back in the trace postfix to see how it check for model moves
             traceSuffix.add(0, event);
             return logMoveState;
-        } else
+        }
+        else
             return null;
     }
 }

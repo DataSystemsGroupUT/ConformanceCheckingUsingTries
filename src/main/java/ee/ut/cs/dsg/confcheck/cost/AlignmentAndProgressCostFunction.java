@@ -11,6 +11,10 @@ public class AlignmentAndProgressCostFunction implements CostFunction {
 
     @Override
     public int computeCost(State state, List<String> suffix, String event, Configuration.MoveType mt, ConformanceChecker conformanceChecker) {
+
+        if (mt == Configuration.MoveType.SYNCHRONOUS_MOVE)
+            return 0;
+
         int cost = state.getAlignment().getTotalCost();
         // cost += (state.getNode().isEndOfTrace()? 0: state.getNode().getMinPathLengthToEnd()) + suffix.size() ;
         cost += (state.getNode().isEndOfTrace() ? 0 : state.getNode().getMinPathLengthToEnd()) + suffix.size();
@@ -24,7 +28,7 @@ public class AlignmentAndProgressCostFunction implements CostFunction {
             }
         } else if (mt == Configuration.MoveType.MODEL_MOVE) {
             if (suffix.size() > 0 && state.getNode().getChild(suffix.get(0)) != null) // we can find a next sync move this path
-                cost -= 1;
+                cost -= 7;
         }
 
         return cost;
