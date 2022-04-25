@@ -74,15 +74,18 @@ public class Runner {
           //String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\simulatedLog.xml";
           //String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\frequencyLog.xml";
           //String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\sampledLog.xml";
-        testBedPrefix();
+
+
+        testBedStreaming();
 
         //BPI 2015
-        /*
-          String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\simulatedLog.xml";
+/*
+        String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\simulatedLog.xml";
         String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml";
         String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml";
 */
-          //testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
+        //testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_STREAMING, LogSortType.NONE);
+        //testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
           //testOnConformanceApproximationResults(simulatedLog, sampleLog, ConformanceCheckerType.TRIE_PREFIX, LogSortType.NONE);
         //String trietest_1 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_1.1.xes";
         //String trietest_2 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_2.xes";
@@ -193,13 +196,13 @@ public class Runner {
 
     }
 
-    private static void testBedPrefix()
+    private static void testBedStreaming()
     {
 
-        RandomConformanceChecker cnfChecker;
+        StreamingConformanceChecker cnfChecker;
 
 
-        Alignment alg;
+        HashMap<String, State> states;
 
         // Test by manual traces
 
@@ -210,25 +213,29 @@ public class Runner {
         trace.add("c");
         trace.add("d");
         trace.add("e");
+        trace.add("f");
+        trace.add("g");
 
         List<String> trace2 = new ArrayList<>();
         trace2.add("a");
-        trace2.add("b");
-        trace2.add("c");
-
+        trace2.add("x");
+        trace2.add("y");
+        trace2.add("z");
+        trace2.add("z");
+/*
         List<String> trace3 = new ArrayList<>();
         trace3.add("a");
         trace3.add("b");
         trace3.add("d");
         trace3.add("e");
-        trace3.add("f");
+        trace3.add("f");*/
 
         Trie t = new Trie(28);
         t.addTrace(trace);
         t.addTrace(trace2);
-        t.addTrace(trace3);
+        //t.addTrace(trace3);
 
-        cnfChecker = new RandomConformanceChecker(t,1,1,100000, 100000);
+        cnfChecker = new StreamingConformanceChecker(t,1,1,100000, 100000);
 
 
         List<String> prefixCase1 = new ArrayList<>();
@@ -244,133 +251,192 @@ public class Runner {
         List<String> prefixCase6 = new ArrayList<>();
         String prefixCase6Id = "Case 6";
 
-
-        prefixCase1.add("a");
-        alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
-
-        prefixCase1.clear();
-        prefixCase1.add("b");
-        alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
-
-        prefixCase1.clear();
         prefixCase1.add("c");
-        alg = cnfChecker.check2(prefixCase1, true, prefixCase1Id);
+        prefixCase1.add("d");
+        prefixCase1.add("e");
+        prefixCase1.add("x");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        System.out.println(prefixCase1);
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println("-----");
+
+/*
+        prefixCase1.add("c");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        System.out.println(prefixCase1);
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println("-----");
+
+        prefixCase1.clear();
+        prefixCase1.add("d");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        System.out.println(prefixCase1);
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println("-----");
+
+        prefixCase1.clear();
+        prefixCase1.add("e");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        System.out.println(prefixCase1);
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println("-----");
+
+        prefixCase1.clear();
+        prefixCase1.add("x");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        System.out.println(prefixCase1);
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println("-----");
+
+        prefixCase1.clear();
+        prefixCase1.add("y");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        System.out.println(prefixCase1);
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println("-----");
+
+        prefixCase1.clear();
+        prefixCase1.add("z");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        System.out.println(prefixCase1);
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println("-----");
+
+        prefixCase1.clear();
+        prefixCase1.add("z");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
 
         System.out.println("Case 1:");
-        System.out.println(alg.toString());
+        System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
 
 
 
         prefixCase2.add("a");
-        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+        states = cnfChecker.check(prefixCase2, prefixCase2Id);
 
         prefixCase2.clear();
         prefixCase2.add("b");
-        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+        states = cnfChecker.check(prefixCase2, prefixCase2Id);
 
         prefixCase2.clear();
         prefixCase2.add("e");
-        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+        states = cnfChecker.check(prefixCase2, prefixCase2Id);
 
         prefixCase2.clear();
         prefixCase2.add("f");
-        alg = cnfChecker.check2(prefixCase2, true, prefixCase2Id);
+        states = cnfChecker.check(prefixCase2, prefixCase2Id);
 
         System.out.println("Case 2:");
-        System.out.println(alg.toString());
+        System.out.println(states);
 
 
 
         prefixCase3.add("a");
-        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+        states = cnfChecker.check(prefixCase3, prefixCase3Id);
 
         prefixCase3.clear();
         prefixCase3.add("b");
-        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+        states = cnfChecker.check(prefixCase3, prefixCase3Id);
 
         prefixCase3.clear();
         prefixCase3.add("c");
-        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+        states = cnfChecker.check(prefixCase3, prefixCase3Id);
 
         prefixCase3.clear();
         prefixCase3.add("c");
-        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+        states = cnfChecker.check(prefixCase3, prefixCase3Id);
 
         prefixCase3.clear();
         prefixCase3.add("d");
-        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+        states = cnfChecker.check(prefixCase3, prefixCase3Id);
 
         prefixCase3.clear();
         prefixCase3.add("e");
-        alg = cnfChecker.check2(prefixCase3, true, prefixCase3Id);
+        states = cnfChecker.check(prefixCase3, prefixCase3Id);
 
         System.out.println("Case 3:");
-        System.out.println(alg.toString());
+        System.out.println(states);
 
 
 
         prefixCase4.add("b");
-        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+        states = cnfChecker.check(prefixCase4, prefixCase4Id);
 
         prefixCase4.clear();
         prefixCase4.add("a");
-        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+        states = cnfChecker.check(prefixCase4, prefixCase4Id);
 
         prefixCase4.clear();
         prefixCase4.add("c");
-        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+        states = cnfChecker.check(prefixCase4, prefixCase4Id);
 
         prefixCase4.clear();
         prefixCase4.add("d");
-        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+        states = cnfChecker.check(prefixCase4, prefixCase4Id);
 
         prefixCase4.clear();
         prefixCase4.add("e");
-        alg = cnfChecker.check2(prefixCase4, true, prefixCase4Id);
+        states = cnfChecker.check(prefixCase4, prefixCase4Id);
 
         System.out.println("Case 4:");
-        System.out.println(alg.toString());
+        System.out.println(states);
 
 
 
         prefixCase5.add("x");
-        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+        states = cnfChecker.check(prefixCase5, prefixCase5Id);
 
         prefixCase5.clear();
         prefixCase5.add("a");
-        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+        states = cnfChecker.check(prefixCase5, prefixCase5Id);
 
         prefixCase5.clear();
         prefixCase5.add("b");
-        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+        states = cnfChecker.check(prefixCase5, prefixCase5Id);
 
         prefixCase5.clear();
         prefixCase5.add("c");
-        alg = cnfChecker.check2(prefixCase5, true, prefixCase5Id);
+        states = cnfChecker.check(prefixCase5, prefixCase5Id);
 
         System.out.println("Case 5:");
-        System.out.println(alg.toString());
+        System.out.println(states);
 
 
 
         prefixCase6.add("a");
-        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+        states = cnfChecker.check(prefixCase6, prefixCase6Id);
 
         prefixCase6.clear();
         prefixCase6.add("b");
-        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+        states = cnfChecker.check(prefixCase6, prefixCase6Id);
 
         prefixCase6.clear();
         prefixCase6.add("c");
-        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+        states = cnfChecker.check(prefixCase6, prefixCase6Id);
 
         prefixCase6.clear();
         prefixCase6.add("x");
-        alg = cnfChecker.check2(prefixCase6, true, prefixCase6Id);
+        states = cnfChecker.check(prefixCase6, prefixCase6Id);
 
         System.out.println("Case 6:");
-        System.out.println(alg.toString());
-
+        System.out.println(states);
+*/
 
 
     }
@@ -438,7 +504,8 @@ public class Runner {
 
                 events.add(eventLabel);
 
-                alg = cnfChecker.prefix_check(events, caseId);
+                //alg = cnfChecker.prefix_check(events, caseId);
+                alg = null;
 
                 try {
                     FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
@@ -644,18 +711,31 @@ public class Runner {
             List<String> tracesToSort = new ArrayList<>();
            // AlphabetService service = new AlphabetService();
 
+
+
+            // for streaming:
+            StreamingConformanceChecker checker;
+            checker = new StreamingConformanceChecker(t,1,1, 100000, 100000);
+
+
+/*
+            // multiple choice:
             ConformanceChecker checker;
+
             if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
-                          checker = new PrefixConformanceChecker(t,1,1, false);
+                checker = new PrefixConformanceChecker(t,1,1, false);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
                 checker = new RandomConformanceChecker(t,1,1, 100000, 100000);//Integer.MAX_VALUE);
             else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
                 checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
+            else if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING)
+                checker = new StreamingConformanceChecker(t,1,1, 100000, 100000);//Integer.MAX_VALUE);
             else
             {
                 testVanellaConformanceApproximation(inputProxyLogFile,inputSampleLogFile);
                 return;
             }
+*/
 
             Alignment alg;
             HashMap<String, Integer> sampleTracesMap = new HashMap<>();
@@ -706,13 +786,13 @@ public class Runner {
             {
                 for (int i = tracesToSort.size() -1; i>=0; i--)
                 {
-                    totalTime = computeAlignment(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i);
+                    totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i);
                 }
             }
 //
             else {
                 for (int i = 0; i < tracesToSort.size(); i++) {
-                    totalTime = computeAlignment(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i);
+                    totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i);
                 }
             }
 
@@ -728,6 +808,87 @@ public class Runner {
         {
             e.printStackTrace();
         }
+    }
+
+
+    private static long computeAlignment2(List<String> tracesToSort, StreamingConformanceChecker checker, HashMap<String, Integer> sampleTracesMap, long totalTime, DeviationChecker devChecker, int i) {
+        long start;
+        Alignment alg;
+        List<String> trace = new ArrayList<String>();
+
+        int pos = tracesToSort.get(i).indexOf((char)63);
+        int traceNum = Integer.parseInt(tracesToSort.get(i).substring(0,pos));
+
+        String actualTrace = tracesToSort.get(i).substring(pos+1);
+//        System.out.println(actualTrace);
+        for (char c : actualTrace.toCharArray()) {
+            trace.add(new StringBuilder().append(c).toString());
+        }
+
+        //System.out.println("Case id: "+Integer.toString(i));
+        //System.out.println(trace);
+
+        //Integer traceSize = trace.size();
+        start = System.currentTimeMillis();
+        //alg = checker.prefix_check(trace, Integer.toString(i));
+        //alg = checker.check2(trace, true, Integer.toString(i));
+        //alg = checker.check(trace);
+
+        // for streaming:
+
+        //full trace:
+        //checker.check(trace, Integer.toString(i));
+
+        //event by event:
+
+        /*
+        for (String e : trace) {
+            List<String> tempList = new ArrayList<String>();
+            tempList.add(e);
+            checker.check(tempList, Integer.toString(i));
+        }
+        if (trace.size() == 0) {
+            alg = null;
+        } else {
+            alg = checker.getCurrentOptimalState(Integer.toString(i)).getAlignment();
+        }*/
+
+
+        if(i==19) {
+
+            checker.check(trace, Integer.toString(i));
+            /*
+            for (String e : trace) {
+                List<String> tempList = new ArrayList<String>();
+                tempList.add(e);
+                checker.check(tempList, Integer.toString(i));
+            }*/
+
+            if (trace.size() == 0) {
+                alg = null;
+            } else {
+                alg = checker.getCurrentOptimalState(Integer.toString(i)).getAlignment();
+            }
+        } else {
+            alg=null;
+        }
+
+
+
+        totalTime += System.currentTimeMillis() - start;
+        if (alg != null) {
+            System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
+            //System.out.print(", alignment cost minus trace size: "+ (alg.getTotalCost()-traceSize));
+            System.out.println(", " + alg.getTotalCost());
+//                        System.out.println(alg.toString(service));
+//            devChecker.processAlignment(alg);
+//                    System.out.println(alg.toString());
+//                        t.printTraces();
+        } else //if (usePrefixChecker == false)
+            System.out.println("Couldn't find an alignment under the given constraints");
+
+
+        return totalTime;
     }
 
     private static long computeAlignment(List<String> tracesToSort, ConformanceChecker checker, HashMap<String, Integer> sampleTracesMap, long totalTime, DeviationChecker devChecker, int i) {
@@ -751,28 +912,20 @@ public class Runner {
         start = System.currentTimeMillis();
         //alg = checker.prefix_check(trace, Integer.toString(i));
         //alg = checker.check2(trace, true, Integer.toString(i));
-        //alg = checker.check(trace);
-        alg = null;
+        alg = checker.check(trace);
 
+
+
+        //alg = null;
+
+        /*
         for (String e : trace) {
             List<String> tempList = new ArrayList<String>();
             tempList.add(e);
             alg = checker.check2(tempList, true, Integer.toString((i)));
             //System.out.println(", " + alg.getTotalCost());
             //System.out.println(alg.toString());
-        }
-
-        /*alg = null;
-        if (i==17) {
-            for (String e : trace) {
-                List<String> tempList = new ArrayList<String>();
-                tempList.add(e);
-                alg = checker.check2(tempList, true, Integer.toString((i)));
-                //System.out.println(", " + alg.getTotalCost());
-                System.out.println(alg.toString());
-            }
         }*/
-
 
         totalTime += System.currentTimeMillis() - start;
         if (alg != null) {

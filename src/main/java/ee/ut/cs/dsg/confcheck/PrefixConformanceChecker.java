@@ -48,11 +48,6 @@ public class PrefixConformanceChecker  extends ConformanceChecker {
         return reveresedTrace;
     }
 
-    public Alignment prefix_check(List<String> trace, String caseId)
-    {
-        Alignment dummyAlignment = new Alignment();
-        return dummyAlignment;
-    }
     public Alignment check(List<String> trace)
     {
         // Check if we have seen a similar trace before

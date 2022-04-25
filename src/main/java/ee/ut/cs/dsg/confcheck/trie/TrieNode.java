@@ -138,6 +138,8 @@ public class TrieNode {
     {
         return numChildren != 0;
     }
+
+
     public TrieNode addChild(TrieNode child)
     {
 //        System.out.println("Hash code "+child.getContent().hashCode());

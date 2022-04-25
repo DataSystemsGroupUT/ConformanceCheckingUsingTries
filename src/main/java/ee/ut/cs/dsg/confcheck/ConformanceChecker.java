@@ -65,8 +65,6 @@ public abstract class ConformanceChecker {
 //        this.seenBefore = new HashSet<>();
     }
 
-    public abstract Alignment prefix_check(List<String> trace, String caseId);
-
     public abstract Alignment check(List<String> trace);
 //    {
 //        nextChecks.clear();

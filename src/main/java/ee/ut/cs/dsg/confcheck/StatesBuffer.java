@@ -4,31 +4,33 @@ import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.PriorityQueue;
+
+//
 
 public class StatesBuffer {
-    protected PriorityQueue<State> nextChecks;
-    protected State matchingPrefixState;
 
+    protected HashMap<String, State> currentStates;
 
-    public StatesBuffer (int maxStatesInQueue, TrieNode node, List<String> trace){
-        this.nextChecks = new PriorityQueue<>(maxStatesInQueue);
-        this.matchingPrefixState = new State(new Alignment(), trace, node,0);
+    public StatesBuffer (String algString, State state){
+
+        currentStates.put(algString, state);
+
     }
 
-    public void updateBuffer(State state, PriorityQueue<State> statesQueue){
-        this.matchingPrefixState = state;
-        this.nextChecks = statesQueue;
+    public StatesBuffer (HashMap currentStates){
+
+        this.currentStates = currentStates;
+
     }
 
-    public PriorityQueue<State> getNextChecks() {
-        return nextChecks;
+    public void setCurrentStates(HashMap<String, State> currentStates){
+        this.currentStates = currentStates;
     }
 
-    public State getMatchingPrefixState() {
-        return matchingPrefixState;
+    public HashMap<String, State> getCurrentStates() {
+        return currentStates;
     }
-
 
 }

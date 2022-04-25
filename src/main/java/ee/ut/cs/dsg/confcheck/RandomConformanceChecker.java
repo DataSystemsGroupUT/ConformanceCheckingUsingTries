@@ -22,6 +22,13 @@ public class RandomConformanceChecker extends ConformanceChecker{
     protected boolean newCandidateStateFoundSinceLastEpoc=false;
     protected int whichDirection=1; // 1 means the upper half of the queue, 0 means the lower half of the queue
     protected final CostFunction costFunction;
+
+    // Streaming variables
+
+    protected boolean replayWithLogMoves = true; // if set to false the performance is faster but result is less precise
+    protected int minLookAheadLimit=0;
+
+
     public RandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials, CostFunction costFunction)
     {
         super(trie, logCost, modelCost, maxStatesInQueue);
@@ -483,7 +490,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
         //return alg;
     }
 
-
+/*
     public Alignment check2(List<String> trace, boolean prefixBased, String caseId)
     {
 
@@ -691,7 +698,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
         return candidateState != null? candidateState.getAlignment():null;
     }
-
+*/
     protected void addStateToTheQueue(State state, State candidateState) {
 
 
