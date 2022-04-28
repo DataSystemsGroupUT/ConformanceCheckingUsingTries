@@ -44,35 +44,21 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new DualProgressiveCostFunction());
     }
 
-    public State checkForSyncMoves(List<String> trace, State currentState){
+    public State checkForSyncMoves(String event, State currentState){
 
-        traceSize = trace.size();
-        List<String> traceToCheck = new ArrayList<>(trace);
         TrieNode prev = currentState.getNode();
         TrieNode node;
-        String event;
         Alignment alg = new Alignment(currentState.getAlignment());
         Move syncMove;
-        boolean allSyncMoves = true;
 
-        while (traceSize > 0){
-            event = traceToCheck.get(0);
-            node = prev.getChild(event);
-            if (node==null){
-                allSyncMoves = false;
-                break;
-            } else {
-                syncMove = new Move(event, event, 0);
-                alg.appendMove(syncMove);
-                prev = node;
-                traceToCheck.remove(0);
-                traceSize--;
-            }
-        }
-        if (allSyncMoves){
-            return new State(alg, traceToCheck, prev, currentState.getCostSoFar(), currentState, minDecayTime);
-        } else {
+        node = prev.getChild(event);
+        if(node==null){
             return null;
+        } else {
+            syncMove = new Move(event, event, 0);
+            alg.appendMove(syncMove);
+            prev = node;
+            return new State(alg, new ArrayList<>(), prev, currentState.getCostSoFar(), currentState, minDecayTime);
         }
 
     }
@@ -115,10 +101,14 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         StatesBuffer caseStatesInBuffer = null;
         Alignment alg;
         TrieNode node;
+        TrieNode prev;
         List<String> traceSuffix;
         int suffixLookAheadLimit;
         HashMap<String, State> currentStates = new HashMap<>();
         ArrayList<State> syncMoveStates = new ArrayList<>();
+
+        // iterate over the trace - choose event by event
+        // modify everything into accepting event instead of list of events
 
         if (statesInBuffer.containsKey(caseId))
         {
@@ -126,8 +116,15 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             caseStatesInBuffer = statesInBuffer.get(caseId);
             currentStates = caseStatesInBuffer.getCurrentStates();
 
-            // try to find sync moves
+        }
+        else
+        {
+            // if sync move(s) --> add sync move(s) to currentStates. If one of the moves will not be sync move, then start checking from that move.
+            currentStates.put(new Alignment().toString(), new State(new Alignment(), new ArrayList<String>(), modelTrie.getRoot(), 0, minDecayTime+1)); // larger decay time because this is decremented in this iteration
+        }
 
+        for(String event:trace){
+            // sync moves
             // we iterate over all states
             for (Iterator<Map.Entry<String, State>> states = currentStates.entrySet().iterator(); states.hasNext(); ) {
 
@@ -136,112 +133,104 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                 if (previousState.getTracePostfix().size()!=0){
                     continue; // we are not interested in previous states which already have a suffix (i.e. they already are non-synchronous)
                 }
-                state = checkForSyncMoves(trace, previousState);
+
+                state = checkForSyncMoves(event, previousState);
                 if (state!=null){
                     // we are only interested in new states which are synced (i.e. they do not have a suffix)
                     syncMoveStates.add(state);
                 }
             }
 
-        }
-        else
-        {
-            // if sync move(s) --> add sync move(s) to currentStates. If one of the moves will not be sync move, then start checking from that move.
-            State initialState = new State(new Alignment(), new ArrayList<>(), modelTrie.getRoot(), 0, minDecayTime);
-            state = checkForSyncMoves(trace, initialState);
-            if (state!=null){
-                // we are only interested if state is fully synced (i.e. no remaining suffix)
-                currentStates.put(initialState.getAlignment().toString(), initialState);
-                alg = state.getAlignment();
-                currentStates.put(alg.toString(), state);
 
-                caseStatesInBuffer = new StatesBuffer(currentStates);
-                statesInBuffer.put(caseId, caseStatesInBuffer);
-                return currentStates;
+            // check if sync moves --> if yes, add sync states, update old states, remove too old states
+            if (syncMoveStates.size() > 0){
+                for (Iterator<Map.Entry<String, State>> states = currentStates.entrySet().iterator(); states.hasNext(); ) {
+                    Map.Entry<String, State> entry = states.next();
+                    previousState = entry.getValue();
+                    int previousDecayTime = previousState.getDecayTime();
+                    // remove states with decayTime less than 2
+                    if (previousDecayTime < 2) {
+                        states.remove();
+                    } else {
+                        List<String> postfix = new ArrayList<>();
+                        postfix.add(event);
+                        previousState.addTracePostfix(postfix);
+                        previousState.setDecayTime(previousDecayTime - 1);
+                    }
+                }
+
+                for(State s:syncMoveStates){
+                    alg = s.getAlignment();
+                    currentStates.put(alg.toString(), s);
+                }
+                //caseStatesInBuffer.setCurrentStates(currentStates);
+                //statesInBuffer.put(caseId, caseStatesInBuffer);
+                //return currentStates;
+                syncMoveStates.clear();
+                continue;
             }
 
-        }
 
-        // check if sync moves --> if yes, add sync states, update old states, remove too old states
-        if (syncMoveStates.size() > 0){
-            for (Iterator<Map.Entry<String, State>> states = currentStates.entrySet().iterator(); states.hasNext(); ) {
+            // no sync moves. We iterate over the states, trying to make model and log moves
+            HashMap<String, State> statesToIterate = new HashMap<>(currentStates);
+            List<State> interimCurrentStates = new ArrayList<>();
+            List<String> traceEvent = new ArrayList<>();
+            traceEvent.add(event);
+            int currentMinCost = 99999;
+            for (Iterator<Map.Entry<String, State>> states = statesToIterate.entrySet().iterator(); states.hasNext(); ) {
                 Map.Entry<String, State> entry = states.next();
                 previousState = entry.getValue();
-                int previousDecayTime = previousState.getDecayTime();
-                // remove states with decayTime less than 2
-                if (previousDecayTime < 2) {
-                    states.remove();
-                } else {
-                    previousState.addTracePostfix(trace);
-                    previousState.setDecayTime(previousDecayTime - 1);
-                }
-            }
-
-            for(State s:syncMoveStates){
-                alg = s.getAlignment();
-                currentStates.put(alg.toString(), s);
-            }
-            caseStatesInBuffer.setCurrentStates(currentStates);
-            statesInBuffer.put(caseId, caseStatesInBuffer);
-            return currentStates;
-        }
-
-        if(currentStates.size()==0){
-            currentStates.put(new Alignment().toString(), new State(new Alignment(), new ArrayList<String>(), modelTrie.getRoot(), 0, minDecayTime+1)); // larger decay time because this is decremented in this iteration
-        }
-
-        // no sync moves. We iterate over the states, trying to make model and log moves
-        HashMap<String, State> statesToIterate = new HashMap<>(currentStates);
-        List<State> interimCurrentStates = new ArrayList<>();
-        int currentMinCost = 99999;
-        for (Iterator<Map.Entry<String, State>> states = statesToIterate.entrySet().iterator(); states.hasNext(); ) {
-            Map.Entry<String, State> entry = states.next();
-            previousState = entry.getValue();
 
 
-            State logMoveState = handleLogMove(trace, previousState, "");
+                State logMoveState = handleLogMove(traceEvent, previousState, "");
 
-            traceSuffix = previousState.getTracePostfix();
-            traceSuffix.addAll(trace);
-            List<State> modelMoveStates = handleModelMoves(traceSuffix, previousState, null);
+                traceSuffix = previousState.getTracePostfix();
+                traceSuffix.addAll(traceEvent);
+                List<State> modelMoveStates = handleModelMoves(traceSuffix, previousState, null);
 
 
-            // add log move
-            if(logMoveState.getCostSoFar() < currentMinCost){
-                interimCurrentStates.clear();
-                interimCurrentStates.add(logMoveState);
-                currentMinCost = logMoveState.getCostSoFar();
-            } else if(logMoveState.getCostSoFar() == currentMinCost){
-                interimCurrentStates.add(logMoveState);
-            }
-
-            // add model moves
-            for(State s:modelMoveStates){
-                if(s.getCostSoFar()< currentMinCost){
+                // add log move
+                if(logMoveState.getCostSoFar() < currentMinCost){
                     interimCurrentStates.clear();
-                    interimCurrentStates.add(s);
-                    currentMinCost = s.getCostSoFar();
-                } else if(s.getCostSoFar() == currentMinCost) {
-                    interimCurrentStates.add(s);
+                    interimCurrentStates.add(logMoveState);
+                    currentMinCost = logMoveState.getCostSoFar();
+                } else if(logMoveState.getCostSoFar() == currentMinCost){
+                    interimCurrentStates.add(logMoveState);
+                }
+
+                // add model moves
+                for(State s:modelMoveStates){
+                    if(s.getCostSoFar()< currentMinCost){
+                        interimCurrentStates.clear();
+                        interimCurrentStates.add(s);
+                        currentMinCost = s.getCostSoFar();
+                    } else if(s.getCostSoFar() == currentMinCost) {
+                        interimCurrentStates.add(s);
+                    }
+                }
+
+
+                int previousStateDecayTime = previousState.getDecayTime();
+                if(previousStateDecayTime<2){
+                    currentStates.remove(previousState.getAlignment().toString());
+                } else {
+                    previousState.setDecayTime(previousStateDecayTime-1);
+                }
+
+            }
+
+            // add new states with the lowest cost
+            for (State s:interimCurrentStates) {
+                if (s.getCostSoFar() == currentMinCost) {
+                    currentStates.put(s.getAlignment().toString(), s);
                 }
             }
 
 
-            int previousStateDecayTime = previousState.getDecayTime();
-            if(previousStateDecayTime<2){
-                currentStates.remove(previousState.getAlignment().toString());
-            } else {
-                previousState.setDecayTime(previousStateDecayTime-1);
-            }
-
         }
 
-        // add new states with lowest cost
-        for (State s:interimCurrentStates) {
-            if (s.getCostSoFar() == currentMinCost) {
-                currentStates.put(s.getAlignment().toString(), s);
-            }
-        }
+
+
 
 
         if(caseStatesInBuffer==null){

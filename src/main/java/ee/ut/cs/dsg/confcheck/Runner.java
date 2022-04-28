@@ -52,6 +52,8 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Array;
+import java.time.Instant;
 import java.util.*;
 import static ee.ut.cs.dsg.confcheck.util.Configuration.ConformanceCheckerType;
 import static ee.ut.cs.dsg.confcheck.util.Configuration.LogSortType;
@@ -60,6 +62,104 @@ public class Runner {
     private static AlphabetService service;
 
     public static void main(String... args) throws UnknownHostException {
+
+        long unixTime = Instant.now().getEpochSecond();
+
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220428\\testing\\";
+        String fileType = ".csv";
+
+        HashMap <String, HashMap<String, String>> logs = new HashMap<>();
+        HashMap <String, String> subLog = new HashMap<>();
+        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\sampledLog.xml");
+        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\simulatedLog.xml");
+        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\sampledClusteredLog.xml");
+        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\randomLog.xml");
+        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\frequencyLog.xml");
+        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\reducedLogActivity.xml");
+        logs.put("BPI2012", new HashMap<>(subLog));
+        subLog.clear();
+        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml");
+        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\simulatedLog.xml");
+        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledClusteredLog.xml");
+        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\randomLog.xml");
+        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml");
+        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\reducedLogActivity.xml");
+        logs.put("BPI2015", new HashMap<>(subLog));
+        subLog.clear();
+        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\sampledLog.xml");
+        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\simulatedLog.xml");
+        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\sampledClusteredLog.xml");
+        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\rand_randomLog.xml");
+        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\freq_frequencyLog.xml");
+        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\reducedLogActivity.xml");
+        logs.put("BPI2017", new HashMap<>(subLog));
+        subLog.clear();
+        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\sampledLog.xml");
+        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\simulatedLog.xml");
+        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\sampledClusteredLog.xml");
+        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\randomLog.xml");
+        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\frequencyLog.xml");
+        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\reducedLogActivity.xml");
+        logs.put("BPI2019", new HashMap<>(subLog));
+        subLog.clear();
+        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\sampledLog.xml");
+        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\simulatedLog.xml");
+        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\sampledClusteredLog.xml");
+        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\randomLog.xml");
+        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\frequencyLog.xml");
+        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\reducedLogActivity.xml");
+        logs.put("Sepsis", new HashMap<>(subLog));
+        subLog.clear();
+
+        ConformanceCheckerType checkerType = ConformanceCheckerType.DISTANCE;
+        System.out.println(checkerType.toString());
+
+
+        for (Map.Entry<String, HashMap<String, String>> logsMap :
+                logs.entrySet()) {
+
+            HashMap<String, String> logTypes = logsMap.getValue();
+            String logPath = logTypes.get("log");
+            String logName = logsMap.getKey();
+            System.out.println(logName);
+
+
+            for (Map.Entry<String, String> logTypesMap :
+                    logTypes.entrySet()) {
+                if (logTypesMap.getKey().equals("log")){
+                    continue;
+                }
+                String pathName = pathPrefix+unixTime+"_"+logName + "_" + logTypesMap.getKey()+fileType;
+                String proxyLogPath = logTypesMap.getValue();
+
+
+                try {
+
+                    List<String> res = testOnConformanceApproximationResults(proxyLogPath, logPath, checkerType, LogSortType.NONE);
+
+                    FileWriter wr = new FileWriter(pathName);
+                    for(String s:res){
+                        wr.write(s+","+checkerType.toString());
+                        wr.write(System.lineSeparator());
+                    }
+                    wr.close();
+
+
+                } catch (IOException e) {
+                    System.out.println("Error occurred!");
+                    e.printStackTrace();
+                }
+
+            }
+
+        }
+
+
+
+
+
+
+
         //testBedPrefix();
         //testBed2();
 //        System.exit(0);
@@ -76,7 +176,7 @@ public class Runner {
           //String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\Logs\\BPI2012\\sampledLog.xml";
 
 
-        testBedStreaming();
+        //testBedStreaming();
 
         //BPI 2015
 /*
@@ -84,8 +184,25 @@ public class Runner {
         String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml";
         String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml";
 */
-        //testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_STREAMING, LogSortType.NONE);
-        //testOnConformanceApproximationResults(frequencyLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
+        //BPI 2017
+/*
+        String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\simulatedLog.xml";
+        String frequencyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\frequencyLog.xml";
+        String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\sampledLog.xml";
+*/
+        //BPI 2019
+/*
+        String simulatedLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\simulatedLog.xml";
+        String clusteredLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\frequencyLog.xml";
+        String sampleLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\sampledLog.xml";
+
+
+        testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_STREAMING, LogSortType.NONE);*/
+
+
+
+
+        //testOnConformanceApproximationResults(clusteredLog, sampleLog, ConformanceCheckerType.TRIE_RANDOM, LogSortType.NONE);
           //testOnConformanceApproximationResults(simulatedLog, sampleLog, ConformanceCheckerType.TRIE_PREFIX, LogSortType.NONE);
         //String trietest_1 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_1.1.xes";
         //String trietest_2 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_2.xes";
@@ -255,6 +372,9 @@ public class Runner {
         prefixCase1.add("d");
         prefixCase1.add("e");
         prefixCase1.add("x");
+        prefixCase1.add("y");
+        prefixCase1.add("z");
+        prefixCase1.add("z");
         states = cnfChecker.check(prefixCase1, prefixCase1Id);
         System.out.println(prefixCase1);
         System.out.println(states);
@@ -686,10 +806,13 @@ public class Runner {
     }
 
 
-    private static void testOnConformanceApproximationResults(String inputProxyLogFile, String inputSampleLogFile, ConformanceCheckerType confCheckerType, LogSortType sortType)
+    private static ArrayList<String> testOnConformanceApproximationResults(String inputProxyLogFile, String inputSampleLogFile, ConformanceCheckerType confCheckerType, LogSortType sortType)
     {
         init();
         Trie t = constructTrie(inputProxyLogFile);
+
+
+        ArrayList<String> result = new ArrayList<>();
 
         //Configuration variables
 
@@ -712,30 +835,25 @@ public class Runner {
            // AlphabetService service = new AlphabetService();
 
 
-
-            // for streaming:
-            StreamingConformanceChecker checker;
-            checker = new StreamingConformanceChecker(t,1,1, 100000, 100000);
-
-
-/*
-            // multiple choice:
             ConformanceChecker checker;
 
-            if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
-                checker = new PrefixConformanceChecker(t,1,1, false);
-            else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
-                checker = new RandomConformanceChecker(t,1,1, 100000, 100000);//Integer.MAX_VALUE);
-            else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
-                checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
-            else if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING)
-                checker = new StreamingConformanceChecker(t,1,1, 100000, 100000);//Integer.MAX_VALUE);
-            else
-            {
-                testVanellaConformanceApproximation(inputProxyLogFile,inputSampleLogFile);
-                return;
+            if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
+                checker = new StreamingConformanceChecker(t, 1, 1, 100000, 100000);
+            } else {
+
+                if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
+                    checker = new PrefixConformanceChecker(t,1,1, false);
+                else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM)
+                    checker = new RandomConformanceChecker(t,1,1, 100000, 100000);//Integer.MAX_VALUE);
+                else if (confCheckerType == ConformanceCheckerType.TRIE_RANDOM_STATEFUL)
+                    checker = new StatefulRandomConformanceChecker(t,1,1, 50000, 420000);//Integer.MAX_VALUE);
+                else
+                {
+                    testVanellaConformanceApproximation(inputProxyLogFile,inputSampleLogFile, result);
+                    return result;
+                }
             }
-*/
+
 
             Alignment alg;
             HashMap<String, Integer> sampleTracesMap = new HashMap<>();
@@ -745,7 +863,7 @@ public class Runner {
             int current = -1;
             int takeTo = 100;
             DeviationChecker devChecker = new DeviationChecker(service);
-            int cnt = 1;
+            int cnt = 0;
             for (XTrace trace: inputSamplelog)
             {
                 current++;
@@ -780,19 +898,28 @@ public class Runner {
                     Collections.sort(tracesToSort);
             }
 
-            System.out.println("Trace#, Alignment cost");
+            //System.out.println("Trace#, Alignment cost");
+            result.add("TraceId,Cost,ExecutionTime,ConfCheckerType");
 
             if (sortType == LogSortType.LEXICOGRAPHIC_DESC || sortType == LogSortType.TRACE_LENGTH_DESC)
             {
                 for (int i = tracesToSort.size() -1; i>=0; i--)
                 {
-                    totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i);
+                    if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
+                        totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
+                    } else {
+                        totalTime = computeAlignment(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
+                    }
                 }
             }
 //
             else {
                 for (int i = 0; i < tracesToSort.size(); i++) {
-                    totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i);
+                    if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
+                        totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
+                    } else {
+                        totalTime = computeAlignment(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
+                    }
                 }
             }
 
@@ -808,18 +935,21 @@ public class Runner {
         {
             e.printStackTrace();
         }
+        return result;
     }
 
 
-    private static long computeAlignment2(List<String> tracesToSort, StreamingConformanceChecker checker, HashMap<String, Integer> sampleTracesMap, long totalTime, DeviationChecker devChecker, int i) {
+    private static long computeAlignment2(List<String> tracesToSort, ConformanceChecker checkerC, HashMap<String, Integer> sampleTracesMap, long totalTime, DeviationChecker devChecker, int i, ArrayList<String> result) {
         long start;
+        long executionTime;
         Alignment alg;
         List<String> trace = new ArrayList<String>();
+        StreamingConformanceChecker checker = (StreamingConformanceChecker) checkerC;
 
-        int pos = tracesToSort.get(i).indexOf((char)63);
-        int traceNum = Integer.parseInt(tracesToSort.get(i).substring(0,pos));
+        int pos = tracesToSort.get(i).indexOf((char) 63);
+        int traceNum = Integer.parseInt(tracesToSort.get(i).substring(0, pos));
 
-        String actualTrace = tracesToSort.get(i).substring(pos+1);
+        String actualTrace = tracesToSort.get(i).substring(pos + 1);
 //        System.out.println(actualTrace);
         for (char c : actualTrace.toCharArray()) {
             trace.add(new StringBuilder().append(c).toString());
@@ -841,58 +971,39 @@ public class Runner {
 
         //event by event:
 
-        /*
+
         for (String e : trace) {
             List<String> tempList = new ArrayList<String>();
             tempList.add(e);
             checker.check(tempList, Integer.toString(i));
         }
+
+
         if (trace.size() == 0) {
-            alg = null;
+            alg = new Alignment();
         } else {
             alg = checker.getCurrentOptimalState(Integer.toString(i)).getAlignment();
-        }*/
-
-
-        if(i==19) {
-
-            checker.check(trace, Integer.toString(i));
-            /*
-            for (String e : trace) {
-                List<String> tempList = new ArrayList<String>();
-                tempList.add(e);
-                checker.check(tempList, Integer.toString(i));
-            }*/
-
-            if (trace.size() == 0) {
-                alg = null;
-            } else {
-                alg = checker.getCurrentOptimalState(Integer.toString(i)).getAlignment();
-            }
-        } else {
-            alg=null;
         }
 
-
-
-        totalTime += System.currentTimeMillis() - start;
+        executionTime = System.currentTimeMillis() - start;
+        totalTime += executionTime;
         if (alg != null) {
-            System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
-            //System.out.print(", alignment cost minus trace size: "+ (alg.getTotalCost()-traceSize));
-            System.out.println(", " + alg.getTotalCost());
-//                        System.out.println(alg.toString(service));
-//            devChecker.processAlignment(alg);
-//                    System.out.println(alg.toString());
-//                        t.printTraces();
-        } else //if (usePrefixChecker == false)
-            System.out.println("Couldn't find an alignment under the given constraints");
+            //System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
+            //System.out.println(", " + alg.getTotalCost());
 
+            result.add(Integer.toString(i) + "," + alg.getTotalCost() + "," + executionTime);
+
+        } else {
+            System.out.println("Couldn't find an alignment under the given constraints");
+            result.add(Integer.toString(i) + ",9999999," + executionTime);
+        }
 
         return totalTime;
     }
 
-    private static long computeAlignment(List<String> tracesToSort, ConformanceChecker checker, HashMap<String, Integer> sampleTracesMap, long totalTime, DeviationChecker devChecker, int i) {
+    private static long computeAlignment(List<String> tracesToSort, ConformanceChecker checker, HashMap<String, Integer> sampleTracesMap, long totalTime, DeviationChecker devChecker, int i, ArrayList<String> result) {
         long start;
+        long executionTime;
         Alignment alg;
         List<String> trace = new ArrayList<String>();
 
@@ -926,19 +1037,18 @@ public class Runner {
             //System.out.println(", " + alg.getTotalCost());
             //System.out.println(alg.toString());
         }*/
-
-        totalTime += System.currentTimeMillis() - start;
+        executionTime = System.currentTimeMillis() - start;
+        totalTime += executionTime;
         if (alg != null) {
-            System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
-            //System.out.print(", alignment cost minus trace size: "+ (alg.getTotalCost()-traceSize));
-            System.out.println(", " + alg.getTotalCost());
-//                        System.out.println(alg.toString(service));
-//            devChecker.processAlignment(alg);
-//                    System.out.println(alg.toString());
-//                        t.printTraces();
-        } else //if (usePrefixChecker == false)
-            System.out.println("Couldn't find an alignment under the given constraints");
+            //System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
+            //System.out.println(", " + alg.getTotalCost());
 
+            result.add(Integer.toString(i) + "," + alg.getTotalCost() + "," + executionTime);
+
+        } else {
+            System.out.println("Couldn't find an alignment under the given constraints");
+            result.add(Integer.toString(i) + ",9999999," + executionTime);
+        }
 
         return totalTime;
     }
@@ -1017,7 +1127,7 @@ public class Runner {
         }
         return null;
     }
-    private static void testVanellaConformanceApproximation(String inputProxyLogFile, String inputSampleLogFile)
+    private static void testVanellaConformanceApproximation(String inputProxyLogFile, String inputSampleLogFile, ArrayList<String> result)
     {
         XLog proxyLog, sampleLog;
         StringBuilder sb;
@@ -1054,11 +1164,13 @@ public class Runner {
         DeviationChecker deviationChecker = new DeviationChecker(service);
         // Now compute the alignments
         long start=System.currentTimeMillis(),timeTaken=0 ;
+        long executionTime;
         int skipTo =0;
         int current = -1;
         int takeTo = 100;
         try {
-            System.out.println("Trace#, Alignment cost");
+            //System.out.println("Trace#, Alignment cost");
+            result.add("TraceId,Cost,ExecutionTime,ConfCheckerType");
 
             for (String logTrace : sampleTraces) {
                 current++;
@@ -1081,13 +1193,16 @@ public class Runner {
                             break;
                     }
                 }
-                timeTaken += System.currentTimeMillis() - start;
+                executionTime = System.currentTimeMillis() - start;
+                timeTaken += executionTime;
 //            System.out.println("Total proxy traces "+proxyTraces.size());
 //            System.out.println("Total candidate traces to inspect "+proxyTraces.size());
                 //print trace number
-                System.out.print(sampleTracesMap.get(logTrace));
+
+                result.add(sampleTracesMap.get(logTrace)+","+minCost+","+executionTime);
+//                System.out.print(sampleTracesMap.get(logTrace));
                 // print cost
-                System.out.println(", " + minCost);
+//                System.out.println(", " + minCost);
 //            System.out.println(bestAlignment);
 //                Alignment alg = AlignmentFactory.createAlignmentFromString(bestAlignment);
 //              System.out.println(alg.toString());

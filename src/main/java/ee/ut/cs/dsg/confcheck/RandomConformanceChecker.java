@@ -13,7 +13,7 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
 
 
-    protected int exploitVersusExploreFrequency = 200;
+    protected int exploitVersusExploreFrequency = 100;
     protected int numEpochs;
     protected boolean onMatchFollowPrefixOnly = false;
     protected boolean verbose = false;
