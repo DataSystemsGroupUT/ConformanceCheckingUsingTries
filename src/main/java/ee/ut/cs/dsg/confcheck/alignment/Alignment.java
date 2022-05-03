@@ -84,6 +84,21 @@ public class Alignment {
         result.addAll(moves);
         return result;
     }
+
+    public int getNumberOfEventsSeen()
+    {
+        int result = 0;
+        for (Move m: moves)
+        {
+            if (!m.getLogMove().equals(">>")){
+                continue;
+            } else {
+                result++;
+            }
+        }
+        return result;
+    }
+
     public int hashCode()
     {
         return this.toString().hashCode();

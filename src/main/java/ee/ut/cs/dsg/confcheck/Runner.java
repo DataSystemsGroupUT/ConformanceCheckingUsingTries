@@ -65,7 +65,7 @@ public class Runner {
 
         long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220428\\testing\\";
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220428\\testing\\streamingtrie\\";
         String fileType = ".csv";
 
         HashMap <String, HashMap<String, String>> logs = new HashMap<>();
@@ -111,31 +111,51 @@ public class Runner {
         logs.put("Sepsis", new HashMap<>(subLog));
         subLog.clear();
 
-        ConformanceCheckerType checkerType = ConformanceCheckerType.DISTANCE;
+        ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
         System.out.println(checkerType.toString());
 
+        String runType = "general"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
 
-        for (Map.Entry<String, HashMap<String, String>> logsMap :
-                logs.entrySet()) {
+        if (runType == "specific"){
+            // run for specific log
+            String sLog = "BPI2012";
+            String sLogType = "frequency";
+            String sLogPath = logs.get(sLog).get("log");
+            String sProxyLogPath = logs.get(sLog).get(sLogType);
+            String pathName = pathPrefix+unixTime+"_"+sLog + "_" + sLogType+fileType;
+            try {
 
-            HashMap<String, String> logTypes = logsMap.getValue();
-            String logPath = logTypes.get("log");
-            String logName = logsMap.getKey();
-            System.out.println(logName);
+                List<String> res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
 
+                FileWriter wr = new FileWriter(pathName);
+                for(String s:res){
+                    wr.write(s+","+checkerType.toString());
+                    wr.write(System.lineSeparator());
+                }
+                wr.close();
+
+
+            } catch (IOException e) {
+                System.out.println("Error occurred!");
+                e.printStackTrace();
+            }
+        } else if (runType == "logSpecific") {
+            String sLog = "BPI2019";
+            String sLogPath = logs.get(sLog).get("log");
+            HashMap<String, String> logTypes = logs.get(sLog);
 
             for (Map.Entry<String, String> logTypesMap :
                     logTypes.entrySet()) {
                 if (logTypesMap.getKey().equals("log")){
                     continue;
                 }
-                String pathName = pathPrefix+unixTime+"_"+logName + "_" + logTypesMap.getKey()+fileType;
+                String pathName = pathPrefix+unixTime+"_"+sLog + "_" + logTypesMap.getKey()+fileType;
                 String proxyLogPath = logTypesMap.getValue();
 
 
                 try {
 
-                    List<String> res = testOnConformanceApproximationResults(proxyLogPath, logPath, checkerType, LogSortType.NONE);
+                    List<String> res = testOnConformanceApproximationResults(proxyLogPath, sLogPath, checkerType, LogSortType.NONE);
 
                     FileWriter wr = new FileWriter(pathName);
                     for(String s:res){
@@ -152,7 +172,55 @@ public class Runner {
 
             }
 
+
+        } else if (runType == "general") {
+            // run for all logs
+            for (Map.Entry<String, HashMap<String, String>> logsMap :
+                    logs.entrySet()) {
+
+                HashMap<String, String> logTypes = logsMap.getValue();
+                String logPath = logTypes.get("log");
+                String logName = logsMap.getKey();
+                System.out.println(logName);
+
+
+                for (Map.Entry<String, String> logTypesMap :
+                        logTypes.entrySet()) {
+                    if (logTypesMap.getKey().equals("log")){
+                        continue;
+                    }
+                    String pathName = pathPrefix+unixTime+"_"+logName + "_" + logTypesMap.getKey()+fileType;
+                    String proxyLogPath = logTypesMap.getValue();
+
+
+                    try {
+
+                        List<String> res = testOnConformanceApproximationResults(proxyLogPath, logPath, checkerType, LogSortType.NONE);
+
+                        FileWriter wr = new FileWriter(pathName);
+                        for(String s:res){
+                            wr.write(s+","+checkerType.toString());
+                            wr.write(System.lineSeparator());
+                        }
+                        wr.close();
+
+
+                    } catch (IOException e) {
+                        System.out.println("Error occurred!");
+                        e.printStackTrace();
+                    }
+
+                }
+
+            }
+        } else {
+            System.out.println("Run type not implemented");
         }
+
+
+
+
+
 
 
 
@@ -985,6 +1053,7 @@ public class Runner {
             alg = checker.getCurrentOptimalState(Integer.toString(i)).getAlignment();
         }
 
+
         executionTime = System.currentTimeMillis() - start;
         totalTime += executionTime;
         if (alg != null) {
@@ -1108,7 +1177,7 @@ public class Runner {
                 //System.out.println(templist.toString());
                 if (templist.size() > 0 ) {
 
-                   // System.out.println(templist.toString());
+                    //System.out.println(templist.toString());
 //                    if (count == 37)
 //                    StringBuilder sb = new StringBuilder();
 //                    templist.stream().forEach(e -> sb.append(e));
@@ -1148,7 +1217,7 @@ public class Runner {
             proxyTraces.add(sb.toString());
 
         }
-        int cnt=1;
+        int cnt=0;
         for (XTrace trace : sampleLog) {
             sb = new StringBuilder();
             for (XEvent e : trace) {
@@ -1184,6 +1253,10 @@ public class Runner {
                 start = System.currentTimeMillis();
                 for (String proxyTrace : proxyTraces) {
 
+                    if (proxyTrace.length()==0){
+                        continue;
+                    }
+
                     ProtoTypeSelectionAlgo.AlignObj obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(logTrace, proxyTrace);
                     if (obj.cost < minCost) {
                         minCost = obj.cost;
@@ -1193,6 +1266,7 @@ public class Runner {
                             break;
                     }
                 }
+
                 executionTime = System.currentTimeMillis() - start;
                 timeTaken += executionTime;
 //            System.out.println("Total proxy traces "+proxyTraces.size());

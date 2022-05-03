@@ -24,6 +24,8 @@ public class StreamingConformanceChecker extends ConformanceChecker{
     protected boolean replayWithLogMoves = true; // if set to false the performance is faster but result is less precise
     protected int minDecayTime = 3;
     protected float decayTimeMultiplier = 0.25F; // not yet implemented
+    protected boolean discountedDecayTime = true; // if set to false then uses fixed minDecayTime value
+    protected int averageTrieLength = 0;
 
 
 
@@ -34,6 +36,9 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         this.maxTrials = maxTrials;
         inspectedLogTraces = new Trie(trie.getMaxChildren());
         this.costFunction = costFunction;
+        if (discountedDecayTime){
+            this.averageTrieLength = trie.getAvgTraceLength();
+        }
     }
     public StreamingConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue) {
         this(trie,logCost,modelCost,maxStatesInQueue, 10000);
@@ -58,7 +63,14 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             syncMove = new Move(event, event, 0);
             alg.appendMove(syncMove);
             prev = node;
-            return new State(alg, new ArrayList<>(), prev, currentState.getCostSoFar(), currentState, minDecayTime);
+            int decayTime;
+            if(discountedDecayTime){
+                decayTime = Math.max(Math.round((averageTrieLength-alg.getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+            } else {
+                decayTime = minDecayTime;
+            }
+
+            return new State(alg, new ArrayList<>(), prev, currentState.getCostSoFar(), currentState, decayTime);
         }
 
     }
@@ -68,12 +80,18 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         StatesBuffer caseStatesInBuffer;
         HashMap<String, State> currentStates;
         List<State> statesList = new ArrayList<>();
+        int decayTime;
         if (statesInBuffer.containsKey(caseId)){
             caseStatesInBuffer = statesInBuffer.get(caseId);
             currentStates = caseStatesInBuffer.getCurrentStates();
             statesList.addAll(currentStates.values());
             for(State s:statesList){
-                if(s.getDecayTime() == minDecayTime & s.getTracePostfix().size()==0){
+                if(discountedDecayTime){
+                    decayTime = Math.max(Math.round((averageTrieLength-s.getAlignment().getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+                } else {
+                    decayTime = minDecayTime;
+                }
+                if(s.getDecayTime() == decayTime & s.getTracePostfix().size()==0){
                     return s;
                 }
             }
@@ -120,7 +138,13 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         else
         {
             // if sync move(s) --> add sync move(s) to currentStates. If one of the moves will not be sync move, then start checking from that move.
-            currentStates.put(new Alignment().toString(), new State(new Alignment(), new ArrayList<String>(), modelTrie.getRoot(), 0, minDecayTime+1)); // larger decay time because this is decremented in this iteration
+            int decayTime;
+            if(discountedDecayTime){
+                decayTime = Math.max(Math.round(averageTrieLength*decayTimeMultiplier),minDecayTime);
+            } else {
+                decayTime = minDecayTime;
+            }
+            currentStates.put(new Alignment().toString(), new State(new Alignment(), new ArrayList<String>(), modelTrie.getRoot(), 0, decayTime+1)); // larger decay time because this is decremented in this iteration
         }
 
         for(String event:trace){
@@ -267,7 +291,8 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             }
             // for all child nodes, try to get a substring match
             for(TrieNode n:childNodes){
-                matchNode = modelTrie.match(suffixToCheck, n);
+                matchNode = modelTrie.matchCompletely(suffixToCheck, n);
+                // !! matching node != substring
                 if (matchNode!=null){
                     matchingNodes.add(matchNode);
                 }
@@ -352,7 +377,14 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                 for(Move m:moves){
                     alg.appendMove(m);
                 }
-                matchingStates.add(new State(alg, new ArrayList<>(), n, cost, minDecayTime));
+                int decayTime;
+
+                if(discountedDecayTime){
+                    decayTime = Math.max(Math.round((averageTrieLength-alg.getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+                } else {
+                    decayTime = minDecayTime;
+                }
+                matchingStates.add(new State(alg, new ArrayList<>(), n, cost, decayTime));
 
             }
 
@@ -375,7 +407,14 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             Move logMove = new Move(e, ">>", 1);
             alg.appendMove(logMove);
         }
-        logMoveState = new State(alg, new ArrayList<String>(), state.getNode(), state.getCostSoFar()+suffix.size(), minDecayTime);
+        int decayTime;
+
+        if(discountedDecayTime){
+            decayTime = Math.max(Math.round((averageTrieLength-alg.getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+        } else {
+            decayTime = minDecayTime;
+        }
+        logMoveState = new State(alg, new ArrayList<String>(), state.getNode(), state.getCostSoFar()+suffix.size(), decayTime);
         return logMoveState;
     }
 }

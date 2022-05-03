@@ -144,6 +144,39 @@ public class Trie {
         return match(trace, root);
     }
 
+    public TrieNode matchCompletely(List<String> trace, TrieNode startFromThisNode)
+    {
+        TrieNode current = startFromThisNode;
+        TrieNode result;
+        int size = trace.size();
+        int lengthDifference = Integer.MAX_VALUE;
+        for(int i = 0; i < size; i++)
+//        for (String event : trace)
+        {
+            result = current.getChild(trace.get(i));
+            // result = current.getChildWithLeastPathLengthDifference(trace.get(i), size - i);
+
+            if (result == null)
+                return null;
+            else {
+                TrieNode result2 = result;
+                //result2 = result.getChildWithLeastPathLengthDifference(size-(i+1));
+
+//                if (Math.abs(result2.getMinPathLengthToEnd() - (size - (i+1))) <= lengthDifference)
+                //               {
+                // we still have a promising direction
+                current = result;
+//                    lengthDifference = Math.abs(result.getMinPathLengthToEnd() - (size - (i+1)));
+//                }
+//                else
+//                    return current.getParent();
+
+
+            }
+        }
+        return current;
+    }
+
     public int getMaxTraceLength()
     {
         int maxLength = leaves.stream().map( node -> node.getLevel()).reduce(Integer.MIN_VALUE, (minSoFar, element) -> Math.max(minSoFar, element));
