@@ -62,10 +62,10 @@ public class Runner {
     private static AlphabetService service;
 
     public static void main(String... args) throws UnknownHostException {
-
+/*
         long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220428\\testing\\streamingtrie\\";
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220503\\testing\\";
         String fileType = ".csv";
 
         HashMap <String, HashMap<String, String>> logs = new HashMap<>();
@@ -114,12 +114,12 @@ public class Runner {
         ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
         System.out.println(checkerType.toString());
 
-        String runType = "general"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
+        String runType = "specific"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
 
         if (runType == "specific"){
             // run for specific log
             String sLog = "BPI2012";
-            String sLogType = "frequency";
+            String sLogType = "clustered";
             String sLogPath = logs.get(sLog).get("log");
             String sProxyLogPath = logs.get(sLog).get(sLogType);
             String pathName = pathPrefix+unixTime+"_"+sLog + "_" + sLogType+fileType;
@@ -221,14 +221,14 @@ public class Runner {
 
 
 
+*/
 
 
 
 
 
 
-
-        //testBedPrefix();
+        testBedStreaming();
         //testBed2();
 //        System.exit(0);
 //          testBed1();
@@ -407,18 +407,18 @@ public class Runner {
         trace2.add("y");
         trace2.add("z");
         trace2.add("z");
-/*
+
         List<String> trace3 = new ArrayList<>();
         trace3.add("a");
         trace3.add("b");
+        trace3.add("c");
         trace3.add("d");
-        trace3.add("e");
-        trace3.add("f");*/
+        trace3.add("h");
 
         Trie t = new Trie(28);
         t.addTrace(trace);
         t.addTrace(trace2);
-        //t.addTrace(trace3);
+        t.addTrace(trace3);
 
         cnfChecker = new StreamingConformanceChecker(t,1,1,100000, 100000);
 
@@ -439,15 +439,21 @@ public class Runner {
         prefixCase1.add("c");
         prefixCase1.add("d");
         prefixCase1.add("e");
+        states = cnfChecker.check(prefixCase1, prefixCase1Id);
+        //System.out.println(prefixCase1);
+        //System.out.println(states);
+        System.out.println("Current optimal state:");
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id, true));
+        System.out.println("-----");
+
+        prefixCase1.clear();
         prefixCase1.add("x");
         prefixCase1.add("y");
         prefixCase1.add("z");
         prefixCase1.add("z");
         states = cnfChecker.check(prefixCase1, prefixCase1Id);
-        System.out.println(prefixCase1);
-        System.out.println(states);
         System.out.println("Current optimal state:");
-        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id));
+        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id, true));
         System.out.println("-----");
 
 /*
@@ -1050,7 +1056,7 @@ public class Runner {
         if (trace.size() == 0) {
             alg = new Alignment();
         } else {
-            alg = checker.getCurrentOptimalState(Integer.toString(i)).getAlignment();
+            alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
         }
 
 

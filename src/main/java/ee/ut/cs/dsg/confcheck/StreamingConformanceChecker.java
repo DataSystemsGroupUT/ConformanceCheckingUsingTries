@@ -24,7 +24,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
     protected boolean replayWithLogMoves = true; // if set to false the performance is faster but result is less precise
     protected int minDecayTime = 3;
     protected float decayTimeMultiplier = 0.25F; // not yet implemented
-    protected boolean discountedDecayTime = true; // if set to false then uses fixed minDecayTime value
+    protected boolean discountedDecayTime = false; // if set to false then uses fixed minDecayTime value
     protected int averageTrieLength = 0;
 
 
@@ -75,24 +75,70 @@ public class StreamingConformanceChecker extends ConformanceChecker{
 
     }
 
-    public State getCurrentOptimalState(String caseId){
+    public State getCurrentOptimalState(String caseId, boolean finalState){ //
         State state;
         StatesBuffer caseStatesInBuffer;
         HashMap<String, State> currentStates;
         List<State> statesList = new ArrayList<>();
+
+        List<State> optimalStates = new ArrayList<>();
+        int postfixSize;
+        int minLengthToEnd;
+        int minAdditionalCost = 99999;
         int decayTime;
         if (statesInBuffer.containsKey(caseId)){
             caseStatesInBuffer = statesInBuffer.get(caseId);
             currentStates = caseStatesInBuffer.getCurrentStates();
             statesList.addAll(currentStates.values());
             for(State s:statesList){
-                if(discountedDecayTime){
-                    decayTime = Math.max(Math.round((averageTrieLength-s.getAlignment().getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+                if (finalState){
+                    postfixSize = s.getTracePostfix().size();
+                    minLengthToEnd = s.getNode().getMinPathLengthToEnd();
+                    if((postfixSize+minLengthToEnd)==0){
+                        return s;
+                    } else if ((postfixSize+minLengthToEnd)<=minAdditionalCost){
+                        minAdditionalCost = postfixSize+minLengthToEnd;
+                        optimalStates.add(s);
+                    }
                 } else {
-                    decayTime = minDecayTime;
+                    if(discountedDecayTime){
+                        decayTime = Math.max(Math.round((averageTrieLength-s.getAlignment().getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+                    } else {
+                        decayTime = minDecayTime;
+                    }
+                    if(s.getDecayTime() == decayTime & s.getTracePostfix().size()==0){
+                        return s;
+                    }
                 }
-                if(s.getDecayTime() == decayTime & s.getTracePostfix().size()==0){
-                    return s;
+
+            }
+
+            for (State optS:optimalStates){
+                postfixSize = optS.getTracePostfix().size();
+                minLengthToEnd = optS.getNode().getMinPathLengthToEnd();
+                if ((postfixSize+minLengthToEnd)==minAdditionalCost){
+                    Alignment alg = optS.getAlignment();
+                    int currentCost = optS.getCostSoFar();
+                    TrieNode currentNode = optS.getNode();
+                    List<String> postfix = new ArrayList<>(optS.getTracePostfix());
+                    // add log moves
+                    while(postfix.size()>0){
+                        Move m = new Move(postfix.get(0),">>",1);
+                        alg.appendMove(m, 1);
+                        currentCost++;
+                        postfix.remove(0);
+                    }
+                    // add model moves
+                    while(currentNode.getMinPathLengthToEnd()>0){
+                        currentNode = currentNode.getChildOnShortestPathToTheEnd();
+                        Move m = new Move(">>", currentNode.getContent(), 1);
+                        alg.appendMove(m, 1);
+                        currentCost++;
+
+                    }
+
+                    // return state
+                    return new State(alg, new ArrayList<>(),currentNode, currentCost);
                 }
             }
         }
