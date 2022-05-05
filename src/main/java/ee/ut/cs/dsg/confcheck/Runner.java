@@ -62,10 +62,10 @@ public class Runner {
     private static AlphabetService service;
 
     public static void main(String... args) throws UnknownHostException {
-/*
+
         long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220503\\testing\\";
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220504\\randomtrie\\";
         String fileType = ".csv";
 
         HashMap <String, HashMap<String, String>> logs = new HashMap<>();
@@ -111,7 +111,7 @@ public class Runner {
         logs.put("Sepsis", new HashMap<>(subLog));
         subLog.clear();
 
-        ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
+        ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_RANDOM;
         System.out.println(checkerType.toString());
 
         String runType = "specific"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
@@ -126,10 +126,10 @@ public class Runner {
             try {
 
                 List<String> res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-
+                res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
                 FileWriter wr = new FileWriter(pathName);
                 for(String s:res){
-                    wr.write(s+","+checkerType.toString());
+                    wr.write(s);
                     wr.write(System.lineSeparator());
                 }
                 wr.close();
@@ -156,10 +156,11 @@ public class Runner {
                 try {
 
                     List<String> res = testOnConformanceApproximationResults(proxyLogPath, sLogPath, checkerType, LogSortType.NONE);
+                    res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
 
                     FileWriter wr = new FileWriter(pathName);
                     for(String s:res){
-                        wr.write(s+","+checkerType.toString());
+                        wr.write(s);
                         wr.write(System.lineSeparator());
                     }
                     wr.close();
@@ -196,10 +197,11 @@ public class Runner {
                     try {
 
                         List<String> res = testOnConformanceApproximationResults(proxyLogPath, logPath, checkerType, LogSortType.NONE);
+                        res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
 
                         FileWriter wr = new FileWriter(pathName);
                         for(String s:res){
-                            wr.write(s+","+checkerType.toString());
+                            wr.write(s);
                             wr.write(System.lineSeparator());
                         }
                         wr.close();
@@ -221,14 +223,14 @@ public class Runner {
 
 
 
-*/
 
 
 
 
 
 
-        testBedStreaming();
+
+        //testBedStreaming();
         //testBed2();
 //        System.exit(0);
 //          testBed1();
@@ -973,7 +975,7 @@ public class Runner {
             }
 
             //System.out.println("Trace#, Alignment cost");
-            result.add("TraceId,Cost,ExecutionTime,ConfCheckerType");
+            //result.add("TraceId,Cost,ExecutionTime,ConfCheckerType");
 
             if (sortType == LogSortType.LEXICOGRAPHIC_DESC || sortType == LogSortType.TRACE_LENGTH_DESC)
             {
@@ -1053,6 +1055,7 @@ public class Runner {
         }
 
 
+
         if (trace.size() == 0) {
             alg = new Alignment();
         } else {
@@ -1098,8 +1101,13 @@ public class Runner {
         start = System.currentTimeMillis();
         //alg = checker.prefix_check(trace, Integer.toString(i));
         //alg = checker.check2(trace, true, Integer.toString(i));
-        alg = checker.check(trace);
+        alg = null;
 
+        if (i==35){
+            alg = checker.check(trace);
+            System.out.println(trace);
+            System.out.println(alg.toString());
+        }
 
 
         //alg = null;
@@ -1210,7 +1218,7 @@ public class Runner {
         List<String> sampleTraces = new ArrayList<>();
         proxyLog = loadLog(inputProxyLogFile);
         sampleLog = loadLog(inputSampleLogFile);
-        HashMap<String, Integer> sampleTracesMap = new HashMap<>();
+        //HashMap<String, Integer> sampleTracesMap = new HashMap<>();
         init();
 
         for (XTrace trace : proxyLog) {
@@ -1232,7 +1240,7 @@ public class Runner {
                 sb.append(service.alphabetize(label));
             }
             sampleTraces.add(sb.toString());
-            sampleTracesMap.put(sb.toString(),cnt);
+            //sampleTracesMap.put(sb.toString(),cnt);
             cnt++;
         }
 
@@ -1245,15 +1253,17 @@ public class Runner {
         int takeTo = 100;
         try {
             //System.out.println("Trace#, Alignment cost");
-            result.add("TraceId,Cost,ExecutionTime,ConfCheckerType");
+            //result.add("TraceId,Cost,ExecutionTime,ConfCheckerType");
 
-            for (String logTrace : sampleTraces) {
+            //for (String logTrace : sampleTraces) {
+            for (int i = 0; i < sampleTraces.size(); i++) {
+                String logTrace = sampleTraces.get(i);
                 current++;
                 if (current < skipTo)
                     continue;
                 if (current > takeTo)
                     break;
-                double minCost = Double.MAX_VALUE;
+                int minCost = Integer.MAX_VALUE;
                 String bestTrace = "";
                 String bestAlignment = "";
                 start = System.currentTimeMillis();
@@ -1265,7 +1275,7 @@ public class Runner {
 
                     ProtoTypeSelectionAlgo.AlignObj obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(logTrace, proxyTrace);
                     if (obj.cost < minCost) {
-                        minCost = obj.cost;
+                        minCost = (int) obj.cost;
                         bestAlignment = obj.Alignment;
                         bestTrace = proxyTrace;
                         if (obj.cost == 0)
@@ -1279,7 +1289,7 @@ public class Runner {
 //            System.out.println("Total candidate traces to inspect "+proxyTraces.size());
                 //print trace number
 
-                result.add(sampleTracesMap.get(logTrace)+","+minCost+","+executionTime);
+                result.add(i+","+minCost+","+executionTime);
 //                System.out.print(sampleTracesMap.get(logTrace));
                 // print cost
 //                System.out.println(", " + minCost);

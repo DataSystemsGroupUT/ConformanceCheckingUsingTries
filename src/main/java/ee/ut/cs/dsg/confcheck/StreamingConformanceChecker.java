@@ -86,6 +86,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         int minLengthToEnd;
         int minAdditionalCost = 99999;
         int decayTime;
+        boolean isEndOfTrace;
         if (statesInBuffer.containsKey(caseId)){
             caseStatesInBuffer = statesInBuffer.get(caseId);
             currentStates = caseStatesInBuffer.getCurrentStates();
@@ -94,7 +95,8 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                 if (finalState){
                     postfixSize = s.getTracePostfix().size();
                     minLengthToEnd = s.getNode().getMinPathLengthToEnd();
-                    if((postfixSize+minLengthToEnd)==0){
+                    isEndOfTrace = s.getNode().isEndOfTrace();
+                    if((postfixSize+minLengthToEnd)==0 || (postfixSize==0 && isEndOfTrace)){
                         return s;
                     } else if ((postfixSize+minLengthToEnd)<=minAdditionalCost){
                         minAdditionalCost = postfixSize+minLengthToEnd;
@@ -134,7 +136,8 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                         Move m = new Move(">>", currentNode.getContent(), 1);
                         alg.appendMove(m, 1);
                         currentCost++;
-
+                        if (currentNode.isEndOfTrace())
+                            break;
                     }
 
                     // return state
