@@ -65,7 +65,7 @@ public class Runner {
 
         long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220504\\randomtrie\\";
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220505\\streaming_disc\\";
         String fileType = ".csv";
 
         HashMap <String, HashMap<String, String>> logs = new HashMap<>();
@@ -111,10 +111,10 @@ public class Runner {
         logs.put("Sepsis", new HashMap<>(subLog));
         subLog.clear();
 
-        ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_RANDOM;
+        ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
         System.out.println(checkerType.toString());
 
-        String runType = "specific"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
+        String runType = "general"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
 
         if (runType == "specific"){
             // run for specific log
@@ -1054,13 +1054,14 @@ public class Runner {
             checker.check(tempList, Integer.toString(i));
         }
 
+        alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
 
 
-        if (trace.size() == 0) {
+        /*if (trace.size() == 0) {
             alg = new Alignment();
         } else {
             alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
-        }
+        }*/
 
 
         executionTime = System.currentTimeMillis() - start;
@@ -1101,14 +1102,7 @@ public class Runner {
         start = System.currentTimeMillis();
         //alg = checker.prefix_check(trace, Integer.toString(i));
         //alg = checker.check2(trace, true, Integer.toString(i));
-        alg = null;
-
-        if (i==35){
-            alg = checker.check(trace);
-            System.out.println(trace);
-            System.out.println(alg.toString());
-        }
-
+        alg = checker.check(trace);
 
         //alg = null;
 
@@ -1276,6 +1270,8 @@ public class Runner {
                     ProtoTypeSelectionAlgo.AlignObj obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(logTrace, proxyTrace);
                     if (obj.cost < minCost) {
                         minCost = (int) obj.cost;
+                        if (logTrace.length()==0)
+                            minCost++; // small fix if log trace is empty, then levenshteinDistancewithAlignment wrongly discounts the cost by 1
                         bestAlignment = obj.Alignment;
                         bestTrace = proxyTrace;
                         if (obj.cost == 0)

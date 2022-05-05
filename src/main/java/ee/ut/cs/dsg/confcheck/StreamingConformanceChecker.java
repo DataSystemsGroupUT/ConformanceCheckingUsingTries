@@ -24,7 +24,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
     protected boolean replayWithLogMoves = true; // if set to false the performance is faster but result is less precise
     protected int minDecayTime = 3;
     protected float decayTimeMultiplier = 0.25F; // not yet implemented
-    protected boolean discountedDecayTime = false; // if set to false then uses fixed minDecayTime value
+    protected boolean discountedDecayTime = true; // if set to false then uses fixed minDecayTime value
     protected int averageTrieLength = 0;
 
 
@@ -144,6 +144,23 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                     return new State(alg, new ArrayList<>(),currentNode, currentCost);
                 }
             }
+        } else if (finalState){
+            // did not find matching ID
+            // returning only model moves for shortest path
+            TrieNode minNode = modelTrie.getNodeOnShortestTrace();
+            TrieNode currentNode = minNode;
+            Alignment alg = new Alignment();
+            List<Move> moves = new ArrayList<>();
+            while (currentNode.getLevel()>0){
+                Move m = new Move(">>",currentNode.getContent(),1);
+                moves.add(0,m);
+                currentNode = currentNode.getParent();
+            }
+            for(Move m:moves)
+                alg.appendMove(m);
+
+            return new State(alg, new ArrayList<>(), minNode, alg.getTotalCost());
+
         }
 
         // did not find a matching case ID

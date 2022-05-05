@@ -209,4 +209,17 @@ public class Trie {
         return numberOfEvents;
     }
 
+    public TrieNode getNodeOnShortestTrace()
+    {
+        int currentMinLevel = 99999;
+        TrieNode currentMinNode = null;
+        for (TrieNode n:leaves){
+            if(n.getLevel()<currentMinLevel){
+                currentMinNode = n;
+                currentMinLevel = n.getLevel();
+            }
+        }
+        return currentMinNode;
+    }
+
 }
