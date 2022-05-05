@@ -197,6 +197,8 @@ public class RandomConformanceChecker extends ConformanceChecker{
                 {
                     Move modelMove = new Move(">>", node.getContent(),1);
                     alg.appendMove(modelMove);
+                    if (node.isEndOfTrace())
+                        break;
                     node = node.getChildOnShortestPathToTheEnd();
                 }
 //                System.out.println("Alignment found costs "+alg.getTotalCost());
@@ -278,9 +280,9 @@ public class RandomConformanceChecker extends ConformanceChecker{
 
                         List<String> trSuffix = new LinkedList<>();
                         trSuffix.addAll(traceSuffix);
-                        State nonSyncState = new State(alg, trSuffix, node.getParent(),0);
+                        State nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0);
                         addStateToTheQueue(handleLogMove(trSuffix, nonSyncState, event), candidateState);
-                        nonSyncState = new State(alg, trSuffix, node.getParent(),0, state);
+                        nonSyncState = new State(new Alignment(alg), trSuffix, node.getParent(),0, state);
                         for (State s: handleModelMoves(trSuffix, nonSyncState, candidateState))
                             addStateToTheQueue(s, candidateState);
                     }

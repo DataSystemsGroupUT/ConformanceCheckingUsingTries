@@ -199,6 +199,10 @@ public class TrieNode {
         {
             if (ch==null)
                 continue;
+            if (ch.isEndOfTrace()){
+                child = ch;
+                break;
+            }
             if (ch.getMinPathLengthToEnd() < child.getMinPathLengthToEnd())
                 child = ch;
         }
