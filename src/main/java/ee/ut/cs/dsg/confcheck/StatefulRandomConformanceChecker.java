@@ -161,6 +161,8 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 {
                     Move modelMove = new Move(">>", node.getContent(),1);
                     alg.appendMove(modelMove);
+                    if (node.isEndOfTrace())
+                        break;
                     node = node.getChildOnShortestPathToTheEnd();
                 }
 //                System.out.println("Alignment found costs "+alg.getTotalCost());
