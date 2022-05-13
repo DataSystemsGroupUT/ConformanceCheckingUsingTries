@@ -65,7 +65,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             prev = node;
             int decayTime;
             if(discountedDecayTime){
-                decayTime = Math.max(Math.round((averageTrieLength-alg.getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+                decayTime = Math.max(Math.round((averageTrieLength-alg.getTraceSize())*decayTimeMultiplier),minDecayTime);
             } else {
                 decayTime = minDecayTime;
             }
@@ -104,7 +104,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                     }
                 } else {
                     if(discountedDecayTime){
-                        decayTime = Math.max(Math.round((averageTrieLength-s.getAlignment().getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+                        decayTime = Math.max(Math.round((averageTrieLength-s.getAlignment().getTraceSize())*decayTimeMultiplier),minDecayTime);
                     } else {
                         decayTime = minDecayTime;
                     }
@@ -446,7 +446,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                 int decayTime;
 
                 if(discountedDecayTime){
-                    decayTime = Math.max(Math.round((averageTrieLength-alg.getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+                    decayTime = Math.max(Math.round((averageTrieLength-alg.getTraceSize())*decayTimeMultiplier),minDecayTime);
                 } else {
                     decayTime = minDecayTime;
                 }
@@ -476,7 +476,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         int decayTime;
 
         if(discountedDecayTime){
-            decayTime = Math.max(Math.round((averageTrieLength-alg.getNumberOfEventsSeen())*decayTimeMultiplier),minDecayTime);
+            decayTime = Math.max(Math.round((averageTrieLength-alg.getTraceSize())*decayTimeMultiplier),minDecayTime);
         } else {
             decayTime = minDecayTime;
         }

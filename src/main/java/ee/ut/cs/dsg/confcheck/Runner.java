@@ -65,7 +65,7 @@ public class Runner {
 
         long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220505\\streaming_disc\\";
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220512\\streaming_disc\\";
         String fileType = ".csv";
 
         HashMap <String, HashMap<String, String>> logs = new HashMap<>();
@@ -119,7 +119,7 @@ public class Runner {
         if (runType == "specific"){
             // run for specific log
             String sLog = "BPI2012";
-            String sLogType = "clustered";
+            String sLogType = "random";
             String sLogPath = logs.get(sLog).get("log");
             String sProxyLogPath = logs.get(sLog).get(sLogType);
             String pathName = pathPrefix+unixTime+"_"+sLog + "_" + sLogType+fileType;
@@ -182,6 +182,7 @@ public class Runner {
                 HashMap<String, String> logTypes = logsMap.getValue();
                 String logPath = logTypes.get("log");
                 String logName = logsMap.getKey();
+                System.out.println("-----##-----");
                 System.out.println(logName);
 
 
@@ -192,6 +193,9 @@ public class Runner {
                     }
                     String pathName = pathPrefix+unixTime+"_"+logName + "_" + logTypesMap.getKey()+fileType;
                     String proxyLogPath = logTypesMap.getValue();
+
+                    System.out.println("-----");
+                    System.out.println(logTypesMap.getKey());
 
 
                     try {
@@ -398,29 +402,20 @@ public class Runner {
         trace.add("a");
         trace.add("b");
         trace.add("c");
-        trace.add("d");
-        trace.add("e");
-        trace.add("f");
-        trace.add("g");
 
         List<String> trace2 = new ArrayList<>();
-        trace2.add("a");
         trace2.add("x");
         trace2.add("y");
         trace2.add("z");
-        trace2.add("z");
+        trace2.add("q");
+        trace2.add("w");
+        trace2.add("r");
+        trace2.add("t");
 
-        List<String> trace3 = new ArrayList<>();
-        trace3.add("a");
-        trace3.add("b");
-        trace3.add("c");
-        trace3.add("d");
-        trace3.add("h");
 
         Trie t = new Trie(28);
         t.addTrace(trace);
         t.addTrace(trace2);
-        t.addTrace(trace3);
 
         cnfChecker = new StreamingConformanceChecker(t,1,1,100000, 100000);
 
@@ -438,9 +433,13 @@ public class Runner {
         List<String> prefixCase6 = new ArrayList<>();
         String prefixCase6Id = "Case 6";
 
-        prefixCase1.add("c");
-        prefixCase1.add("d");
-        prefixCase1.add("e");
+        prefixCase1.add("a");
+        prefixCase1.add("b");
+        prefixCase1.add("z");
+        prefixCase1.add("q");
+        prefixCase1.add("w");
+        prefixCase1.add("r");
+        prefixCase1.add("t");
         states = cnfChecker.check(prefixCase1, prefixCase1Id);
         //System.out.println(prefixCase1);
         //System.out.println(states);
@@ -448,15 +447,6 @@ public class Runner {
         System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id, true));
         System.out.println("-----");
 
-        prefixCase1.clear();
-        prefixCase1.add("x");
-        prefixCase1.add("y");
-        prefixCase1.add("z");
-        prefixCase1.add("z");
-        states = cnfChecker.check(prefixCase1, prefixCase1Id);
-        System.out.println("Current optimal state:");
-        System.out.println(cnfChecker.getCurrentOptimalState(prefixCase1Id, true));
-        System.out.println("-----");
 
 /*
         prefixCase1.add("c");
@@ -915,6 +905,8 @@ public class Runner {
 
             if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
                 checker = new StreamingConformanceChecker(t, 1, 1, 100000, 100000);
+                System.out.print("Average trie size: ");
+                System.out.println(checker.modelTrie.getAvgTraceLength());
             } else {
 
                 if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
@@ -1057,6 +1049,7 @@ public class Runner {
         alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
 
 
+
         /*if (trace.size() == 0) {
             alg = new Alignment();
         } else {
@@ -1065,6 +1058,7 @@ public class Runner {
 
 
         executionTime = System.currentTimeMillis() - start;
+        System.out.println("Id: "+Integer.toString(i)+",traceSize: "+alg.getTraceSize()+",modelSize: "+alg.getModelSize());
         totalTime += executionTime;
         if (alg != null) {
             //System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
