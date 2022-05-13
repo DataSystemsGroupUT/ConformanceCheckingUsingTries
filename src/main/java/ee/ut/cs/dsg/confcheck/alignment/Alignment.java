@@ -90,7 +90,7 @@ public class Alignment {
         int result = 0;
         for (Move m: moves)
         {
-            if (!m.getLogMove().equals(">>")){
+            if (m.getLogMove().equals(">>")){
                 continue;
             } else {
                 result++;
@@ -105,7 +105,7 @@ public class Alignment {
         int result = 0;
         for (Move m: moves)
         {
-            if (!m.getModelMove().equals(">>")){
+            if (m.getModelMove().equals(">>")){
                 continue;
             } else {
                 result++;
