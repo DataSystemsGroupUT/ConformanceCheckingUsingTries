@@ -65,7 +65,7 @@ public class Runner {
 
         long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220512\\streaming_disc\\";
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220513\\";
         String fileType = ".csv";
 
         HashMap <String, HashMap<String, String>> logs = new HashMap<>();
@@ -114,12 +114,12 @@ public class Runner {
         ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
         System.out.println(checkerType.toString());
 
-        String runType = "general"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
+        String runType = "specific"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
 
         if (runType == "specific"){
             // run for specific log
             String sLog = "BPI2012";
-            String sLogType = "random";
+            String sLogType = "clustered";
             String sLogPath = logs.get(sLog).get("log");
             String sProxyLogPath = logs.get(sLog).get(sLogType);
             String pathName = pathPrefix+unixTime+"_"+sLog + "_" + sLogType+fileType;
@@ -905,8 +905,8 @@ public class Runner {
 
             if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
                 checker = new StreamingConformanceChecker(t, 1, 1, 100000, 100000);
-                System.out.print("Average trie size: ");
-                System.out.println(checker.modelTrie.getAvgTraceLength());
+                //System.out.print("Average trie size: ");
+                //System.out.println(checker.modelTrie.getAvgTraceLength());
             } else {
 
                 if (confCheckerType == ConformanceCheckerType.TRIE_PREFIX)
@@ -1046,8 +1046,12 @@ public class Runner {
             checker.check(tempList, Integer.toString(i));
         }
 
-        alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
 
+        alg=null;
+
+        if(i==14){
+            alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
+        }
 
 
         /*if (trace.size() == 0) {
@@ -1058,7 +1062,8 @@ public class Runner {
 
 
         executionTime = System.currentTimeMillis() - start;
-        System.out.println("Id: "+Integer.toString(i)+",traceSize: "+alg.getTraceSize()+",modelSize: "+alg.getModelSize());
+        //For calculating upper bound deviation
+        //System.out.println("Id: "+Integer.toString(i)+",traceSize: "+alg.getTraceSize()+",modelSize: "+alg.getModelSize());
         totalTime += executionTime;
         if (alg != null) {
             //System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
@@ -1176,7 +1181,7 @@ public class Runner {
                     templist.add(Character.toString(service.alphabetize(label)));
                 }
 //                count++;
-                //System.out.println(templist.toString());
+                System.out.println(templist.toString());
                 if (templist.size() > 0 ) {
 
                     //System.out.println(templist.toString());
@@ -1275,6 +1280,8 @@ public class Runner {
 
                 executionTime = System.currentTimeMillis() - start;
                 timeTaken += executionTime;
+
+
 //            System.out.println("Total proxy traces "+proxyTraces.size());
 //            System.out.println("Total candidate traces to inspect "+proxyTraces.size());
                 //print trace number

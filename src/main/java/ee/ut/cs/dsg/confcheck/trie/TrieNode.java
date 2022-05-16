@@ -168,13 +168,14 @@ public class TrieNode {
 
     public String toString()
     {
-        StringBuilder result = new StringBuilder();
+        /*StringBuilder result = new StringBuilder();
         result.append(" Node(content:"+this.content+", minPath:"+minPathLengthToEnd+", maxPath:"+maxPathLengthToEnd+", isEndOfATrace:"+isEndOfTrace+") Children(");
         for (TrieNode child : children)
             if (child != null)
                 result.append(child.toString());
         result.append(")");
-        return result.toString();
+        return result.toString();*/
+        return this.getPrefix();
     }
 
     public boolean equals(Object other)
@@ -183,14 +184,38 @@ public class TrieNode {
         {
             TrieNode otherNode = (TrieNode) other;
 
-            return (this.content.equals(otherNode.getContent()) && this.level==otherNode.getLevel());
+            if(this.content.equals(otherNode.getContent()) && this.level==otherNode.getLevel()){
+                if(this.getPrefix().equals(otherNode.getPrefix())){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         }
         return false;
     }
 
+    public String getPrefix()
+    {
+        StringBuilder result = new StringBuilder();
+        List<String> prefix = new ArrayList<>();
+        TrieNode currentNode = this.getParent();
+        while(currentNode.getLevel()>0){
+            prefix.add(0,currentNode.getContent());
+            currentNode = currentNode.getParent();
+        }
+        for(String p:prefix){
+            result.append(p+"->");
+        }
+        result.append(this.getContent());
+        return result.toString();
+    }
+
     public int hashCode()
     {
-        return this.content.hashCode()+this.level;
+        // This is not unique - does not take into account the path the node is on
+        // e.g. the "C" in ABC and XYC would return same value
+        return this.getPrefix().hashCode();
     }
 
     public TrieNode getChildOnShortestPathToTheEnd()

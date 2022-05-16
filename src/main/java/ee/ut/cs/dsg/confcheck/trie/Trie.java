@@ -4,6 +4,7 @@ package ee.ut.cs.dsg.confcheck.trie;
 
 import ee.ut.cs.dsg.confcheck.util.Utils;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -220,6 +221,31 @@ public class Trie {
             }
         }
         return currentMinNode;
+    }
+
+    public List<TrieNode> getLeavesFromNode(TrieNode startNode, int maxLevel){
+        List <TrieNode> result = new ArrayList<>();
+        TrieNode currentNode;
+        int startNodeLevel = startNode.getLevel();
+        int currentNodeLevel;
+        for (TrieNode n:leaves){
+
+            currentNodeLevel = n.getLevel();
+            currentNode = n;
+            if(currentNodeLevel>startNodeLevel & n.getLevel()<=maxLevel){
+                if(result.contains(n)){
+                    continue;
+                }
+                while(currentNodeLevel>startNodeLevel){
+                    currentNode = currentNode.getParent();
+                    currentNodeLevel = currentNode.getLevel();
+                    if(currentNodeLevel==startNodeLevel & currentNode==startNode){
+                        result.add(n);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
 }
