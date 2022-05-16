@@ -7,6 +7,7 @@ import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 import ee.ut.cs.dsg.confcheck.util.Configuration;
 import ee.ut.cs.dsg.confcheck.util.Utils;
+import ee.ut.cs.dsg.spine.Spine;
 
 import java.util.*;
 
@@ -25,7 +26,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
     }
 
     private int trialsPerEvent;
-    private final Map<State, PriorityQueue<State>> searchSpace;
+    private final Map<State, Spine<State>> searchSpace;
     private final boolean reuseSearchSpace =false;
 
     public void setTrialsPerEvent(int tpe)
@@ -42,11 +43,14 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             List<String> tracePrefix = trace.subList(0,node.getLevel());
             // fill the queue based on the state
             if (reuseSearchSpace) {
-                PriorityQueue<State> previousSearchSpace = searchSpace.get(node.getAlignmentState());
+                Spine<State> previousSearchSpace = searchSpace.get(node.getAlignmentState());
                 if (previousSearchSpace != null) {
 //                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(vs));
-                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(
-                            new State(vs.getAlignment(), trace.subList(vs.getNode().getLevel(),trace.size()),vs.getNode(),vs.getCostSoFar())));
+                    for (State state: previousSearchSpace) {
+                        if (isAValidState(state, trace)) {
+                            nextChecks.push(new State(state.getAlignment(), trace.subList(state.getNode().getLevel(),trace.size()),state.getNode(),state.getCostSoFar()));
+                        }
+                    }
                     if (verbose)
                         System.out.printf("Loading previous search space to resume from. Kept %d states from original %d states%n", nextChecks.size(), previousSearchSpace.size());
                 }
@@ -82,7 +86,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
         }
 
-        nextChecks.add(state);
+        nextChecks.push(state);
 
         State candidateState = null;
         String event;
@@ -380,8 +384,6 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
     {
         int stateSize = nextChecks.size();
 
-
-
         Stack<State> statesBack = new Stack<State>();
         State currentState = candidateState.getParentState();
         int alignmentSize = currentState.getAlignment().getMoves().size();
@@ -390,11 +392,13 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         {
             if (reuseSearchSpace && stateSize > 0)
             {
-                PriorityQueue<State> currentSearchSpace = new PriorityQueue<>();
-                currentSearchSpace.addAll(nextChecks);
+                Spine<State> currentSearchSpace = new Spine<>(1024);
+                for (State check:nextChecks) {
+                    currentSearchSpace.push(check);
+                }
 //                PriorityQueue<State> currentSearchSpace = nextChecks;
                 //   currentSearchSpace.addAll(prevStates);
-                currentSearchSpace.add(currentState);
+                currentSearchSpace.push(currentState);
                 searchSpace.put(currentState,currentSearchSpace);
 
             }
