@@ -89,13 +89,12 @@ public class StreamingConformanceChecker extends ConformanceChecker{
        int stateLevel = state.getNode().getLevel();
        int originalPostfixSize = originalPostfix.size();
        int postfixSize;
-       int logMovesDone = 0;
+       int logMovesDone;
        int maxLevel = stateLevel+originalPostfixSize+costLimit-1;
        List<TrieNode> leaves = modelTrie.getLeavesFromNode(state.getNode(), maxLevel);
        Map<Integer, String> optimalMoves = new HashMap<>();
        Map<Integer, String> moves;
 
-       Set<Integer> levelToSkip;
 
 
        for(TrieNode n:leaves){
@@ -109,7 +108,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
            checkpointLevel = stateLevel+originalPostfixSize;
            currentLevel = currentNode.getLevel();
            moves = new HashMap<>();
-           levelToSkip = new HashSet<>();
+           logMovesDone = 0;
            while (cost < costLimit) {
                lastIndex = postfix.lastIndexOf(currentNode.getContent());
                if (lastIndex < 0) {
@@ -123,12 +122,13 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                        logMovesDone++;
                    }
                } else {
+
                    postfixSize = postfix.size();
                    additionalCost = (postfixSize - lastIndex) - 1;
                    //cost += additionalCost; // add to cost if the string was not last one
-                   // branching: if additionalCost > 0
+                   // todo for branching: if additionalCost > 0, we might want to rerun by skipping this.
+                   //  Eg model ABCDEC and trace ABCDE we want to skip the match on index 5 (second C) in model
                    if(additionalCost > 0){
-                       levelToSkip.add(currentNode.getLevel());
                        while (additionalCost > 0) {
                            if (logMovesDone > 0) {
                                logMovesDone--;
@@ -136,10 +136,11 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                                if (additionalCost == 0) {
                                    break;
                                }
+                           } else {
+                               cost++;
+                               moves.put(moves.size(), "log");
+                               additionalCost--;
                            }
-                           cost++;
-                           moves.put(moves.size(), "log");
-                           additionalCost--;
                        }
                    }
                    moves.put(moves.size(), "sync");
@@ -149,13 +150,17 @@ public class StreamingConformanceChecker extends ConformanceChecker{
 
                currentNode = currentNode.getParent();
                currentLevel = currentNode.getLevel();
-               if (currentLevel == stateLevel & cost < costLimit) {
+               if (currentLevel == stateLevel & cost < costLimit & postfix.size() == 0) {
                    // handle new cost limit
                    maxLevel = stateLevel + originalPostfixSize + cost - 1;
                    costLimit = state.getCostSoFar() + cost;
                    optimalNode = n;
                    optimalMoves = moves;
+                   break;
                }
+
+               if (currentLevel == stateLevel)
+                   break; // cost has not improved but we have reached the original state level
            }
        }
 
@@ -168,17 +173,19 @@ public class StreamingConformanceChecker extends ConformanceChecker{
        currentNode = optimalNode;
        Move m;
        List<Move> movesForAlg = new ArrayList<>();
+       int optimalMovesOrigSize = optimalMoves.size();
        while(optimalMoves.size()>0){
-           String currentMove = optimalMoves.remove(optimalMoves.size()-1);
+           String currentMove = optimalMoves.remove(optimalMovesOrigSize-optimalMoves.size());
            if(currentMove=="model"){
                m = new Move(">>",currentNode.getContent(),1);
+               currentNode = currentNode.getParent();
            } else if (currentMove=="log"){
                m = new Move(originalPostfix.remove(originalPostfix.size()-1),">>",1);
            } else {
                String event = originalPostfix.remove(originalPostfix.size()-1);
                m = new Move(event, event, 0);
+               currentNode = currentNode.getParent();
            }
-           currentNode = currentNode.getParent();
            movesForAlg.add(0,m);
        }
 
@@ -205,6 +212,8 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         int decayTime;
         State newestState = null;
         State oldestState = null;
+        List<State> newestStates = new ArrayList<>();
+        List<State> oldestStates = new ArrayList<>();
         boolean isEndOfTrace;
         if (statesInBuffer.containsKey(caseId)){
             caseStatesInBuffer = statesInBuffer.get(caseId);
@@ -222,12 +231,29 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                     }
 
                     // we are interested in the oldest and newest states
-                    if(newestState==null || (s.getDecayTime()>=newestState.getDecayTime() & s.getTracePostfix().size()<= newestState.getTracePostfix().size()) ){
+                    if(newestState==null
+                            || (s.getDecayTime()>newestState.getDecayTime() & s.getTracePostfix().size()<newestState.getTracePostfix().size())
+                            || (s.getDecayTime()>newestState.getDecayTime() & s.getTracePostfix().size()==newestState.getTracePostfix().size())
+                            || (s.getDecayTime()==newestState.getDecayTime() & s.getTracePostfix().size()<newestState.getTracePostfix().size())
+                    ){
                         newestState = s;
+                        newestStates.clear();
+                        newestStates.add(s);
+                    } else if ((s.getDecayTime()==newestState.getDecayTime() & s.getTracePostfix().size()==newestState.getTracePostfix().size())){
+                        newestStates.add(s);
                     }
 
-                    if(oldestState==null || (s.getDecayTime()<=oldestState.getDecayTime() & s.getTracePostfix().size()>= oldestState.getTracePostfix().size())){
+
+                    if(oldestState==null
+                            || (s.getDecayTime()<oldestState.getDecayTime() & s.getTracePostfix().size()>oldestState.getTracePostfix().size())
+                            || (s.getDecayTime()<oldestState.getDecayTime() & s.getTracePostfix().size()==oldestState.getTracePostfix().size())
+                            || (s.getDecayTime()==oldestState.getDecayTime() & s.getTracePostfix().size()>oldestState.getTracePostfix().size())
+                    ){
                         oldestState = s;
+                        oldestStates.clear();
+                        oldestStates.add(s);
+                    } else if ((s.getDecayTime()==oldestState.getDecayTime() & s.getTracePostfix().size()==oldestState.getTracePostfix().size())){
+                        oldestStates.add(s);
                     }
 
                     /*
@@ -259,38 +285,61 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             }
 
             // calculate cost from newestState
+            int optimalCost = 9999999;
+            Alignment optimalAlg = null;
+            TrieNode optimalNode = null;
 
-            currentCost = newestState.getCostSoFar();
-            postfixSize = newestState.getTracePostfix().size();
-            minLengthToEnd = newestState.getNode().getMinPathLengthToEnd();
+            for (State s:newestStates){
+                currentCost = s.getCostSoFar();
 
-            Alignment alg = newestState.getAlignment();
-            TrieNode currentNode = newestState.getNode();
-            List<String> postfix = new ArrayList<>(newestState.getTracePostfix());
-            // add log moves
-            while(postfix.size()>0){
-                Move m = new Move(postfix.get(0),">>",1);
-                alg.appendMove(m, 1);
-                currentCost++;
-                postfix.remove(0);
+                Alignment alg = s.getAlignment();
+                TrieNode currentNode = s.getNode();
+                List<String> postfix = new ArrayList<>(s.getTracePostfix());
+                // add log moves - should be none
+                while(postfix.size()>0){
+                    Move m = new Move(postfix.get(0),">>",1);
+                    alg.appendMove(m, 1);
+                    currentCost++;
+                    postfix.remove(0);
+                }
+                // add model moves
+
+                if (!currentNode.isEndOfTrace()) {
+                    while (currentNode.getMinPathLengthToEnd() > 0) {
+                        currentNode = currentNode.getChildOnShortestPathToTheEnd();
+                        Move m = new Move(">>", currentNode.getContent(), 1);
+                        alg.appendMove(m, 1);
+                        currentCost++;
+                        if (currentNode.isEndOfTrace())
+                            break;
+                    }
+                }
+
+                if (currentCost < optimalCost){
+                    optimalCost = currentCost;
+                    optimalAlg = alg;
+                    optimalNode = currentNode;
+                }
             }
-            // add model moves
-            while(currentNode.getMinPathLengthToEnd()>0){
-                currentNode = currentNode.getChildOnShortestPathToTheEnd();
-                Move m = new Move(">>", currentNode.getContent(), 1);
-                alg.appendMove(m, 1);
-                currentCost++;
-                if (currentNode.isEndOfTrace())
-                    break;
-            }
 
-            HashMap<TrieNode, Alignment> optimalLeafAlignment = findOptimalLeafNode(oldestState, currentCost);
+            HashMap<TrieNode, Alignment> optimalLeafAlignment = null;
+            int oldestStateMinCost = 9999999;
+            for (State s: oldestStates){
+                HashMap<TrieNode, Alignment> currentLeafAlignment = findOptimalLeafNode(s, optimalCost);
+                if(currentLeafAlignment!=null) {
+                    Map.Entry<TrieNode, Alignment> entry = currentLeafAlignment.entrySet().iterator().next();
+                    if(entry.getValue().getTotalCost()<oldestStateMinCost){
+                        optimalLeafAlignment = currentLeafAlignment;
+                        oldestStateMinCost = entry.getValue().getTotalCost();
+                    }
+                }
+            }
 
             if(optimalLeafAlignment!=null){
                 Map.Entry<TrieNode,Alignment> entry = optimalLeafAlignment.entrySet().iterator().next();
                 return new State(entry.getValue(), new ArrayList<>(), entry.getKey(), entry.getValue().getTotalCost());
             } else {
-                return new State(alg, new ArrayList<>(),currentNode, currentCost);
+                return new State(optimalAlg, new ArrayList<>(),optimalNode, optimalCost);
             }
 
 

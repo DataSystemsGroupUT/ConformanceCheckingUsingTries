@@ -197,9 +197,13 @@ public class TrieNode {
 
     public String getPrefix()
     {
+        if(this.getLevel()==0)
+            return "";
+
         StringBuilder result = new StringBuilder();
         List<String> prefix = new ArrayList<>();
         TrieNode currentNode = this.getParent();
+
         while(currentNode.getLevel()>0){
             prefix.add(0,currentNode.getContent());
             currentNode = currentNode.getParent();

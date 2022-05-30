@@ -65,7 +65,7 @@ public class Runner {
 
         long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220513\\";
+        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220526\\streaming_disc\\";
         String fileType = ".csv";
 
         HashMap <String, HashMap<String, String>> logs = new HashMap<>();
@@ -118,8 +118,8 @@ public class Runner {
 
         if (runType == "specific"){
             // run for specific log
-            String sLog = "BPI2012";
-            String sLogType = "clustered";
+            String sLog = "BPI2019";
+            String sLogType = "simulated";
             String sLogPath = logs.get(sLog).get("log");
             String sProxyLogPath = logs.get(sLog).get(sLogType);
             String pathName = pathPrefix+unixTime+"_"+sLog + "_" + sLogType+fileType;
@@ -651,7 +651,7 @@ public class Runner {
             XTrace trace;
             long start = System.currentTimeMillis();
             long prevStart = start;
-
+/*
             try {
                 FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
                 writer.write("Log path: "+inputLog);
@@ -664,11 +664,13 @@ public class Runner {
                 e.printStackTrace();
             }
 
-            ConformanceChecker cnfChecker;// = new ConformanceChecker(t);
-            cnfChecker = new RandomConformanceChecker(t,1,1,100000, 100000);
+ */
+
+            StreamingConformanceChecker cnfChecker = new StreamingConformanceChecker(t,1,1,100000, 100000);
 
             Alignment alg;
             List<String> events = new ArrayList<>();
+            List<String> cases = new ArrayList<>();
 
             while (execute && (str = br.readLine()) != null) {
                 //System.out.println((eventsReceived++) + " events observed");
@@ -683,16 +685,23 @@ public class Runner {
                 // extract the observed components
                 trace = (XTrace) converter.fromXML(str);
                 caseId = XConceptExtension.instance().extractName(trace);
+                if (!cases.contains(caseId))
+                    cases.add(caseId);
                 newEventName = XConceptExtension.instance().extractName(trace.get(0));
 
                 // alphabetize newEventName
                 eventLabel = Character.toString(service.alphabetize(newEventName));
 
+                events.clear();
                 events.add(eventLabel);
 
-                //alg = cnfChecker.prefix_check(events, caseId);
-                alg = null;
+                cnfChecker.check(events, caseId);
+                //alg = cnfChecker.getCurrentOptimalState(caseId, true).getAlignment();
 
+
+
+                /*
+                // this is for writing every alignment to a file
                 try {
                     FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
                     writer.write("CaseId: "+caseId);
@@ -703,14 +712,36 @@ public class Runner {
                     writer.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
 
 
             }
             br.close();
             s.close();
-            System.out.println(String.format("Time taken in milliseconds: %d",System.currentTimeMillis()- start));
+            long endTime = System.currentTimeMillis();
+            System.out.println(String.format("Time taken in milliseconds: %d",endTime- start));
             System.out.println(String.format("Events observed: %d",eventsReceived));
+            System.out.println(String.format("Cases observed: %d",cases.size()));
+            // get prefix alignments
+            System.out.println("Prefix alignments:");
+            long algStart = System.currentTimeMillis();
+            for(String c:cases){
+                alg = cnfChecker.getCurrentOptimalState(c, false).getAlignment();
+                System.out.println(c + ","+ alg.getTotalCost());
+            }
+            long algEnd = System.currentTimeMillis();
+            System.out.println(String.format("Time taken prefix-alignments: %d", algEnd-algStart));
+
+            // get complete alignments
+            System.out.println("Complete alignments:");
+            algStart = System.currentTimeMillis();
+            for(String c:cases){
+                alg = cnfChecker.getCurrentOptimalState(c, true).getAlignment();
+                System.out.println(c + ","+ alg.getTotalCost());
+            }
+            algEnd = System.currentTimeMillis();
+            System.out.println(String.format("Time taken complete-alignments: %d", algEnd-algStart));
+
 
         } catch (IOException e) {
             System.out.println("Network Exception");
@@ -877,7 +908,6 @@ public class Runner {
         init();
         Trie t = constructTrie(inputProxyLogFile);
 
-
         ArrayList<String> result = new ArrayList<>();
 
         //Configuration variables
@@ -1004,6 +1034,8 @@ public class Runner {
             e.printStackTrace();
         }
         return result;
+
+
     }
 
 
@@ -1047,11 +1079,9 @@ public class Runner {
         }
 
 
-        alg=null;
 
-        if(i==14){
-            alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
-        }
+        alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
+
 
 
         /*if (trace.size() == 0) {
@@ -1063,7 +1093,7 @@ public class Runner {
 
         executionTime = System.currentTimeMillis() - start;
         //For calculating upper bound deviation
-        //System.out.println("Id: "+Integer.toString(i)+",traceSize: "+alg.getTraceSize()+",modelSize: "+alg.getModelSize());
+        System.out.println(Integer.toString(i)+","+alg.getTraceSize()+","+alg.getModelSize());
         totalTime += executionTime;
         if (alg != null) {
             //System.out.print(sampleTracesMap.get(tracesToSort.get(i)));
