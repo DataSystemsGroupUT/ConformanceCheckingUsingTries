@@ -22,9 +22,9 @@ public class StreamingConformanceChecker extends ConformanceChecker{
     // Streaming variables
 
     protected boolean replayWithLogMoves = true; // if set to false the performance is faster but result is less precise
-    protected int minDecayTime = 3;
+    protected int minDecayTime = 100;
     protected float decayTimeMultiplier = 0.25F; // not yet implemented
-    protected boolean discountedDecayTime = true; // if set to false then uses fixed minDecayTime value
+    protected boolean discountedDecayTime = false; // if set to false then uses fixed minDecayTime value
     protected int averageTrieLength = 0;
 
 
@@ -76,6 +76,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
     }
 
     public HashMap<TrieNode,Alignment> findOptimalLeafNode(State state, int costLimit){
+       int baseCost = state.getCostSoFar();
        int cost;
        int lastIndex;
        int checkpointLevel;
@@ -95,7 +96,41 @@ public class StreamingConformanceChecker extends ConformanceChecker{
        Map<Integer, String> optimalMoves = new HashMap<>();
        Map<Integer, String> moves;
 
+       /*
+       List<TrieNode> nodesToSkip;
 
+       HashMap<Integer, HashMap<TrieNode, List<TrieNode>>> test = null;
+
+       for (int i = 0; i < leaves.size(); i++){
+           HashMap<TrieNode, List<TrieNode>> mp = new HashMap<>();
+           mp.put(leaves.get(i), new ArrayList<>(TrieNode));
+           test.put(i, mp);
+       }
+
+       while(test.size()>0){
+
+
+
+        TrieNode a = new TrieNode("a", 10, 2, 2, false, null);
+        TrieNode b = new TrieNode("b", 10, 2, 2, false, null);
+        TrieNode c = new TrieNode("c", 10, 2, 2, false, null);
+        List<TrieNode> l = new ArrayList<>();
+        l.add(a);
+        l.add(b);
+        l.add(c);
+
+
+
+        String sx = "0";
+        for (int i = 0; i < Math.pow(2,l.size()); i++) {
+            while(sx.length()<l.size())
+                sx = "0"+sx;
+            sx = Integer.toBinaryString(Integer.valueOf(sx, 2) + 1);
+        }
+
+
+
+       }*/
 
        for(TrieNode n:leaves){
            //
@@ -104,7 +139,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
            }
            postfix = new ArrayList<>(originalPostfix);
            currentNode = n;
-           cost = state.getCostSoFar();
+           cost = baseCost;
            checkpointLevel = stateLevel+originalPostfixSize;
            currentLevel = currentNode.getLevel();
            moves = new HashMap<>();
@@ -224,8 +259,9 @@ public class StreamingConformanceChecker extends ConformanceChecker{
 
                     // if it is end of trace and end of model, then return that state immediately
                     if(
-                            (s.getTracePostfix().size()+s.getNode().getMinPathLengthToEnd())==0 ||
-                            (s.getTracePostfix().size()==0 && s.getNode().isEndOfTrace())
+                            ((s.getTracePostfix().size()+s.getNode().getMinPathLengthToEnd())==0 ||
+                            (s.getTracePostfix().size()==0 && s.getNode().isEndOfTrace()))
+                                    && s.getCostSoFar()==0
                     ){
                         return s;
                     }
@@ -589,7 +625,6 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             // for all child nodes, try to get a substring match
             for(TrieNode n:childNodes){
                 matchNode = modelTrie.matchCompletely(suffixToCheck, n);
-                // !! matching node != substring
                 if (matchNode!=null){
                     matchingNodes.add(matchNode);
                 }

@@ -1,5 +1,7 @@
 package ee.ut.cs.dsg.confcheck;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.alignment.AlignmentFactory;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
@@ -13,9 +15,11 @@ import gnu.trove.impl.sync.TSynchronizedShortCharMap;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
 import org.apache.commons.math3.analysis.function.Add;
+import org.deckfour.xes.classification.XEventAttributeClassifier;
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.in.XesXmlGZIPParser;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.info.XLogInfo;
 import org.deckfour.xes.info.XLogInfoFactory;
@@ -55,111 +59,90 @@ import java.net.UnknownHostException;
 import java.sql.Array;
 import java.time.Instant;
 import java.util.*;
+
 import static ee.ut.cs.dsg.confcheck.util.Configuration.ConformanceCheckerType;
 import static ee.ut.cs.dsg.confcheck.util.Configuration.LogSortType;
+
+
 public class Runner {
 
     private static AlphabetService service;
 
     public static void main(String... args) throws UnknownHostException {
 
-        long unixTime = Instant.now().getEpochSecond();
 
-        String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\20220526\\streaming_disc\\";
-        String fileType = ".csv";
-
-        HashMap <String, HashMap<String, String>> logs = new HashMap<>();
-        HashMap <String, String> subLog = new HashMap<>();
-        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\sampledLog.xml");
-        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\simulatedLog.xml");
-        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\sampledClusteredLog.xml");
-        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\randomLog.xml");
-        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\frequencyLog.xml");
-        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\reducedLogActivity.xml");
-        logs.put("BPI2012", new HashMap<>(subLog));
-        subLog.clear();
-        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml");
-        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\simulatedLog.xml");
-        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledClusteredLog.xml");
-        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\randomLog.xml");
-        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml");
-        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\reducedLogActivity.xml");
-        logs.put("BPI2015", new HashMap<>(subLog));
-        subLog.clear();
-        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\sampledLog.xml");
-        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\simulatedLog.xml");
-        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\sampledClusteredLog.xml");
-        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\rand_randomLog.xml");
-        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\freq_frequencyLog.xml");
-        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\reducedLogActivity.xml");
-        logs.put("BPI2017", new HashMap<>(subLog));
-        subLog.clear();
-        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\sampledLog.xml");
-        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\simulatedLog.xml");
-        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\sampledClusteredLog.xml");
-        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\randomLog.xml");
-        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\frequencyLog.xml");
-        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\reducedLogActivity.xml");
-        logs.put("BPI2019", new HashMap<>(subLog));
-        subLog.clear();
-        subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\sampledLog.xml");
-        subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\simulatedLog.xml");
-        subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\sampledClusteredLog.xml");
-        subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\randomLog.xml");
-        subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\frequencyLog.xml");
-        subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\reducedLogActivity.xml");
-        logs.put("Sepsis", new HashMap<>(subLog));
-        subLog.clear();
-
-        ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
-        System.out.println(checkerType.toString());
-
-        String runType = "specific"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
-
-        if (runType == "specific"){
-            // run for specific log
-            String sLog = "BPI2019";
-            String sLogType = "simulated";
-            String sLogPath = logs.get(sLog).get("log");
-            String sProxyLogPath = logs.get(sLog).get(sLogType);
-            String pathName = pathPrefix+unixTime+"_"+sLog + "_" + sLogType+fileType;
-            try {
-
-                List<String> res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-                res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-                FileWriter wr = new FileWriter(pathName);
-                for(String s:res){
-                    wr.write(s);
-                    wr.write(System.lineSeparator());
-                }
-                wr.close();
+        String executionType = "cost_diff"; // "stress_test" or "cost_diff"
 
 
-            } catch (IOException e) {
-                System.out.println("Error occurred!");
-                e.printStackTrace();
-            }
-        } else if (runType == "logSpecific") {
-            String sLog = "BPI2019";
-            String sLogPath = logs.get(sLog).get("log");
-            HashMap<String, String> logTypes = logs.get(sLog);
+        // Cost difference
 
-            for (Map.Entry<String, String> logTypesMap :
-                    logTypes.entrySet()) {
-                if (logTypesMap.getKey().equals("log")){
-                    continue;
-                }
-                String pathName = pathPrefix+unixTime+"_"+sLog + "_" + logTypesMap.getKey()+fileType;
-                String proxyLogPath = logTypesMap.getValue();
+        if (executionType == "cost_diff") {
+            long unixTime = Instant.now().getEpochSecond();
 
+            String pathPrefix = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\testing\\";
+            String fileType = ".csv";
 
+            HashMap<String, HashMap<String, String>> logs = new HashMap<>();
+            HashMap<String, String> subLog = new HashMap<>();
+            subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\sampledLog.xml");
+            subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\simulatedLog.xml");
+            subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\sampledClusteredLog.xml");
+            subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\randomLog.xml");
+            subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\frequencyLog.xml");
+            subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2012\\reducedLogActivity.xml");
+            logs.put("BPI2012", new HashMap<>(subLog));
+            subLog.clear();
+            subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledLog.xml");
+            subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\simulatedLog.xml");
+            subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\sampledClusteredLog.xml");
+            subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\randomLog.xml");
+            subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\frequencyLog.xml");
+            subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2015\\reducedLogActivity.xml");
+            logs.put("BPI2015", new HashMap<>(subLog));
+            subLog.clear();
+            subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\sampledLog.xml");
+            subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\simulatedLog.xml");
+            subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\sampledClusteredLog.xml");
+            subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\rand_randomLog.xml");
+            subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\freq_frequencyLog.xml");
+            subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2017\\reducedLogActivity.xml");
+            logs.put("BPI2017", new HashMap<>(subLog));
+            subLog.clear();
+            subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\sampledLog.xml");
+            subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\simulatedLog.xml");
+            subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\sampledClusteredLog.xml");
+            subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\randomLog.xml");
+            subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\frequencyLog.xml");
+            subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\BPI2019\\reducedLogActivity.xml");
+            logs.put("BPI2019", new HashMap<>(subLog));
+            subLog.clear();
+            subLog.put("log", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\sampledLog.xml");
+            subLog.put("simulated", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\simulatedLog.xml");
+            subLog.put("clustered", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\sampledClusteredLog.xml");
+            subLog.put("random", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\randomLog.xml");
+            subLog.put("frequency", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\frequencyLog.xml");
+            subLog.put("reduced", "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\Data\\ICPM21\\Sepsis\\reducedLogActivity.xml");
+            logs.put("Sepsis", new HashMap<>(subLog));
+            subLog.clear();
+
+            ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
+            System.out.println(checkerType.toString());
+
+            String runType = "specific"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
+
+            if (runType == "specific") {
+                // run for specific log
+                String sLog = "Sepsis";
+                String sLogType = "frequency";
+                String sLogPath = logs.get(sLog).get("log");
+                String sProxyLogPath = logs.get(sLog).get(sLogType);
+                String pathName = pathPrefix + unixTime + "_" + sLog + "_" + sLogType + fileType;
                 try {
 
-                    List<String> res = testOnConformanceApproximationResults(proxyLogPath, sLogPath, checkerType, LogSortType.NONE);
+                    List<String> res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
                     res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-
                     FileWriter wr = new FileWriter(pathName);
-                    for(String s:res){
+                    for (String s : res) {
                         wr.write(s);
                         wr.write(System.lineSeparator());
                     }
@@ -170,41 +153,27 @@ public class Runner {
                     System.out.println("Error occurred!");
                     e.printStackTrace();
                 }
-
-            }
-
-
-        } else if (runType == "general") {
-            // run for all logs
-            for (Map.Entry<String, HashMap<String, String>> logsMap :
-                    logs.entrySet()) {
-
-                HashMap<String, String> logTypes = logsMap.getValue();
-                String logPath = logTypes.get("log");
-                String logName = logsMap.getKey();
-                System.out.println("-----##-----");
-                System.out.println(logName);
-
+            } else if (runType == "logSpecific") {
+                String sLog = "BPI2019";
+                String sLogPath = logs.get(sLog).get("log");
+                HashMap<String, String> logTypes = logs.get(sLog);
 
                 for (Map.Entry<String, String> logTypesMap :
                         logTypes.entrySet()) {
-                    if (logTypesMap.getKey().equals("log")){
+                    if (logTypesMap.getKey().equals("log")) {
                         continue;
                     }
-                    String pathName = pathPrefix+unixTime+"_"+logName + "_" + logTypesMap.getKey()+fileType;
+                    String pathName = pathPrefix + unixTime + "_" + sLog + "_" + logTypesMap.getKey() + fileType;
                     String proxyLogPath = logTypesMap.getValue();
-
-                    System.out.println("-----");
-                    System.out.println(logTypesMap.getKey());
 
 
                     try {
 
-                        List<String> res = testOnConformanceApproximationResults(proxyLogPath, logPath, checkerType, LogSortType.NONE);
+                        List<String> res = testOnConformanceApproximationResults(proxyLogPath, sLogPath, checkerType, LogSortType.NONE);
                         res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
 
                         FileWriter wr = new FileWriter(pathName);
-                        for(String s:res){
+                        for (String s : res) {
                             wr.write(s);
                             wr.write(System.lineSeparator());
                         }
@@ -218,10 +187,76 @@ public class Runner {
 
                 }
 
+
+            } else if (runType == "general") {
+                // run for all logs
+                for (Map.Entry<String, HashMap<String, String>> logsMap :
+                        logs.entrySet()) {
+
+                    HashMap<String, String> logTypes = logsMap.getValue();
+                    String logPath = logTypes.get("log");
+                    String logName = logsMap.getKey();
+                    System.out.println("-----##-----");
+                    System.out.println(logName);
+
+
+                    for (Map.Entry<String, String> logTypesMap :
+                            logTypes.entrySet()) {
+                        if (logTypesMap.getKey().equals("log")) {
+                            continue;
+                        }
+                        String pathName = pathPrefix + unixTime + "_" + logName + "_" + logTypesMap.getKey() + fileType;
+                        String proxyLogPath = logTypesMap.getValue();
+
+                        System.out.println("-----");
+                        System.out.println(logTypesMap.getKey());
+
+
+                        try {
+
+                            List<String> res = testOnConformanceApproximationResults(proxyLogPath, logPath, checkerType, LogSortType.NONE);
+                            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
+
+                            FileWriter wr = new FileWriter(pathName);
+                            for (String s : res) {
+                                wr.write(s);
+                                wr.write(System.lineSeparator());
+                            }
+                            wr.close();
+
+
+                        } catch (IOException e) {
+                            System.out.println("Error occurred!");
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                }
+            } else {
+                System.out.println("Run type not implemented");
             }
+        } else if (executionType == "stress_test")
+        {
+
+            String proxyLog = null;
+            String logSize = "large";
+            if (logSize=="small")
+                proxyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\stress_test\\Simulated_Log_Small.xes.gz";
+            else if (logSize=="medium")
+                proxyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\stress_test\\Simulated_Log_Medium.xes.gz";
+            else if (logSize=="large")
+                proxyLog = "C:\\Users\\kristo88\\OneDrive - Tartu Ülikool\\PhD\\00_Project\\2022 Streaming Trie\\Executions\\stress_test\\Simulated_Log_Large.xes.gz";
+            else
+                System.out.println("log size undefined");
+            listenToEvents(proxyLog);
+            //printLogStatistics(proxyLog);
+
         } else {
-            System.out.println("Run type not implemented");
+            System.out.println("Unknown execution type");
         }
+
+
 
 
 
@@ -281,7 +316,6 @@ public class Runner {
         //String trietest_1 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_1.1.xes";
         //String trietest_2 = "C:\\Users\\kristo88\\Documents\\PLG2\\trietest_2.xes";
         //testBedPrefix("test");
-        //listenToEvents(trietest_2);
 
 
 //        // BPI 2015
@@ -636,115 +670,151 @@ public class Runner {
         boolean execute = true;
         OSXMLConverter converter = new OSXMLConverter();
         init();
+        long start = System.currentTimeMillis();
         Trie t = constructTrie(inputLog);
-        System.out.println("Trie size: "+t.getSize());
-        try {
-            Socket s = new Socket(address, port);
+        System.out.println(String.format("Time taken for trie construction: %d", System.currentTimeMillis()-start));
+        //System.out.println("Trie size: "+t.getSize());
 
-            System.out.println("Stream started");
+        Socket s = null;
+        Boolean streamStarted = false;
+        System.out.println("Waiting for stream to start...");
+        start = System.currentTimeMillis();
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            String str = "";
-            String caseId;
-            String newEventName;
-            String eventLabel;
-            XTrace trace;
-            long start = System.currentTimeMillis();
-            long prevStart = start;
-/*
+        while(!streamStarted){
             try {
-                FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
-                writer.write("Log path: "+inputLog);
-                writer.write("\r\n");
-                writer.write("Random Conf Checker"); // store the settings dynamically here. Conformance checker type and checker settings, cost function
-                writer.write("\r\n");
-                writer.write("\r\n");
-                writer.close();
+                s = new Socket(address, port);
+                streamStarted = true;
             } catch (IOException e) {
-                e.printStackTrace();
+                if (System.currentTimeMillis()-start >= 60000){
+                    System.out.println("Unable to establish connection");
+                    break;
+                }
+                try {Thread.sleep(20);} catch (InterruptedException ex) {ex.printStackTrace();}
             }
 
- */
+        }
+        if(streamStarted){
+            try {
 
-            StreamingConformanceChecker cnfChecker = new StreamingConformanceChecker(t,1,1,100000, 100000);
+                System.out.println("Stream started");
 
-            Alignment alg;
-            List<String> events = new ArrayList<>();
-            List<String> cases = new ArrayList<>();
-
-            while (execute && (str = br.readLine()) != null) {
-                //System.out.println((eventsReceived++) + " events observed");
-                eventsReceived++;
-                if (eventsReceived % 1000 == 0)
-                {
-                    System.out.println(String.format("Events observed: %d",eventsReceived));
-                    System.out.println(String.format("Time taken in milliseconds for last 1000 events: %d",System.currentTimeMillis()- prevStart));
-                    prevStart = System.currentTimeMillis();
-                }
-
-                // extract the observed components
-                trace = (XTrace) converter.fromXML(str);
-                caseId = XConceptExtension.instance().extractName(trace);
-                if (!cases.contains(caseId))
-                    cases.add(caseId);
-                newEventName = XConceptExtension.instance().extractName(trace.get(0));
-
-                // alphabetize newEventName
-                eventLabel = Character.toString(service.alphabetize(newEventName));
-
-                events.clear();
-                events.add(eventLabel);
-
-                cnfChecker.check(events, caseId);
-                //alg = cnfChecker.getCurrentOptimalState(caseId, true).getAlignment();
-
-
-
-                /*
-                // this is for writing every alignment to a file
+                BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                String str = "";
+                String caseId;
+                String newEventName;
+                String eventLabel;
+                XTrace trace;
+                start = System.currentTimeMillis();
+                long prevStart = start;
+                long runTimeMillis = 300000;
+                long eventReceived = System.currentTimeMillis();
+                long eventPrepared = System.currentTimeMillis();
+                long eventHandled = System.currentTimeMillis();
+                long idleTime = 0;
+        /*
                 try {
                     FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
-                    writer.write("CaseId: "+caseId);
+                    writer.write("Log path: "+inputLog);
                     writer.write("\r\n");
-                    writer.write("Alignment: ");
-                    writer.write(alg.toString());
+                    writer.write("Random Conf Checker"); // store the settings dynamically here. Conformance checker type and checker settings, cost function
+                    writer.write("\r\n");
                     writer.write("\r\n");
                     writer.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                }*/
+                }
+
+        */
+
+                StreamingConformanceChecker cnfChecker = new StreamingConformanceChecker(t,1,1,100000, 100000);
+
+                Alignment alg;
+                List<String> events = new ArrayList<>();
+                List<String> cases = new ArrayList<>();
+
+                while (execute && (str = br.readLine()) != null) {
+                    //System.out.println((eventsReceived++) + " events observed");
+                    eventsReceived++;
+                    eventReceived = System.currentTimeMillis();
+                    idleTime = eventReceived-eventHandled;
+                    /*if (eventsReceived % 1000 == 0)
+                    {
+                        System.out.println(String.format("Events observed: %d",eventsReceived));
+                        System.out.println(String.format("Time taken in milliseconds for last 1000 events: %d",System.currentTimeMillis()- prevStart));
+                        prevStart = System.currentTimeMillis();
+                    }*/
+
+                    // extract the observed components
+                    trace = (XTrace) converter.fromXML(str);
+                    caseId = XConceptExtension.instance().extractName(trace);
+                    if (!cases.contains(caseId))
+                        cases.add(caseId);
+                    newEventName = XConceptExtension.instance().extractName(trace.get(0));
+
+                    // alphabetize newEventName
+                    eventLabel = Character.toString(service.alphabetize(newEventName));
+
+                    events.clear();
+                    events.add(eventLabel);
+
+                    eventPrepared = System.currentTimeMillis();
+
+                    cnfChecker.check(events, caseId);
+                    eventHandled = System.currentTimeMillis();
+                    System.out.println(String.format("%d\t%d\t%d\t%d", eventPrepared-eventReceived, eventHandled-eventReceived, eventHandled-eventPrepared, idleTime));
+                    if(System.currentTimeMillis()-start>=runTimeMillis){
+                        System.out.println(String.format("Run time exhausted. Run time: %d", runTimeMillis));
+                        break;
+                    }
+                    //alg = cnfChecker.getCurrentOptimalState(caseId, true).getAlignment();
 
 
+
+                    /*
+                    // this is for writing every alignment to a file
+                    try {
+                        FileWriter writer = new FileWriter(String.format("Executions\\%d.txt",start), true);
+                        writer.write("CaseId: "+caseId);
+                        writer.write("\r\n");
+                        writer.write("Alignment: ");
+                        writer.write(alg.toString());
+                        writer.write("\r\n");
+                        writer.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }*/
+
+
+                }
+                br.close();
+                s.close();
+                long endTime = System.currentTimeMillis();
+                System.out.println(String.format("Time taken in milliseconds: %d",endTime- start));
+                System.out.println(String.format("Events observed: %d",eventsReceived));
+                System.out.println(String.format("Cases observed: %d",cases.size()));
+                // get prefix alignments
+                System.out.println("Prefix alignments:");
+                long algStart = System.currentTimeMillis();
+                for(String c:cases){
+                    alg = cnfChecker.getCurrentOptimalState(c, false).getAlignment();
+                    System.out.println(c + ","+ alg.getTotalCost());
+                }
+                long algEnd = System.currentTimeMillis();
+                System.out.println(String.format("Time taken prefix-alignments: %d", algEnd-algStart));
+
+                // get complete alignments
+                System.out.println("Complete alignments:");
+                algStart = System.currentTimeMillis();
+                for(String c:cases){
+                    alg = cnfChecker.getCurrentOptimalState(c, true).getAlignment();
+                    System.out.println(c + ","+ alg.getTotalCost());
+                }
+                algEnd = System.currentTimeMillis();
+                System.out.println(String.format("Time taken complete-alignments: %d", algEnd-algStart));
+
+            } catch (IOException e) {
+                System.out.println("Network error");
             }
-            br.close();
-            s.close();
-            long endTime = System.currentTimeMillis();
-            System.out.println(String.format("Time taken in milliseconds: %d",endTime- start));
-            System.out.println(String.format("Events observed: %d",eventsReceived));
-            System.out.println(String.format("Cases observed: %d",cases.size()));
-            // get prefix alignments
-            System.out.println("Prefix alignments:");
-            long algStart = System.currentTimeMillis();
-            for(String c:cases){
-                alg = cnfChecker.getCurrentOptimalState(c, false).getAlignment();
-                System.out.println(c + ","+ alg.getTotalCost());
-            }
-            long algEnd = System.currentTimeMillis();
-            System.out.println(String.format("Time taken prefix-alignments: %d", algEnd-algStart));
-
-            // get complete alignments
-            System.out.println("Complete alignments:");
-            algStart = System.currentTimeMillis();
-            for(String c:cases){
-                alg = cnfChecker.getCurrentOptimalState(c, true).getAlignment();
-                System.out.println(c + ","+ alg.getTotalCost());
-            }
-            algEnd = System.currentTimeMillis();
-            System.out.println(String.format("Time taken complete-alignments: %d", algEnd-algStart));
-
-
-        } catch (IOException e) {
-            System.out.println("Network Exception");
         }
 
     }
@@ -1056,7 +1126,7 @@ public class Runner {
         }
 
         //System.out.println("Case id: "+Integer.toString(i));
-        //System.out.println(trace);
+        System.out.println(trace);
 
         //Integer traceSize = trace.size();
         start = System.currentTimeMillis();
@@ -1078,7 +1148,8 @@ public class Runner {
             checker.check(tempList, Integer.toString(i));
         }
 
-
+        if (i==73)
+            System.out.println(i);
 
         alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
 
@@ -1164,7 +1235,11 @@ public class Runner {
         XLog inputProxyLog;//, inputSamplelog;
         XEventClass dummyEvClass = new XEventClass("DUMMY", 99999);
         XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
-        XesXmlParser parser = new XesXmlParser();
+        XesXmlParser parser = null;
+        if (inputProxyLogFile.substring(inputProxyLogFile.length()-6).equals("xes.gz"))
+            parser = new XesXmlGZIPParser();
+        else
+            parser = new XesXmlParser();
 
         try {
             InputStream is = new FileInputStream(inputProxyLogFile);
@@ -1188,25 +1263,34 @@ public class Runner {
 
         try {
 
-            XLogInfo logInfo ;
-            logInfo = XLogInfoFactory.createLogInfo(inputProxyLog, inputProxyLog.getClassifiers().get(0));
-            int count = 0;
-            for (XEventClass clazz : logInfo.getNameClasses().getClasses()) {
-                count++;
-                //        System.out.println(clazz.toString());
+            //
+            XEventClassifier attClassifier = null;
+            if (inputProxyLog.getClassifiers().size()>0)
+                attClassifier = inputProxyLog.getClassifiers().get(0);
+            else
+                attClassifier = new XEventAttributeClassifier("concept:name",new String[]{"concept:name"});
+            XLogInfo logInfo = XLogInfoFactory.createLogInfo(inputProxyLog,attClassifier);
+            int count = 999;
+            if (logInfo.getNameClasses().getClasses().size()>0) {
+                count = 0;
+                for (XEventClass clazz : logInfo.getNameClasses().getClasses()) {
+                    count++;
+                    //        System.out.println(clazz.toString());
+                }
             }
+
 //            System.out.println("Number of unique activities " + count);
 
             //Let's construct the trie from the proxy log
             Trie t = new Trie(count);
             List<String> templist;
 //            count=1;
-            count=1;
+            //count=0;
 //            System.out.println("Proxy log size "+inputProxyLog.size());
             for (XTrace trace : inputProxyLog) {
                 templist = new ArrayList<String>();
                 for (XEvent e : trace) {
-                    String label = e.getAttributes().get(inputProxyLog.getClassifiers().get(0).getDefiningAttributeKeys()[0]).toString();
+                    String label = e.getAttributes().get(attClassifier.getDefiningAttributeKeys()[0]).toString();
 
                     templist.add(Character.toString(service.alphabetize(label)));
                 }
@@ -1223,7 +1307,13 @@ public class Runner {
 //                    if (count ==5)
 //                    break;
                 }
-                count++;
+                /*count++;
+                if (count%25000==0) {
+                    break;
+                    //System.out.println(count);
+                    //System.out.println(String.format("Trie size: %d",t.getSize()));
+                    //System.out.println(String.format("Trie avg length: %d",t.getAvgTraceLength()));
+                }*/
             }
             return t;
         }
