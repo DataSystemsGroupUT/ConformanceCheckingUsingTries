@@ -8,9 +8,11 @@ import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 import ee.ut.cs.dsg.confcheck.util.Configuration;
 import org.cpntools.accesscpn.model.graphics.Align;
+import org.processmining.logfiltering.algorithms.ProtoTypeSelectionAlgo;
 
 import java.sql.Array;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class StreamingConformanceChecker extends ConformanceChecker{
 
@@ -21,10 +23,10 @@ public class StreamingConformanceChecker extends ConformanceChecker{
 
     // Streaming variables
 
-    protected boolean replayWithLogMoves = true; // if set to false the performance is faster but result is less precise
-    protected int minDecayTime = 100;
-    protected float decayTimeMultiplier = 0.25F; // not yet implemented
-    protected boolean discountedDecayTime = false; // if set to false then uses fixed minDecayTime value
+    protected boolean replayWithLogMoves = true;
+    protected int minDecayTime = 3;
+    protected float decayTimeMultiplier = 0.3F;
+    protected boolean discountedDecayTime = true; // if set to false then uses fixed minDecayTime value
     protected int averageTrieLength = 0;
 
 
@@ -76,6 +78,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
     }
 
     public HashMap<TrieNode,Alignment> findOptimalLeafNode(State state, int costLimit){
+
        int baseCost = state.getCostSoFar();
        int cost;
        int lastIndex;
@@ -96,41 +99,6 @@ public class StreamingConformanceChecker extends ConformanceChecker{
        Map<Integer, String> optimalMoves = new HashMap<>();
        Map<Integer, String> moves;
 
-       /*
-       List<TrieNode> nodesToSkip;
-
-       HashMap<Integer, HashMap<TrieNode, List<TrieNode>>> test = null;
-
-       for (int i = 0; i < leaves.size(); i++){
-           HashMap<TrieNode, List<TrieNode>> mp = new HashMap<>();
-           mp.put(leaves.get(i), new ArrayList<>(TrieNode));
-           test.put(i, mp);
-       }
-
-       while(test.size()>0){
-
-
-
-        TrieNode a = new TrieNode("a", 10, 2, 2, false, null);
-        TrieNode b = new TrieNode("b", 10, 2, 2, false, null);
-        TrieNode c = new TrieNode("c", 10, 2, 2, false, null);
-        List<TrieNode> l = new ArrayList<>();
-        l.add(a);
-        l.add(b);
-        l.add(c);
-
-
-
-        String sx = "0";
-        for (int i = 0; i < Math.pow(2,l.size()); i++) {
-            while(sx.length()<l.size())
-                sx = "0"+sx;
-            sx = Integer.toBinaryString(Integer.valueOf(sx, 2) + 1);
-        }
-
-
-
-       }*/
 
        for(TrieNode n:leaves){
            //
@@ -160,9 +128,6 @@ public class StreamingConformanceChecker extends ConformanceChecker{
 
                    postfixSize = postfix.size();
                    additionalCost = (postfixSize - lastIndex) - 1;
-                   //cost += additionalCost; // add to cost if the string was not last one
-                   // todo for branching: if additionalCost > 0, we might want to rerun by skipping this.
-                   //  Eg model ABCDEC and trace ABCDE we want to skip the match on index 5 (second C) in model
                    if(additionalCost > 0){
                        while (additionalCost > 0) {
                            if (logMovesDone > 0) {
@@ -199,6 +164,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
            }
        }
 
+
        if(optimalNode==null){
            return null;
        }
@@ -228,9 +194,90 @@ public class StreamingConformanceChecker extends ConformanceChecker{
            alg.appendMove(mv);
        }
 
+
+
        HashMap<TrieNode, Alignment> result = new HashMap<>();
        result.put(optimalNode, alg);
        return result;
+
+
+
+
+        // find alignment using edit distance
+        /*
+        int originalCostLimit = costLimit;
+        List<String> originalPostfix = state.getTracePostfix();
+        int stateLevel = state.getNode().getLevel();
+        int originalPostfixSize = originalPostfix.size();
+        int maxLevel = stateLevel+originalPostfixSize+costLimit-1;
+        List<TrieNode> leaves = modelTrie.getLeavesFromNode(state.getNode(), maxLevel);
+        TrieNode currentNode;
+        TrieNode optimalNode = null;
+        Alignment alg = state.getAlignment();
+        String logTrace = String.join("",state.getTracePostfix());
+        String bestTrace = "";
+        String proxyTrace;
+        String event;
+        String bestAlignment = "";
+        List<TrieNode> optimalPath = null;
+        for (TrieNode n:leaves){
+            currentNode = n;
+            proxyTrace = "";
+            optimalPath = new ArrayList<>();
+            while(currentNode!=state.getNode() & currentNode.getLevel()>0){
+                optimalPath.add(0, currentNode);
+                proxyTrace = currentNode.getContent()+proxyTrace;
+                currentNode = currentNode.getParent();
+            }
+
+            ProtoTypeSelectionAlgo.AlignObj obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(logTrace, proxyTrace);
+            if (obj.cost < costLimit) {
+                costLimit = (int) obj.cost;
+                if (logTrace.length()==0)
+                    costLimit++; // small fix if log trace is empty, then levenshteinDistancewithAlignment wrongly discounts the cost by 1
+                bestAlignment = obj.Alignment;
+                bestTrace = proxyTrace;
+                optimalNode = n;
+                if (obj.cost == 0)
+                    break;
+            }
+        }
+        if (costLimit>=originalCostLimit)
+            return null;
+        String[] algStrings = bestAlignment.split(">> ");
+        List<String> moveAndEvent;
+        for (String s:algStrings){
+            //if sync: remove element from both postfix and optimalNodes
+            //if delete: remove element  from postfix
+            //if insert: remove element from optimalNodes
+
+            moveAndEvent = Arrays.stream(s.trim().split(" ")).collect(Collectors.toList());
+
+            if(moveAndEvent.contains("Sync")){
+                moveAndEvent.remove("Sync");
+                event = moveAndEvent.get(0);
+                alg.appendMove(new Move(event, event, 0));
+            } else if (moveAndEvent.contains("Deletion")){
+                moveAndEvent.remove("Deletion");
+                event = moveAndEvent.get(0);
+                alg.appendMove(new Move(event, ">>", 1));
+            } else if (moveAndEvent.contains("Insertion")){
+                moveAndEvent.remove("Insertion");
+                event = moveAndEvent.get(0);
+                alg.appendMove(new Move(">>", event, 1));
+            }
+        }
+
+
+        HashMap<TrieNode, Alignment> result = new HashMap<>();
+        result.put(optimalNode, alg);
+        return result;
+
+
+         */
+
+
+
     }
 
     public State getCurrentOptimalState(String caseId, boolean finalState){ //

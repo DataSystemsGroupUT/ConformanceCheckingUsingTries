@@ -1757,6 +1757,9 @@ public class ProtoTypeSelectionAlgo {
 
         }
         String align = alignment[len1-1][len0-1].substring(2);
+        if (lhs.charAt(0)!=rhs.charAt(0))
+            cost[len0-1]++; // otherwise the method discounts error if string first letters do not match
+
 //        AlignObj alignObj = new AlignObj(align, (cost[len0 - 1]*1.0 ) / (len1+len0)) ;
         AlignObj alignObj = new AlignObj(align, cost[len0 - 1]) ;
         // the distance is the cost for transforming all letters in both strings
