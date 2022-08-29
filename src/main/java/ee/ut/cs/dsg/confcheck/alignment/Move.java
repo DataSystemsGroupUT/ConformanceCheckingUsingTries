@@ -8,6 +8,12 @@ public class Move {
     private final int cost;
     private int oracle;
 
+    public enum MoveType
+    {
+        SYNC_MOVE,
+        LOG_MOVE,
+        MODEL_MOVE
+    }
     public Move(String logMove, String modelMove, int cost) {
         this.cost = cost;
         this.logMove = logMove;
@@ -34,5 +40,14 @@ public class Move {
 
     public String getLogMove() {
         return logMove;
+    }
+
+    public MoveType getMoveType()
+    {
+        if (logMove.equals(">>"))
+            return MoveType.MODEL_MOVE;
+        if (modelMove.equals(">>"))
+            return  MoveType.LOG_MOVE;
+        return MoveType.SYNC_MOVE;
     }
 }

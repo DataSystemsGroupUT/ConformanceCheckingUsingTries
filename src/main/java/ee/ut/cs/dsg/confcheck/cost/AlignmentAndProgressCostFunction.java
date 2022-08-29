@@ -1,6 +1,6 @@
 package ee.ut.cs.dsg.confcheck.cost;
 
-import ee.ut.cs.dsg.confcheck.ConformanceChecker;
+import ee.ut.cs.dsg.confcheck.ApproximateConformanceChecker;
 import ee.ut.cs.dsg.confcheck.State;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 import ee.ut.cs.dsg.confcheck.util.Configuration;
@@ -10,7 +10,7 @@ import java.util.List;
 public class AlignmentAndProgressCostFunction implements CostFunction {
 
     @Override
-    public int computeCost(State state, List<String> suffix, String event, Configuration.MoveType mt, ConformanceChecker conformanceChecker) {
+    public int computeCost(State state, List<String> suffix, String event, Configuration.MoveType mt, ApproximateConformanceChecker conformanceChecker) {
 
         if (mt == Configuration.MoveType.SYNCHRONOUS_MOVE)
             return 0;
@@ -18,8 +18,9 @@ public class AlignmentAndProgressCostFunction implements CostFunction {
         int cost = state.getAlignment().getTotalCost();
         // cost += (state.getNode().isEndOfTrace()? 0: state.getNode().getMinPathLengthToEnd()) + suffix.size() ;
         cost += (state.getNode().isEndOfTrace() ? 0 : state.getNode().getMinPathLengthToEnd()) + suffix.size();
+        List<TrieNode> ndz = state.getNode().getAllChildren();
         if (mt == Configuration.MoveType.LOG_MOVE) {
-            for (TrieNode nd : state.getNode().getAllChildren()) {
+            for (TrieNode nd : ndz) {
                 if (nd.getChild(event) != null)// If we make a model move, we can reach a sync move. So, log move is not the best move
                 {
                     cost += 1;
@@ -28,7 +29,7 @@ public class AlignmentAndProgressCostFunction implements CostFunction {
             }
         } else if (mt == Configuration.MoveType.MODEL_MOVE) {
             if (suffix.size() > 0 && state.getNode().getChild(suffix.get(0)) != null) // we can find a next sync move this path
-                cost -= 7;
+                cost += ndz.size();
         }
 
         return cost;

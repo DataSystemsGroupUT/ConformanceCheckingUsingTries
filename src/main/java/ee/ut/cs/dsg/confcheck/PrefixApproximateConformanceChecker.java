@@ -8,20 +8,20 @@ import org.processmining.logfiltering.algorithms.ProtoTypeSelectionAlgo;
 
 import java.util.*;
 
-public class PrefixConformanceChecker extends ConformanceChecker {
+public class PrefixApproximateConformanceChecker extends ApproximateConformanceChecker {
 
 
     protected boolean lookForInfixMatches;
     protected Map<Integer, ProtoTypeSelectionAlgo.AlignObj> prevAlignments;
     protected Trie inverseTrie;
 
-    public PrefixConformanceChecker(Trie trie, int logCost, int modelCost) {
+    public PrefixApproximateConformanceChecker(Trie trie, int logCost, int modelCost) {
         super(trie, logCost, modelCost);
         inspectedLogTraces = new Trie(trie.getMaxChildren());
         prevAlignments = new HashMap<>();
     }
 
-    public PrefixConformanceChecker(Trie trie, int logCost, int modelCost, boolean lookForInfixMatches) {
+    public PrefixApproximateConformanceChecker(Trie trie, int logCost, int modelCost, boolean lookForInfixMatches) {
         super(trie, logCost, modelCost);
         inspectedLogTraces = new Trie(trie.getMaxChildren());
         this.lookForInfixMatches = lookForInfixMatches;

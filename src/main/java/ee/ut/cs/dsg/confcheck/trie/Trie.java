@@ -1,11 +1,12 @@
 package ee.ut.cs.dsg.confcheck.trie;
 
 
+import at.unisalzburg.dbresearch.apted.node.Node;
 import ee.ut.cs.dsg.confcheck.util.Utils;
+import org.apache.commons.collections4.KeyValue;
+import org.apache.commons.collections4.functors.TruePredicate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Trie {
 
@@ -16,12 +17,14 @@ public class Trie {
     private int size = 0;
     private int numberOfEvents = 0;
     protected HashMap<Integer, String> traceIndexer;
+    protected HashMap<Integer, Integer> levelBreadth;
 
     public Trie(int maxChildren) {
         this.maxChildren = Utils.nextPrime(maxChildren);
         root = new TrieNode("dummy", maxChildren, Integer.MAX_VALUE, Integer.MIN_VALUE, false, null);
         traceIndexer = new HashMap<>();
         leaves = new ArrayList<>();
+        levelBreadth = new HashMap<>();
     }
 
     public int getMaxChildren() {
@@ -47,8 +50,10 @@ public class Trie {
                 if (returned == child) // we added a new node to the trie
                 {
                     size++;
+                    updateTrieBreadth(returned);
                 }
                 current = returned;
+
                 minLengthToEnd--;
                 sb.append(event);
                 if (returned.isEndOfTrace())
@@ -58,6 +63,7 @@ public class Trie {
             numberOfEvents += sb.length();
             traceIndexer.put(traceIndex, sb.toString());
         }
+
 
     }
 
@@ -165,4 +171,66 @@ public class Trie {
         return numberOfEvents;
     }
 
+    private void updateTrieBreadth(TrieNode nd)
+    {
+        if (levelBreadth.keySet().contains(nd.getLevel()))
+        {
+            levelBreadth.put(nd.getLevel(), levelBreadth.get(nd.getLevel())+1);
+        }
+        else
+            levelBreadth.put(nd.getLevel(),1);
+    }
+    public void printTrieShape()
+    {
+        int keyWithMaxBreadth = 0;
+        int largestBreadth = 1;
+
+        for (Integer key : levelBreadth.keySet())
+        {
+            Integer val = levelBreadth.get(key);
+//            System.out.println(String.format("Level %d has breadth %d", key,val));
+            if (val > largestBreadth)
+            {
+                keyWithMaxBreadth = key;
+                largestBreadth = val;
+            }
+        }
+
+        int longestPathLength = root.getMaxPathLengthToEnd();
+
+        double ratio = ((double) largestBreadth)/longestPathLength;
+        System.out.println(String.format("Trie shape ratio is %f", ratio));
+        System.out.println(String.format("Largest breadth is %d", largestBreadth));
+        System.out.println(String.format("Level with largest breadth is %d", keyWithMaxBreadth));
+        System.out.println(String.format("Trie depth is %d", longestPathLength));
+        System.out.println(String.format("Shortest trace is of length %d", root.getMinPathLengthToEnd()));
+    }
+    public Node<TrieNode> getAPTEDTree() {
+
+        Queue<TrieNode> nextParents = new LinkedList<>();
+        Queue<Node<TrieNode>> nextTreeParents = new LinkedList<>();
+
+        Node<TrieNode> aptedTreeRoot = new Node<>(this.getRoot());
+        nextParents.offer(this.getRoot());
+        nextTreeParents.offer(aptedTreeRoot);
+
+        Node<TrieNode> currentTree;// = aptedTreeRoot;
+        TrieNode current;
+//
+        while (nextParents.size() > 0)
+        {
+            current = nextParents.poll();
+            currentTree = nextTreeParents.poll();
+            for (TrieNode child: current.getAllChildren()) {
+                nextParents.offer(child);
+                Node<TrieNode> childNode =new Node<>(child);
+                currentTree.addChild(childNode);
+                nextTreeParents.offer(childNode);
+            }
+
+        }
+
+
+        return aptedTreeRoot;
+    }
 }

@@ -7,7 +7,8 @@ public class Configuration {
         DISTANCE,
         TRIE_PREFIX,
         TRIE_RANDOM,
-        TRIE_RANDOM_STATEFUL
+        TRIE_RANDOM_STATEFUL,
+        TRIE_TREE_INDEXER
     }
 
     public enum LogSortType {

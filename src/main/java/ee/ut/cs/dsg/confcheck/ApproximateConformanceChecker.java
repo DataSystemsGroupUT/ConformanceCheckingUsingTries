@@ -4,12 +4,10 @@ import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.spine.Spine;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Random;
 
-public abstract class ConformanceChecker {
+public abstract class ApproximateConformanceChecker {
     protected final Trie modelTrie;
     protected final int logMoveCost;
     protected final int modelMoveCost;
@@ -39,17 +37,17 @@ public abstract class ConformanceChecker {
     protected Trie inspectedLogTraces;
     protected Random rnd;
 
-    public ConformanceChecker(Trie modelTrie) {
+    public ApproximateConformanceChecker(Trie modelTrie) {
         this(modelTrie, 1, 1);
 
     }
 
-    public ConformanceChecker(Trie modelTrie, int logCost, int modelCost) {
+    public ApproximateConformanceChecker(Trie modelTrie, int logCost, int modelCost) {
         this(modelTrie, logCost, modelCost, 10000);
 
     }
 
-    public ConformanceChecker(Trie modelTrie, int logCost, int modelCost, int maxStatesInQueue) {
+    public ApproximateConformanceChecker(Trie modelTrie, int logCost, int modelCost, int maxStatesInQueue) {
         this.modelTrie = modelTrie;
         this.logMoveCost = logCost;
         this.modelMoveCost = modelCost;

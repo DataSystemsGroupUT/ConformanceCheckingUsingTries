@@ -90,7 +90,50 @@ public class Alignment {
 
     public String modelProjection() {
         StringBuilder sb = new StringBuilder();
-        this.getMoves().stream().filter(x -> !x.getModelMove().equals(">>")).forEach(e -> sb.append(e));
+        this.getMoves().stream().filter(x -> !x.getModelMove().equals(">>")).forEach(e -> sb.append(e.getModelMove().trim()));
         return sb.toString();
+    }
+    public double logCoverage()
+    {
+        int syncMoves=0, logLength=0;
+        for (int i = 0; i < moves.size();i++)
+        {
+            Move move = moves.get(i);
+            if (move.getMoveType()== Move.MoveType.SYNC_MOVE)
+            {
+                syncMoves++;
+                logLength++;
+            }
+            else if (move.getMoveType()== Move.MoveType.LOG_MOVE)
+            {
+                logLength++;
+            }
+        }
+        if (logLength==0)
+            return 0.0;
+        return ((double) syncMoves)/logLength;
+    }
+    public double weightedLogCoverage()
+    {
+        int syncMovesWeight=0, logLength=this.logProjection().length();
+        for (int i = 0; i < moves.size();i++)
+        {
+            Move move = moves.get(i);
+            if (move.getMoveType()== Move.MoveType.SYNC_MOVE)
+            {
+                syncMovesWeight += ((logLength +1)-i);
+
+            }
+//            else if (move.getMoveType()== Move.MoveType.LOG_MOVE)
+//            {
+//                logLength++;
+//            }
+        }
+        if (logLength==0)
+            return 0.0;
+        int max = 0;
+        for (int i =0; i < logLength;i++)
+            max+= ((logLength+1)-i);
+        return ((double) syncMovesWeight)/max;
     }
 }

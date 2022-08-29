@@ -1,9 +1,12 @@
 package ee.ut.cs.dsg.confcheck.trie;
 
+import at.unisalzburg.dbresearch.apted.node.Node;
 import ee.ut.cs.dsg.confcheck.State;
 import ee.ut.cs.dsg.confcheck.util.Utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class TrieNode {
@@ -18,6 +21,17 @@ public class TrieNode {
     private final List<Integer> linkedTraces;
     private int level = 0;
     private int numChildren = 0;
+    private int postOrderIndex=-1;
+    private boolean markedForDeletion=false;
+
+    public void setMarkedForDeletion(boolean markedForDeletion) {
+        this.markedForDeletion = markedForDeletion;
+    }
+
+    public boolean isMarkedForDeletion()
+    {
+        return markedForDeletion;
+    }
 
     public State getAlignmentState() {
         return alignmentState;
@@ -128,6 +142,18 @@ public class TrieNode {
         return result;
     }
 
+    public List<TrieNode> getSiblingsOfChild(String label) {
+
+        if (this.getChild(label)==null)
+            return null;
+        List<TrieNode> result = new ArrayList<>();
+        for (TrieNode nd : children)
+            if (nd != null && !nd.getContent().equals(label))
+                result.add(nd);
+
+        return result;
+    }
+
     public boolean hasChildren() {
         return numChildren != 0;
     }
@@ -153,13 +179,46 @@ public class TrieNode {
         return children[Math.abs(child.getContent().hashCode()) % maxChildren];
     }
 
+    public String preOrderTraversal()
+    {
+        StringBuilder result = new StringBuilder();
+        if (numChildren > 0) {
+            result.append(this.content + "(");
+            for (TrieNode child : children)
+                if (child != null)
+                    result.append(child.preOrderTraversal());
+            result.append(") ");
+        }
+        else
+            result.append(this.content+" ");
+        return result.toString();
+    }
+
+    public String preOrderTraversalAPTED()
+    {
+        return preOrderTraversalAPTED(false);
+    }
+    public String preOrderTraversalAPTED(boolean encodeNodeLevel)
+    {
+        StringBuilder result = new StringBuilder();
+        if (numChildren > 0) {
+            result.append("{"+this.getContentReplaceCurlyBraces()+ (encodeNodeLevel? ","+this.level:"") );
+            for (TrieNode child : children)
+                if (child != null)
+                    result.append(child.preOrderTraversalAPTED(encodeNodeLevel));
+            result.append("}");
+        }
+        else
+            result.append("{"+this.getContentReplaceCurlyBraces()+ (encodeNodeLevel? ","+this.level:"")+"}");
+        return result.toString();
+    }
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append(" Node(content:" + this.content + ", minPath:" + minPathLengthToEnd + ", maxPath:" + maxPathLengthToEnd + ", isEndOfATrace:" + isEndOfTrace + ") Children(");
-        for (TrieNode child : children)
-            if (child != null)
-                result.append(child);
-        result.append(")");
+        result.append(" Node(content:" + this.content + ", minPath:" + minPathLengthToEnd + ", maxPath:" + maxPathLengthToEnd + ", isEndOfATrace:" + isEndOfTrace + ", Level"+ this.level+")");
+//        for (TrieNode child : children)
+//            if (child != null)
+//                result.append(child);
+//        result.append(")");
         return result.toString();
     }
 
@@ -167,7 +226,14 @@ public class TrieNode {
         if (other instanceof TrieNode) {
             TrieNode otherNode = (TrieNode) other;
 
-            return (this.content.equals(otherNode.getContent()) && this.level == otherNode.getLevel());
+            if (this.getParent() == null && otherNode.getParent() != null)
+                return false;
+            if (this.getParent() != null && otherNode.getParent() == null)
+                return false;
+            if (this.getParent() == null && otherNode.getParent() == null)
+                return (this.content.equals(otherNode.getContent()) && this.level == otherNode.getLevel());
+
+            return (this.content.equals(otherNode.getContent()) && this.level == otherNode.getLevel() && this.getParent().equals(otherNode.getParent()));
         }
         return false;
     }
@@ -190,5 +256,78 @@ public class TrieNode {
         else
             return child;
     }
+    public void computeOrUpdatePostOrderIndex(HashMap<Integer, TrieNode> nodeIndexer)
+    {
+        nodeIndexer.clear();
+        labelWithPostOrderIndex(0, nodeIndexer);
+    }
+    private int labelWithPostOrderIndex(int highestIndex, HashMap<Integer, TrieNode> nodeIndexer)
+    {
+
+        for (int i =0; i < children.length;i++)
+        {
+            if (children[i]== null)
+                continue;
+            highestIndex = Math.max(highestIndex, children[i].labelWithPostOrderIndex(highestIndex, nodeIndexer));
+        }
+        this.postOrderIndex=++highestIndex;
+        nodeIndexer.put(highestIndex, this);
+        return highestIndex;
+    }
+    public int getNodeCount() {
+        int sum = 1;
+
+        TrieNode child;
+        List<TrieNode> itr = new ArrayList<>();
+        for (TrieNode n: children)
+            if (n!=null)
+                itr.add(n);
+        for(Iterator var2 = itr.iterator(); var2.hasNext(); sum += child.getNodeCount()) {
+            child = (TrieNode) var2.next();
+        }
+
+        return sum;
+    }
+    public int getPostOrderIndex()
+    {
+        return postOrderIndex;
+    }
+
+    private String getContentReplaceCurlyBraces() {
+//        return this.content.equals("{")? "$$$": (this.content.equals("}")? "###":this.content);
+        return this.content.replace("{", "$$$").replace("}","###").replace("\\","___");
+    }
+
+    public int findInSubtree(List<String> suffix, int window)
+    {
+
+        if (suffix == null || suffix.size()==0 || window ==0)
+            return 0;
+        int cost=0;
+//        String event = suffix.remove(0);
+
+        if ( this.getChild(suffix.get(0)) != null) //we found it
+        {
+            // let's look for the rest of the suffix
+            return this.getChild(suffix.get(0)).findInSubtree(suffix.subList(1,suffix.size()), window -1);
+        }
+        else if (window==1)
+            return 1; //we could not find a direct child matching the label of the event.
+        else
+        {
+            cost++;
+            int childCost=window;// we assume that there is no children at all.
+            for (TrieNode child: this.getAllChildren())
+            {
+                childCost=Math.min(childCost, child.findInSubtree(suffix, window -1));
+            }
+
+
+            return cost+childCost;
+
+        }
+    }
+
+
 
 }

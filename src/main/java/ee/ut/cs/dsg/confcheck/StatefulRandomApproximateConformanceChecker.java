@@ -7,6 +7,7 @@ import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 import ee.ut.cs.dsg.confcheck.util.Configuration;
 import ee.ut.cs.dsg.confcheck.util.Utils;
+import ee.ut.cs.dsg.spine.Spine;
 
 import java.util.*;
 
@@ -15,19 +16,19 @@ import java.util.*;
  * For this, another trie is constructed where each node matches an event in a trace and points to the respective alignment object.
  * Rather than starting the alignment from scratch, we can search the traces trie and exit at the latest common prefix
  */
-public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
+public class StatefulRandomApproximateConformanceChecker extends RandomApproximateConformanceChecker {
     // private final Trie tracesTrie;
 
-    public StatefulRandomConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
+    public StatefulRandomApproximateConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
         super(trie, logCost, modelCost, maxStatesInQueue, maxTrials);
         searchSpace = new HashMap<>();
-
+//        prefixConformanceChecker = new PrefixConformanceChecker(trie, logCost, modelCost, false);
     }
 
     private int trialsPerEvent;
-    private final Map<State, PriorityQueue<State>> searchSpace;
+    private final Map<State, Spine<State>> searchSpace;
     private final boolean reuseSearchSpace = false;
-
+//    private final PrefixConformanceChecker prefixConformanceChecker;
     public void setTrialsPerEvent(int tpe) {
         trialsPerEvent = tpe;
     }
@@ -41,9 +42,16 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             List<String> tracePrefix = trace.subList(0, node.getLevel());
             // fill the queue based on the state
             if (reuseSearchSpace) {
-                PriorityQueue<State> previousSearchSpace = searchSpace.get(node.getAlignmentState());
+                Spine<State> previousSearchSpace = searchSpace.get(node.getAlignmentState());
                 if (previousSearchSpace != null) {
-                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.push(vs));
+                    for (State state : previousSearchSpace)
+                    {
+                        if (isAValidState(state, trace))
+                        {
+                            nextChecks.push(new State( state.getAlignment(),trace.subList(state.getNode().getLevel(),trace.size()),state.getNode(),state.getCostSoFar()));
+                        }
+                    }
+//                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.push(vs));
 //                    previousSearchSpace.stream().filter(ps -> isAValidState(ps, trace)).forEach(vs -> nextChecks.add(
 //                            new State(trace.subList(vs.getNode().getLevel(),trace.size()),vs.getNode(),vs.getCostSoFar())));
                     if (verbose)
@@ -75,6 +83,20 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
         List<String> traceSuffix;
         State state;
         state = getStateFromTracesTrie(trace);
+        TrieNode n = modelTrie.match(trace);
+
+        if ( n != null && n.getLevel() == trace.size() && n.isEndOfTrace())
+        {
+            Alignment perfectAlignment = new Alignment();
+            for (String move:trace)
+            {
+                perfectAlignment.appendMove(new Move(move, move, 0));
+
+            }
+            return perfectAlignment;
+        }
+
+
         if (state == null) {
             state = new State(new Alignment(), trace, modelTrie.getRoot(), 0);
 
@@ -85,6 +107,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             {
                 System.out.println(String.format("State retrieved! Saved prefix length: %d", state.getNode().getLevel()));
             }
+            nextChecks.push(new State(new Alignment(), trace, modelTrie.getRoot(), 0));
         }
 
         nextChecks.push(state);
@@ -123,10 +146,14 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             {
                 //return state.getAlignment();
 
+
+                state = refineAlignment(state);
+
                 if (candidateState == null) {
 
                     if (verbose)
                         System.out.println("1-Better alignment reached with cost " + state.getAlignment().getTotalCost());
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(), state.getNode(), state.getAlignment().getTotalCost(), state);
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
 //                    cntr=0;
                 } else if (state.getAlignment().getTotalCost() < candidateState.getAlignment().getTotalCost()) {
@@ -135,11 +162,11 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                     if (verbose)
                         System.out.println("2-Better alignment reached with cost " + state.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
-
+                    candidateState = new State(state.getAlignment(), state.getTracePostfix(), state.getNode(), state.getAlignment().getTotalCost(), state);
 //                    cntr=0;
                 }
-                candidateState = new State(state.getAlignment(), state.getTracePostfix(), state.getNode(), state.getAlignment().getTotalCost(), state);
-                newCandidateStateFoundSinceLastEpoc = true;
+
+               // newCandidateStateFoundSinceLastEpoc = true;
                 // candidates.add(candidateState);
 //                System.out.println("Remaining alignments to check " +toCheck.size());
 //                System.out.println("Best alignment so far " +candidateState.getCostSoFar());
@@ -165,6 +192,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 if (candidateState == null) {
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
                     candidateState = new State(alg, traceSuffix, null, alg.getTotalCost(), state);
+                    candidateState = refineAlignment(candidateState);
                     newCandidateStateFoundSinceLastEpoc = true;
                     if (verbose)
                         System.out.println("3-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
@@ -173,6 +201,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 } else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
                     candidateState = new State(alg, traceSuffix, null, alg.getTotalCost(), state);
+                    candidateState = refineAlignment(candidateState);
                     newCandidateStateFoundSinceLastEpoc = true;
                     if (verbose)
                         System.out.println("4-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
@@ -195,6 +224,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 }
                 if (candidateState == null) {
                     candidateState = new State(alg, new ArrayList<>(), null, alg.getTotalCost(), state);
+                    candidateState = refineAlignment(candidateState);
                     newCandidateStateFoundSinceLastEpoc = true;
                     if (verbose)
                         System.out.println("5-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
@@ -204,6 +234,7 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
                 } else if (alg.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
                     candidateState = new State(alg, new ArrayList<>(), null, alg.getTotalCost(), state);
+                    candidateState = refineAlignment(candidateState);
                     newCandidateStateFoundSinceLastEpoc = true;
                     if (verbose)
                         System.out.println("6-Better alignment reached with cost " + candidateState.getAlignment().getTotalCost());
@@ -288,8 +319,19 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
             System.out.printf("Queue Size %d and num trials %d%n", nextChecks.size(), numTrials);
         if (candidateState != null)
             updateTracesTrie(candidateState);
-        remainingTrials = (maxTrials+remainingTrials) - numTrials;
+//        remainingTrials = (maxTrials+remainingTrials) - numTrials;
+
         return candidateState != null ? candidateState.getAlignment() : null;
+//        if (candidateState!= null)
+//        {
+//            Alignment ppAlignment = doPostProcessing(candidateState);
+//            if (ppAlignment.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
+//                System.out.println(String.format("Edit distance found a better alignment, saving %d units of cost", candidateState.getAlignment().getTotalCost() - ppAlignment.getTotalCost()));
+//                return ppAlignment;
+//            }
+//            return candidateState.getAlignment();
+//        }
+//        return null;
         //return alg;
     }
 
@@ -365,13 +407,13 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
         while (currentState != null) {
             if (reuseSearchSpace && stateSize > 0) {
-                PriorityQueue<State> currentSearchSpace = new PriorityQueue<>();
+                Spine<State> currentSearchSpace = new Spine<>(1024);
                 for (int i = 0; i < nextChecks.size(); i++) {
-                    currentSearchSpace.add(nextChecks.get(i));
+                    currentSearchSpace.push(nextChecks.get(i));
                 }
 //                PriorityQueue<State> currentSearchSpace = nextChecks;
                 //   currentSearchSpace.addAll(prevStates);
-                currentSearchSpace.add(currentState);
+                currentSearchSpace.push(currentState);
                 searchSpace.put(currentState, currentSearchSpace);
 
             }
@@ -423,5 +465,6 @@ public class StatefulRandomConformanceChecker extends RandomConformanceChecker {
 
         }
     }
+
 
 }
