@@ -715,13 +715,17 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                 // first find all sync moves, then add model moves (parent does not match event), then add log moves (events still remaining in traceSuffix)
                 for(int i = traceSuffix.size(); --i >= 0;){
                     String event = traceSuffix.get(i);
-                    if(event.equals(currentNode.getContent())){
-                        Move syncMove = new Move(event, event, 0);
-                        moves.add(0, syncMove);
-                        currentNode = parentNode;
-                        parentNode = currentNode.getParent();
-                        if(i>0){
-                            continue; // there could still be more sync moves
+                    if(!currentNode.equals(lastMatchingNode)) {
+                        if (event.equals(currentNode.getContent())) {
+                            Move syncMove = new Move(event, event, 0);
+                            moves.add(0, syncMove);
+                            currentNode = parentNode;
+                            parentNode = currentNode.getParent();
+                            if (i > 0) {
+                                continue; // there could still be more sync moves
+                            }
+                        } else {
+                            makeLogMoves = true;
                         }
                     } else {
                         makeLogMoves = true;
