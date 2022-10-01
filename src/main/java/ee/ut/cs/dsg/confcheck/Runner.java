@@ -72,8 +72,7 @@ public class Runner {
     public static void main(String... args) throws UnknownHostException {
 
 
-        String executionType = "cost_diff"; // "stress_test" or "cost_diff"
-
+        String executionType = "other"; // "stress_test" or "cost_diff"
 
         // Cost difference
 
@@ -86,6 +85,104 @@ public class Runner {
             String pathPrefix = "output\\disc3\\";
             String fileType = ".csv";
 
+            ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
+
+            String sProxyLogPath = "";
+            String sLogPath = "";
+            String pathName = "";
+            List<String> res = null;
+            String path_folder = "";
+            String log_name = "";
+            String im_setting = "";
+
+
+            // M-models
+            path_folder = "M-models";
+
+            // M1
+            log_name = "M1";
+            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
+            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
+            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
+
+            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
+            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
+            try {
+                FileWriter wr = new FileWriter(pathName);
+                for (String s : res) {
+                    wr.write(s);
+                    wr.write(System.lineSeparator());
+                }
+                wr.close();
+            } catch (IOException e) {
+                System.out.println("Error occurred!");
+                e.printStackTrace();
+            }
+
+            // M2
+            log_name = "M2";
+            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
+            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
+            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
+
+            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
+            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
+            try {
+                FileWriter wr = new FileWriter(pathName);
+                for (String s : res) {
+                    wr.write(s);
+                    wr.write(System.lineSeparator());
+                }
+                wr.close();
+            } catch (IOException e) {
+                System.out.println("Error occurred!");
+                e.printStackTrace();
+            }
+
+            // M3
+
+            log_name = "M3";
+            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
+            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
+            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
+
+            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
+            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
+            try {
+                FileWriter wr = new FileWriter(pathName);
+                for (String s : res) {
+                    wr.write(s);
+                    wr.write(System.lineSeparator());
+                }
+                wr.close();
+            } catch (IOException e) {
+                System.out.println("Error occurred!");
+                e.printStackTrace();
+            }
+
+            // M4
+            log_name = "M4";
+            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
+            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
+            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
+
+            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
+            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
+            try {
+                FileWriter wr = new FileWriter(pathName);
+                for (String s : res) {
+                    wr.write(s);
+                    wr.write(System.lineSeparator());
+                }
+                wr.close();
+            } catch (IOException e) {
+                System.out.println("Error occurred!");
+                e.printStackTrace();
+            }
+
+
+
+/*
             HashMap<String, HashMap<String, String>> logs = new HashMap<>();
             HashMap<String, String> subLog = new HashMap<>();
             subLog.put("log", "input\\BPI2012\\sampledLog.xml");
@@ -255,10 +352,12 @@ public class Runner {
                 System.out.println("log size undefined");
             listenToEvents(proxyLog);
             //printLogStatistics(proxyLog);
-
+*/
         } else {
             System.out.println("Unknown execution type");
         }
+
+
 
     }
 
@@ -503,7 +602,7 @@ public class Runner {
 
         boolean sortTraces=true;
 
-//      t.printTraces();
+      //t.printTraces();
 //        System.out.println(t);
         XLog inputSamplelog;
         XEventClass dummyEvClass = new XEventClass("DUMMY", 99999);
@@ -548,7 +647,7 @@ public class Runner {
             long totalTime=0;
             int skipTo =0;
             int current = -1;
-            int takeTo = 100;
+            int takeTo = 99999;
             DeviationChecker devChecker = new DeviationChecker(service);
             int cnt = 0;
             for (XTrace trace: inputSamplelog)
@@ -562,7 +661,12 @@ public class Runner {
 
                 for (XEvent e: trace)
                 {
-                    String label = e.getAttributes().get(inputSamplelog.getClassifiers().get(0).getDefiningAttributeKeys()[0]).toString();
+                    String label = "";
+                    try{
+                        label = e.getAttributes().get(inputSamplelog.getClassifiers().get(0).getDefiningAttributeKeys()[0]).toString();
+                    } catch (Exception ex) {
+                        label = e.getAttributes().get("concept:name").toString();
+                    }
                     templist.add(Character.toString(service.alphabetize(label)));
                 }
 //                System.out.println(templist.toString());
@@ -653,12 +757,13 @@ public class Runner {
             checker.check(tempList, Integer.toString(i));
         }
 
-        alg = checker.getCurrentOptimalState(Integer.toString(i), true).getAlignment();
+        alg = checker.getCurrentOptimalState(Integer.toString(i), false).getAlignment();
 
 
         executionTime = System.currentTimeMillis() - start;
         totalTime += executionTime;
         if (alg != null) {
+            System.out.println(Integer.toString(i) + "," + actualTrace);
 
             result.add(Integer.toString(i) + "," + alg.getTotalCost() + "," + executionTime);
 
@@ -775,7 +880,7 @@ public class Runner {
             Trie t = new Trie(count);
             List<String> templist;
 //            count=1;
-            //count=0;
+            count=0;
 //            System.out.println("Proxy log size "+inputProxyLog.size());
             for (XTrace trace : inputProxyLog) {
                 templist = new ArrayList<String>();
@@ -797,13 +902,13 @@ public class Runner {
 //                    if (count ==5)
 //                    break;
                 }
-                /*count++;
-                if (count%25000==0) {
-                    break;
-                    //System.out.println(count);
+                count++;
+                if (count%2000==0) {
+                    //break;
+                    System.out.println(count);
                     //System.out.println(String.format("Trie size: %d",t.getSize()));
                     //System.out.println(String.format("Trie avg length: %d",t.getAvgTraceLength()));
-                }*/
+                }
             }
             return t;
         }
