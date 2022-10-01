@@ -1,7 +1,7 @@
 # I Will Survive: An Online Conformance Checking Algorithm Using Decay Time
 
 ## Info
-This code is part of a paper submitted for the BPI 2022 workshop (part of BPM conference).
+This code is part of a conference paper currently under revision.
 
 ## How to run?
 <div style="text-align: justify">
