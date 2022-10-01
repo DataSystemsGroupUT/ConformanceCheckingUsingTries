@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+
+WARNING: Do not manually edit this file, unless you know what you are doing!
+
+This file has been generated with libPlg v.2.0.6.
+Check https://github.com/delas/plg for sources and other stuff.
+
+ -->
+<process>
+	<!-- This is the list of all meta-attributes of the process -->
+	<meta>
+		<LibPLG_NAME>libPlg</LibPLG_NAME>
+		<libPLG_VERSION>2.0.6</libPLG_VERSION>
+		<name>Small</name>
+		<id>rm7uj0ot37pf3vncscba3cq159</id>
+	</meta>
+	<!-- This is the list of all actual process elements -->
+	<elements>
+		<startEvent id="20766"/>
+		<task id="20768" name="Activity A">
+			<script/>
+		</task>
+		<task id="20800" name="Activity M">
+			<script/>
+		</task>
+		<task id="20801" name="Activity N">
+			<script/>
+		</task>
+		<task id="20771" name="Activity B">
+			<script/>
+		</task>
+		<task id="20772" name="Activity C">
+			<script/>
+		</task>
+		<task id="20804" name="Activity O">
+			<script/>
+		</task>
+		<task id="20775" name="Activity D">
+			<script/>
+		</task>
+		<task id="20807" name="Activity P">
+			<script/>
+		</task>
+		<task id="20778" name="Activity E">
+			<script/>
+		</task>
+		<task id="20779" name="Activity F">
+			<script/>
+		</task>
+		<task id="20782" name="Activity G">
+			<script/>
+		</task>
+		<task id="20783" name="Activity H">
+			<script/>
+		</task>
+		<task id="20786" name="Activity I">
+			<script/>
+		</task>
+		<task id="20789" name="Activity J">
+			<script/>
+		</task>
+		<task id="20792" name="Activity K">
+			<script/>
+		</task>
+		<task id="20797" name="Activity L">
+			<script/>
+		</task>
+		<gateway id="20769" type="ExclusiveGateway"/>
+		<gateway id="20770" type="ExclusiveGateway"/>
+		<gateway id="20776" type="ExclusiveGateway"/>
+		<gateway id="20777" type="ExclusiveGateway"/>
+		<gateway id="20780" type="ExclusiveGateway"/>
+		<gateway id="20781" type="ExclusiveGateway"/>
+		<gateway id="20798" type="ParallelGateway"/>
+		<gateway id="20799" type="ParallelGateway"/>
+		<endEvent id="20767"/>
+		<sequenceFlow id="20802" sourceRef="20798" targetRef="20801"/>
+		<sequenceFlow id="20803" sourceRef="20801" targetRef="20799"/>
+		<sequenceFlow id="20805" sourceRef="20798" targetRef="20804"/>
+		<sequenceFlow id="20806" sourceRef="20804" targetRef="20799"/>
+		<sequenceFlow id="20808" sourceRef="20798" targetRef="20807"/>
+		<sequenceFlow id="20809" sourceRef="20807" targetRef="20799"/>
+		<sequenceFlow id="20810" sourceRef="20797" targetRef="20798"/>
+		<sequenceFlow id="20811" sourceRef="20799" targetRef="20800"/>
+		<sequenceFlow id="20812" sourceRef="20776" targetRef="20779"/>
+		<sequenceFlow id="20813" sourceRef="20782" targetRef="20777"/>
+		<sequenceFlow id="20814" sourceRef="20777" targetRef="20797"/>
+		<sequenceFlow id="20815" sourceRef="20800" targetRef="20776"/>
+		<sequenceFlow id="20816" sourceRef="20775" targetRef="20776"/>
+		<sequenceFlow id="20817" sourceRef="20777" targetRef="20778"/>
+		<sequenceFlow id="20818" sourceRef="20769" targetRef="20775"/>
+		<sequenceFlow id="20819" sourceRef="20778" targetRef="20770"/>
+		<sequenceFlow id="20820" sourceRef="20768" targetRef="20769"/>
+		<sequenceFlow id="20821" sourceRef="20770" targetRef="20771"/>
+		<sequenceFlow id="20822" sourceRef="20766" targetRef="20768"/>
+		<sequenceFlow id="20823" sourceRef="20771" targetRef="20767"/>
+		<sequenceFlow id="20773" sourceRef="20769" targetRef="20772"/>
+		<sequenceFlow id="20774" sourceRef="20772" targetRef="20770"/>
+		<sequenceFlow id="20784" sourceRef="20780" targetRef="20783"/>
+		<sequenceFlow id="20785" sourceRef="20783" targetRef="20781"/>
+		<sequenceFlow id="20787" sourceRef="20780" targetRef="20786"/>
+		<sequenceFlow id="20788" sourceRef="20786" targetRef="20781"/>
+		<sequenceFlow id="20790" sourceRef="20780" targetRef="20789"/>
+		<sequenceFlow id="20791" sourceRef="20789" targetRef="20781"/>
+		<sequenceFlow id="20793" sourceRef="20780" targetRef="20792"/>
+		<sequenceFlow id="20794" sourceRef="20792" targetRef="20781"/>
+		<sequenceFlow id="20795" sourceRef="20779" targetRef="20780"/>
+		<sequenceFlow id="20796" sourceRef="20781" targetRef="20782"/>
+	</elements>
+</process>
