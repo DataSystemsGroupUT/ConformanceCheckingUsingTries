@@ -50,6 +50,8 @@
       <root url="jar://$PROJECT_DIR$/lib/trove4j-3.0.3.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/EfficientStorage-latest.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/LpSolve-latest.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/tree-edit-distance-0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/apted.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$PROJECT_DIR$/lib/PetriNets-latest.jar!/" />

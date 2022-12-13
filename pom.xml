@@ -7,6 +7,14 @@
     <groupId>org.example</groupId>
     <artifactId>TrieBasedConformanceChecking</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.javatuples</groupId>
+            <artifactId>javatuples</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

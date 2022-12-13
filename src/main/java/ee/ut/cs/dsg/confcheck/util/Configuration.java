@@ -8,7 +8,8 @@ public class Configuration {
         TRIE_PREFIX,
         TRIE_RANDOM,
         TRIE_RANDOM_STATEFUL,
-        TRIE_TREE_INDEXER
+        TRIE_TREE_INDEXER,
+        TRIE_TREE_INDEXER_HOLISTIC
     }
 
     public enum LogSortType {

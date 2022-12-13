@@ -3,11 +3,10 @@ package ee.ut.cs.dsg.confcheck.trie;
 import at.unisalzburg.dbresearch.apted.node.Node;
 import ee.ut.cs.dsg.confcheck.State;
 import ee.ut.cs.dsg.confcheck.util.Utils;
+import org.javatuples.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TrieNode {
 
@@ -22,6 +21,7 @@ public class TrieNode {
     private int level = 0;
     private int numChildren = 0;
     private int postOrderIndex=-1;
+    private int preOrderIndex=-1;
     private boolean markedForDeletion=false;
 
     public void setMarkedForDeletion(boolean markedForDeletion) {
@@ -261,6 +261,25 @@ public class TrieNode {
         nodeIndexer.clear();
         labelWithPostOrderIndex(0, nodeIndexer);
     }
+    public void computeOrUpdatePreOrderIndex(HashMap<Integer, TrieNode> nodeIndexer)
+    {
+        nodeIndexer.clear();
+        labelWithPreOrderIndex(0, nodeIndexer);
+    }
+    private int labelWithPreOrderIndex(int highestIndex, HashMap<Integer, TrieNode> nodeIndexer)
+    {
+
+        this.preOrderIndex=++highestIndex;
+        nodeIndexer.put(highestIndex, this);
+        for (int i =0; i < children.length;i++)
+        {
+            if (children[i]== null)
+                continue;
+            highestIndex = Math.max(highestIndex, children[i].labelWithPreOrderIndex(highestIndex, nodeIndexer));
+        }
+
+        return highestIndex;
+    }
     private int labelWithPostOrderIndex(int highestIndex, HashMap<Integer, TrieNode> nodeIndexer)
     {
 
@@ -293,11 +312,114 @@ public class TrieNode {
         return postOrderIndex;
     }
 
+    public int getPreOrderIndex()
+    {
+        return preOrderIndex;
+    }
     private String getContentReplaceCurlyBraces() {
 //        return this.content.equals("{")? "$$$": (this.content.equals("}")? "###":this.content);
         return this.content.replace("{", "$$$").replace("}","###").replace("\\","___");
     }
 
+    public int findInSubtree2(TrieNode other, int window)
+    {
+        List<TrieNode> leavesAtLevel = other.getDescendantsAtMaxLevel(window);
+
+        int cost=0;
+        for (TrieNode leaf: leavesAtLevel)
+        {
+            List<String> traces=new ArrayList<>();
+            Stack<String> backward = new Stack<>();
+            TrieNode nd = leaf;
+            while (!nd.equals(other))
+            {
+                backward.push(nd.getContent());
+                nd = nd.getParent();
+            }
+            while(!backward.isEmpty())
+                traces.add(backward.pop());
+
+            cost+= this.findInSubtree(traces, window);
+        }
+
+        return cost;
+    }
+    public int findInSubtree(TrieNode other, int window, HashMap<Pair<TrieNode,TrieNode>, Integer> visitedPairs)
+    {
+        Integer val = visitedPairs.get(new Pair<TrieNode, TrieNode>(this, other));
+        if ( val != null)
+        {
+//            System.out.println("Found pre computed value");
+            return  val.intValue();
+        }
+        HashMap<TrieNode, TrieNode> mapping = new HashMap<>();
+        if (other == null || window ==0 )
+            return 0;
+        int cost=0;
+        List<TrieNode> myChildren = this.getAllChildren();
+        List<TrieNode> otherChildren = other.getAllChildren();
+//        List<String> otherChildrenLabels = otherChildren.stream().map(x -> x.getContent()).collect(Collectors.toList());
+//        List<String> myChildrenLabel = myChildren.stream().map(x -> x.getContent()).collect(Collectors.toList());
+//        for (String s: otherChildrenLabels)
+//            if (!myChildrenLabel.contains(s))
+//                cost++;
+        for (TrieNode otherChild: otherChildren)
+        {
+            boolean found=false;
+            for (TrieNode myChild: myChildren)
+            {
+                if (myChild.getContent().equals(otherChild.getContent()))
+                {
+                    mapping.put(myChild,otherChild);
+                    found = true;
+                    break;
+                }
+
+            }
+            if (!found)
+            {
+                //The number of nodes in the sub-tree rooted at otherChild inclusive.
+                cost+= 1;//otherChild.getNodeCount();//Math.min(otherChild.getNodeCount(), window -1);
+                for (TrieNode childChild: otherChild.getAllChildren())
+                    cost+= findInSubtree(childChild, window-1, visitedPairs);
+
+                // Try to find otherChild in the subtree of my children
+                int costB=Integer.MAX_VALUE;
+                for (TrieNode myGrandChild : getAllChildren())
+                    costB= Math.min(myGrandChild.findInSubtree(otherChild, window -1, visitedPairs), costB);
+                if (costB==Integer.MAX_VALUE)
+                    costB=1;
+                else
+                    costB++;
+
+                cost = Math.min(cost, costB);
+            }
+        }
+        int childrenCost=0;
+        for (TrieNode k: mapping.keySet())
+        {
+            childrenCost+= k.findInSubtree(mapping.get(k), window-1, visitedPairs);
+//            childrenCost = Math.max(k.findInSubtree(mapping.get(k), window -1), childrenCost);
+        }
+        visitedPairs.put(new Pair<>(this, other), cost+childrenCost);
+        return cost+childrenCost;
+    }
+    public List<TrieNode> getDescendantsAtMaxLevel(int level)
+    {
+        List<TrieNode> result = new ArrayList<>();
+        if (level == 0)
+            return result;
+        if (numChildren==0) {
+            result.add(this);
+            return result;
+        }
+        if (level == 1)
+            return  getAllChildren();
+
+        for (TrieNode child: getAllChildren())
+            result.addAll(child.getDescendantsAtMaxLevel(level-1));
+        return  result;
+    }
     public int findInSubtree(List<String> suffix, int window)
     {
 
@@ -328,6 +450,16 @@ public class TrieNode {
         }
     }
 
-
+    public List<TrieNode> getAncestors()
+    {
+        List<TrieNode> result = new ArrayList<>();
+        TrieNode parent = this.getParent();
+        while (parent!=null)
+        {
+            result.add(parent);
+            parent = parent.getParent();
+        }
+        return  result;
+    }
 
 }

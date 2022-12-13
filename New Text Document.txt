@@ -1,0 +1,1 @@
+ java -Xms24g -classpath "./target/classes:./lib/*" ee.ut.cs.dsg.confcheck.Runner

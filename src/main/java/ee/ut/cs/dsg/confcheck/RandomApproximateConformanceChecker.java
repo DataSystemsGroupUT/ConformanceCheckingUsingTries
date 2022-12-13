@@ -17,7 +17,7 @@ public class RandomApproximateConformanceChecker extends ApproximateConformanceC
 
     protected int exploitVersusExploreFrequency = 13;
     protected int numEpochs;
-    protected boolean onMatchFollowPrefixOnly = false;
+    protected boolean onMatchFollowPrefixOnly = true;
     protected boolean verbose = false;
     protected int numTrials=0;
     protected boolean newCandidateStateFoundSinceLastEpoc=false;
@@ -230,7 +230,7 @@ public class RandomApproximateConformanceChecker extends ApproximateConformanceC
                 {
 //                    leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
                     candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
-                    candidateState = refineAlignment(candidateState);
+//                    candidateState = refineAlignment(candidateState);
                     if(verbose)
                         System.out.println("3-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
@@ -240,7 +240,7 @@ public class RandomApproximateConformanceChecker extends ApproximateConformanceC
                 {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
                     candidateState = new State(alg, traceSuffix,null, alg.getTotalCost());
-                    candidateState = refineAlignment(candidateState);
+//                    candidateState = refineAlignment(candidateState);
                     if (verbose)
                         System.out.println("4-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
@@ -268,7 +268,7 @@ public class RandomApproximateConformanceChecker extends ApproximateConformanceC
                 if (candidateState == null)
                 {
                     candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
-                    candidateState = refineAlignment(candidateState);
+//                    candidateState = refineAlignment(candidateState);
                     if(verbose)
                         System.out.println("5-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
@@ -279,7 +279,7 @@ public class RandomApproximateConformanceChecker extends ApproximateConformanceC
                 {
                     leastCostSoFar = Math.min(leastCostSoFar, candidateState.getAlignment().getTotalCost());
                     candidateState = new State(alg, new ArrayList<>(),null, alg.getTotalCost());
-                    candidateState = refineAlignment(candidateState);
+//                    candidateState = refineAlignment(candidateState);
                     if (verbose)
                         System.out.println("6-Better alignment reached with cost "+candidateState.getAlignment().getTotalCost());
 //                    System.out.println("Queue size "+toCheck.size());
@@ -376,11 +376,11 @@ public class RandomApproximateConformanceChecker extends ApproximateConformanceC
         //return candidateState != null? candidateState.getAlignment():null;
         if (candidateState!= null)
         {
-            Alignment ppAlignment = doPostProcessing(candidateState);
-            if (ppAlignment.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
-                System.out.println("Edit distance found a better alignment");
-                return ppAlignment;
-            }
+//            Alignment ppAlignment = doPostProcessing(candidateState);
+//            if (ppAlignment.getTotalCost() < candidateState.getAlignment().getTotalCost()) {
+//                System.out.println("Edit distance found a better alignment");
+//                return ppAlignment;
+//            }
             return candidateState.getAlignment();
         }
         return null;

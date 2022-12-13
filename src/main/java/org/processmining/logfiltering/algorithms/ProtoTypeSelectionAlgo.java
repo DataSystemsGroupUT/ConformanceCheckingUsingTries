@@ -1699,11 +1699,14 @@ public class ProtoTypeSelectionAlgo {
 
 
         }
-        String align = alignment[len1 - 1][len0 - 1].substring(2);
+        if (alignment[len1 - 1][len0 - 1].length()> 2) {
+            String align = alignment[len1 - 1][len0 - 1].substring(2);
 //        AlignObj alignObj = new AlignObj(align, (cost[len0 - 1]*1.0 ) / (len1+len0)) ;
-        AlignObj alignObj = new AlignObj(align, cost[len0 - 1]);
+            AlignObj alignObj = new AlignObj(align, cost[len0 - 1]);
+            return alignObj;//alignment[len0][len0-1] ;
+        }
         // the distance is the cost for transforming all letters in both strings
-        return alignObj;//alignment[len0][len0-1] ;
+        return  new AlignObj("",0);
     }
 
 

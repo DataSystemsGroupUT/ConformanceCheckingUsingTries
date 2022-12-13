@@ -4,6 +4,8 @@ import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.alignment.Move;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
+import it.unimi.dsi.fastutil.Hash;
+import org.javatuples.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,8 +14,8 @@ public class TreeIndexerConformanceChecker extends ApproximateConformanceChecker
     private final HashMap<Integer, TrieNode> modelNodesIndexer ;
     private final HashMap<Character,int[]> trieLabelHistogram;
     private final HashMap<Character, List<TrieNode>> treeIndexer;
-    private final int labelLookAheadWindow = 4;
-    private final int suffixLookAheadWindow =100;
+    private final int labelLookAheadWindow =5;
+    private final int suffixLookAheadWindow =5;
     private final double support = 0.0001;
     private boolean computeCostOnly=false;
     public TreeIndexerConformanceChecker(Trie modelTrie, int logCost, int modelCost) {
@@ -72,6 +74,139 @@ public class TreeIndexerConformanceChecker extends ApproximateConformanceChecker
     {
         computeCostOnly = value;
     }
+
+    private List<TrieNode> getDeepestCoveringNodes(List<Mapping> mapping, HashMap<Integer, TrieNode> preOrderIndexer)
+    {
+        List<Integer> mappedIndexes = mapping.stream().map(m -> m.position).sorted(Integer::compare).collect(Collectors.toList());
+        List<Integer> processed = new ArrayList<>();
+        List<TrieNode> result = new ArrayList<>();
+        for (int i = mappedIndexes.size()-1; i > 0; i--)
+        {
+            if (processed.contains(i))
+                continue;
+            TrieNode nd = preOrderIndexer.get(i);
+            processed.add(nd.getPreOrderIndex());
+            while (nd.getParent() != null)
+            {
+                nd = nd.getParent();
+                if (mappedIndexes.contains(nd.getPreOrderIndex()))
+                    processed.add(nd.getPreOrderIndex());
+            }
+            result.add(preOrderIndexer.get(i));
+        }
+        return result;
+    }
+
+    public List<Alignment> check (Trie logBehavior)
+    {
+        HashMap<Integer, TrieNode> logNodeIndexer = new HashMap<>();
+        HashMap<Integer, TrieNode> postOrderLogNodeIndexer = new HashMap<>();
+        logBehavior.getRoot().computeOrUpdatePreOrderIndex(logNodeIndexer);
+        logBehavior.getRoot().computeOrUpdatePostOrderIndex(postOrderLogNodeIndexer);
+
+        HashMap<TrieNode, TrieNode> mappings  = findMapping(logNodeIndexer);
+        List<Alignment> alignments = new ArrayList<>();
+
+        if (mappings.size() ==0)
+        {
+            Alignment alg = new Alignment();
+            TrieNode nd = modelTrie.getRoot().getChildOnShortestPathToTheEnd();
+            while (nd != null) {
+                alg.appendMove(new Move(">>", nd.getContent(), modelMoveCost));
+                if (nd.isEndOfTrace())
+                    break;
+                nd = nd.getChildOnShortestPathToTheEnd();
+            }
+
+            for (int i :logBehavior.getRoot().getLinkedTraces()) {
+
+                Alignment alg2 = new Alignment(alg);
+                for (char event : logBehavior.getTrace(i).toCharArray()) {
+                    alg2.appendMove(new Move(String.valueOf(event), ">>", logMoveCost));
+                }
+                alignments.add(alg2);
+            }
+        }
+        else
+        {
+            List<Integer> mappedIndexes = mappings.keySet().stream().map(m -> m.getPreOrderIndex()).collect(Collectors.toList());
+            List<TrieNode> leaves = logBehavior.getLeaves();
+            for (TrieNode nd: leaves)
+            {
+                Stack<Move> backward = new Stack<>();
+                Alignment alg = new Alignment();
+                TrieNode node = nd;
+                while (!mappedIndexes.contains(node.getPreOrderIndex()))
+                {
+                    Move move = new Move(node.getContent(),">>", logMoveCost);
+                    backward.push(move);
+                    node = node.getParent();
+                }
+                // we have reached a node that has a match
+
+                TrieNode modelNode = mappings.get(node).getChildOnShortestPathToTheEnd();
+                // add all model moves
+                List<Move> moves = new ArrayList<>();
+
+                while (modelNode != null) {
+                    moves.add(new Move(">>", modelNode.getContent(), modelMoveCost));
+                    if (modelNode.isEndOfTrace())
+                        break;
+                    modelNode = modelNode.getChildOnShortestPathToTheEnd();
+                }
+                for (int i = moves.size()-1; i >=0; i--)
+                    backward.push(moves.get(i));
+                backward.push(new Move(node.getContent(), node.getContent(),0));
+                //start traversing upward in both trees
+                modelNode = mappings.get(node).getParent();
+                node= node.getParent();
+                while(!modelNode.getContent().equals("dummy") &&!node.getContent().equals("dummy") )
+                {
+
+                    // check if the log trie node has a mapping that is equal to
+                    if (mappings.get(node) != null && mappings.get(node).equals(modelNode))
+                    {
+                        backward.push(new Move (node.getContent(), node.getContent(),0));
+                        modelNode = modelNode.getParent();
+                        node = node.getParent();
+                    }
+                    else if (mappings.get(node) == null) // this is not mapped and this is a log move
+                    {
+                        backward.push(new Move(node.getContent(),">>", logMoveCost));
+                        node = node.getParent();
+                    }
+                    else if (mappings.get(node) != null)// this is mapped to another node
+                    {
+                        while(!mappings.get(node).equals(modelNode))
+                        {
+                            backward.push(new Move(">>", modelNode.getContent(), modelMoveCost));
+                            modelNode = modelNode.getParent();
+                        }
+                    }
+                }
+                while (!modelNode.getContent().equals("dummy")) // we have to complete with model moves
+                {
+                    backward.push(new Move(">>", modelNode.getContent(), modelMoveCost));
+                    modelNode = modelNode.getParent();
+                }
+
+                while (!node.getContent().equals("dummy")) // we have to complete with model moves
+                {
+                    backward.push(new Move(node.getContent(),">>", logMoveCost));
+                    node = node.getParent();
+                }
+
+                while (!backward.isEmpty())
+                    alg.appendMove(backward.pop());
+
+               for (int i : nd.getLinkedTraces())
+                   alignments.add(alg);
+            }
+
+        }
+
+        return  alignments;
+    }
     @Override
     public Alignment check(List<String> trace) {
         traceSize = trace.size();
@@ -103,8 +238,14 @@ public class TreeIndexerConformanceChecker extends ApproximateConformanceChecker
                     parent = parent.getParent();
                 }
 
+                // handle log moves before the first binding
+                for (int i = mapping.get(0).position-1; i >= 0; i--)
+                    backward.push(new Move( trace.get(i), ">>", logMoveCost));
+
                 while (!backward.isEmpty())
                     alg.appendMove(backward.pop());
+
+
 
 //            Mapping currentMapping = mapping.get(mapping.size()-1);
 
@@ -153,6 +294,104 @@ public class TreeIndexerConformanceChecker extends ApproximateConformanceChecker
         return alg;
     }
 
+    private HashMap<TrieNode, TrieNode> findMapping(HashMap<Integer, TrieNode> logNodeIndexer)
+    {
+        //Key is the log trie node , value is the model trie node
+        HashMap<TrieNode,TrieNode> mapping = new HashMap<>();
+        Set<TrieNode> mappedTreeNodes = new HashSet<>();
+        HashMap<Pair<TrieNode,TrieNode>, Integer> visitedPairs = new HashMap<>();
+        int max = logNodeIndexer.keySet().stream().max( Integer::compare).get();
+        // let's directly add the roots mapping
+        mapping.put(logNodeIndexer.get(1), modelTrie.getRoot());
+        for (int i =2; i<= max ; i++)
+        {
+            List<TrieNode> indexContent = treeIndexer.get(logNodeIndexer.get(i).getContent().charAt(0));
+            int positionFrequency=0;
+            int[] hist = trieLabelHistogram.get(logNodeIndexer.get(i).getContent().charAt(0));
+            if (hist != null)
+                for (int x = logNodeIndexer.get(i).getLevel()-1 ; positionFrequency ==0 && x <= logNodeIndexer.get(i).getLevel()+labelLookAheadWindow && x < modelTrie.getRoot().getMaxPathLengthToEnd();x++ )
+                    positionFrequency+= hist[x];
+            if (positionFrequency > 0)
+            {
+                // look for a position match
+                int minCost = Integer.MAX_VALUE;
+                TrieNode chosen=null;
+                ArrayList<TrieNode> filtered;
+                if (mapping.size() >0) {
+                    int finalCurrentPosition = logNodeIndexer.get(i).getLevel();
+                    List<TrieNode> ancestors = logNodeIndexer.get(i).getAncestors();//.stream().map(a -> a.getPostOrderIndex()).collect(Collectors.toList());
+                    List<TrieNode> mappedKeyNodes = mapping.keySet().stream().collect(Collectors.toList());
+                    List<TrieNode> common = ancestors.stream().filter(mappedKeyNodes::contains).collect(Collectors.toList());
+                    List<TrieNode> toKeep = new ArrayList<>();
+                    for (TrieNode n1: common) {
+                        boolean found = false;
+                        for (TrieNode n2 : common) {
+                            if (n2.getAncestors().contains(n1))
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            toKeep.add(n1);
+                        }
+                    }
+
+                    List<Integer> mappedValues = new ArrayList<>();
+                    toKeep.stream().forEach( x -> mappedValues.add(mapping.get(x).getPostOrderIndex()));
+                    filtered= (ArrayList<TrieNode>) indexContent.stream()
+                            .filter(nd -> !mappedTreeNodes.contains(nd)
+                                    && hasAncestor(nd.getPostOrderIndex(), mappedValues , modelNodesIndexer)
+                                    && Math.abs(finalCurrentPosition  - nd.getLevel()) <= labelLookAheadWindow
+                            )
+                            .collect(Collectors.toList());
+                }
+                else
+                    filtered = (ArrayList<TrieNode>) indexContent;
+                for (TrieNode nd: filtered)
+                {
+
+                    int levelAbs = Math.abs((logNodeIndexer.get(i).getLevel()) - nd.getLevel());// just used in case of skipping a match for an event that does not have enough support
+
+
+                    int minPathAbs=0;
+
+
+                    minPathAbs = nd.findInSubtree2(logNodeIndexer.get(i), suffixLookAheadWindow);//, visitedPairs);
+
+
+                    if (levelAbs+minPathAbs <= minCost)// || (levelAbs+minPathAbs == minCost && chosen != null && nd.getLevel() < chosen.getLevel() ) )
+                    {
+                        chosen = nd;
+                        minCost = levelAbs+minPathAbs;
+//                        System.out.println("Found a better match");
+                    }
+//                    else if (levelAbs+minPathAbs==minCost && chosen != null
+////                            // && Math.abs(((traceSize -(i+1)) - nd.getMinPathLengthToEnd())) < Math.abs(((traceSize -(i+1)) - chosen.getMinPathLengthToEnd()))
+////                            &&  Math.min(Math.abs(nd.getMinPathLengthToEnd() - (traceSize -(i+1))), Math.abs(nd.getMaxPathLengthToEnd() - (traceSize -(i+1)))) <
+////                            Math.min(Math.abs(chosen.getMinPathLengthToEnd() - (traceSize -(i+1))), Math.abs(chosen.getMaxPathLengthToEnd() - (traceSize -(i+1))))
+//                    )
+//                    {
+//                        System.out.println("Another node with the same cost was found. Current:" +chosen+" Other:"+ nd);
+//                        if (nd.getLevel() <  chosen.getLevel())
+//                        {
+//                            System.out.println("Replacing current with other");
+//                            chosen = nd;
+//                        }
+//                    }
+//
+
+                }
+
+                if (chosen != null)
+                {
+                    mapping.put(logNodeIndexer.get(i), chosen);
+                }
+            }
+        }
+        return mapping;
+    }
     private List<Mapping> findMapping(List<String> trace) {
 
         //We need to compute a histogram for the trace as well.
@@ -347,4 +586,16 @@ public class TreeIndexerConformanceChecker extends ApproximateConformanceChecker
         }
         return found;
     }
+
+    private boolean hasAncestor(int childPostOrderIndex, List<Integer> ParentPostOrderIndex, HashMap<Integer, TrieNode> nodeIndexer)
+    {
+        for (int i: ParentPostOrderIndex) {
+            if (isAncestor(childPostOrderIndex, i, nodeIndexer))
+                return true;
+        }
+        return false;
+
+
+    }
+
 }

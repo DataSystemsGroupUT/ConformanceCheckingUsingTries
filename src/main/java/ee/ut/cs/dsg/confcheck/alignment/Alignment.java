@@ -8,6 +8,7 @@ import java.util.List;
 public class Alignment {
     private final List<Move> moves;
     private int totalCost;
+    private String traceID;
 
     public Alignment(Alignment other) {
         this.moves = other.getMoves();
@@ -22,6 +23,12 @@ public class Alignment {
         this.moves = new ArrayList<>();
         this.totalCost = totalCost;
     }
+    public Alignment(String id)
+    {
+        this.moves = new ArrayList<>();
+        this.totalCost = 0;
+        this.traceID = id;
+    }
 
     public void appendMove(Move move) {
         appendMove(move, move.getCost());
@@ -32,6 +39,9 @@ public class Alignment {
         totalCost += oracleCost;
     }
 
+    public String getTraceID(){
+        return traceID;
+    }
     public int getTotalCost() {
         return totalCost;
     }
@@ -114,6 +124,26 @@ public class Alignment {
         return ((double) syncMoves)/logLength;
     }
     public double weightedLogCoverage()
+    {
+        String log = logProjection();
+        int startFrom = 0;
+        double coverage = 0.0d;
+        double perfectCoverage = 0.0d;
+        for (int i = 0; i < log.length();i++) {
+            perfectCoverage += Math.pow(i+1,-1);
+            for (int j = startFrom; j < moves.size(); j++) {
+                Move move = moves.get(j);
+                if (move.getMoveType() == Move.MoveType.SYNC_MOVE && move.getLogMove().charAt(0) == log.charAt(i)) {
+                    coverage += Math.pow(i+1,-1);
+                    startFrom = j + 1;
+                    break;
+                }
+            }
+        }
+        return coverage== 0.0d? 0.0d: coverage/perfectCoverage;
+
+    }
+    public double weightedLogCoverageOld()
     {
         int syncMovesWeight=0, logLength=this.logProjection().length();
         for (int i = 0; i < moves.size();i++)

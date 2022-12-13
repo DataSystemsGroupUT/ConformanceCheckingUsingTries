@@ -91,7 +91,7 @@ public class TreeBasedHolisticConformanceChecker {
         upperBound = 0;
         for ( int[] m: mapping )
         {
-            System.out.printf("\nLeft node %d is mapped to right node %d", m[0],m[1]);
+//            System.out.printf("\nLeft node %d is mapped to right node %d", m[0],m[1]);
 
             if (m[0] == 0 || m[1]==0)
                 upperBound++;

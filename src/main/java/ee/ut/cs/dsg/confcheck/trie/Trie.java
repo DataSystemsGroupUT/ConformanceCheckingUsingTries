@@ -233,4 +233,10 @@ public class Trie {
 
         return aptedTreeRoot;
     }
+
+    public List<TrieNode> getLeaves() {
+        List<TrieNode> result = new ArrayList<>();
+        result.addAll(leaves);
+        return result;
+    }
 }
