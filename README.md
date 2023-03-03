@@ -1,4 +1,4 @@
-# I Will Survive: An Online Conformance Checking Algorithm Using Decay Time
+# I Will Survive: An Event-driven Conformance Checking Approach Over Process Streams
 
 ## Info
 This code is part of a conference paper currently under revision.
@@ -19,8 +19,7 @@ in Runner.java. It is possible to run the deviation-checker for all logs ("gener
 log ("specific"). Note: due to Github storage limitations, only Sepsis and BPI2015 logs are provided
 in this repo. Please contact us in case you need the other datasets.
 
-In case you want to alter between fixed/discounted settings for the algorithm, this can be done in 
-StreamingConformanceChecker.java:
+In case you want to alter between fixed/discounted settings for the algorithm, this can be done by modifying:
 * **discountedDecayTime** (false = Fixed, true = Discounted)
 * **minDecayTime** is either the value for Fixed or the minimum value for Discounted setting
 * **decayTimeMultiplier** is the Discounting Factor - only used if discountedDecayTime = true
