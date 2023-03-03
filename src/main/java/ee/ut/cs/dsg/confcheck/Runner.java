@@ -1,20 +1,11 @@
 package ee.ut.cs.dsg.confcheck;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
-import ee.ut.cs.dsg.confcheck.alignment.AlignmentFactory;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
-import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 import ee.ut.cs.dsg.confcheck.util.AlphabetService;
-import ee.ut.cs.dsg.confcheck.util.Configuration;
-import ee.ut.cs.dsg.confcheck.StatefulRandomConformanceChecker;
-import ee.ut.cs.dsg.confcheck.util.Utils;
-import gnu.trove.impl.sync.TSynchronizedShortByteMap;
-import gnu.trove.impl.sync.TSynchronizedShortCharMap;
+import it.unimi.dsi.fastutil.Hash;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
-import org.apache.commons.math3.analysis.function.Add;
 import org.deckfour.xes.classification.XEventAttributeClassifier;
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClassifier;
@@ -36,12 +27,10 @@ import org.processmining.logfiltering.parameters.SamplingReturnType;
 import org.processmining.models.connections.GraphLayoutConnection;
 import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetFactory;
-import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetImpl;
 import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.operationalsupport.xml.OSXMLConverter;
 import org.processmining.plugins.pnml.base.FullPnmlElementFactory;
 import org.processmining.plugins.pnml.base.Pnml;
-import org.processmining.plugins.pnml.elements.extensions.opennet.PnmlLabel;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -53,10 +42,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.Array;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
@@ -69,7 +58,38 @@ public class Runner {
 
     private static AlphabetService service;
 
-    public static void main(String... args) throws UnknownHostException {
+    public static void main(String... args) throws Exception {
+
+
+        // settings
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("logCost", 1); // not implemented
+        params.put("modelCost", 1); // not implemented
+        params.put("stateLimit", 10000); // not implemented
+        params.put("caseLimit", 10000);
+        params.put("minDecayTime", 3); // 3
+        params.put("decayTimeMultiplier", 0.3F); //0.3F
+        params.put("discountedDecayTime", true);
+
+        // log files
+        String inputLog = "input/BPI_2020_1k_sample.xes";
+        String proxyLog = "input/Stress_Test/Simulated_Log_Small.xes.gz"; //"input/BPI_2020_Sim_2k_random_0.95.xes";
+/*
+        ArrayList<String> result;
+
+        // file based
+        result = testStreamConformanceOnFile(proxyLog, inputLog, params);
+
+        for (String r:result){
+            System.out.println(r);
+        }
+*/
+        /*for (Character s : service.getAlphabet()){
+            System.out.println(s+"\t"+service.deAlphabetize(s));
+        }*/
+
+        // stream based
+        testStreamConformanceOnStream(proxyLog,params);
 
 
         String executionType = "other"; // "stress_test" or "cost_diff"
@@ -92,267 +112,63 @@ public class Runner {
             String pathName = "";
             List<String> res = null;
             String path_folder = "";
-            String log_name = "";
             String im_setting = "";
 
 
             // M-models
             path_folder = "M-models";
+            List<String> logs = new ArrayList<>();
+            logs.addAll(Arrays.asList("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10"));
 
-            // M1
-            log_name = "M1";
-            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
-            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
-            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
+            for (String log_name:logs){
+                sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
+                sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
+                pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
 
-            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-            try {
-                FileWriter wr = new FileWriter(pathName);
-                for (String s : res) {
-                    wr.write(s);
-                    wr.write(System.lineSeparator());
-                }
-                wr.close();
-            } catch (IOException e) {
-                System.out.println("Error occurred!");
-                e.printStackTrace();
-            }
-
-            // M2
-            log_name = "M2";
-            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
-            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
-            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
-
-            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-            try {
-                FileWriter wr = new FileWriter(pathName);
-                for (String s : res) {
-                    wr.write(s);
-                    wr.write(System.lineSeparator());
-                }
-                wr.close();
-            } catch (IOException e) {
-                System.out.println("Error occurred!");
-                e.printStackTrace();
-            }
-
-            // M3
-
-            log_name = "M3";
-            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
-            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
-            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
-
-            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-            try {
-                FileWriter wr = new FileWriter(pathName);
-                for (String s : res) {
-                    wr.write(s);
-                    wr.write(System.lineSeparator());
-                }
-                wr.close();
-            } catch (IOException e) {
-                System.out.println("Error occurred!");
-                e.printStackTrace();
-            }
-
-            // M4
-            log_name = "M4";
-            sProxyLogPath = "input\\"+path_folder+"\\"+log_name+"_sim.xes";
-            sLogPath = "input\\"+path_folder+"\\"+log_name+".xes";
-            pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
-
-            res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-            try {
-                FileWriter wr = new FileWriter(pathName);
-                for (String s : res) {
-                    wr.write(s);
-                    wr.write(System.lineSeparator());
-                }
-                wr.close();
-            } catch (IOException e) {
-                System.out.println("Error occurred!");
-                e.printStackTrace();
-            }
-
-
-
-/*
-            HashMap<String, HashMap<String, String>> logs = new HashMap<>();
-            HashMap<String, String> subLog = new HashMap<>();
-            subLog.put("log", "input\\BPI2012\\sampledLog.xml");
-            subLog.put("simulated", "input\\BPI2012\\simulatedLog.xml");
-            subLog.put("clustered", "input\\BPI2012\\sampledClusteredLog.xml");
-            subLog.put("random", "input\\BPI2012\\randomLog.xml");
-            subLog.put("frequency", "input\\BPI2012\\frequencyLog.xml");
-            subLog.put("reduced", "input\\BPI2012\\reducedLogActivity.xml");
-            logs.put("BPI2012", new HashMap<>(subLog));
-            subLog.clear();
-            subLog.put("log", "input\\BPI2015\\sampledLog.xml");
-            subLog.put("simulated", "input\\BPI2015\\simulatedLog.xml");
-            subLog.put("clustered", "input\\BPI2015\\sampledClusteredLog.xml");
-            subLog.put("random", "input\\BPI2015\\randomLog.xml");
-            subLog.put("frequency", "input\\BPI2015\\frequencyLog.xml");
-            subLog.put("reduced", "input\\BPI2015\\reducedLogActivity.xml");
-            logs.put("BPI2015", new HashMap<>(subLog));
-            subLog.clear();
-            subLog.put("log", "input\\BPI2017\\sampledLog.xml");
-            subLog.put("simulated", "input\\BPI2017\\simulatedLog.xml");
-            subLog.put("clustered", "input\\BPI2017\\sampledClusteredLog.xml");
-            subLog.put("random", "input\\BPI2017\\randomLog.xml");
-            subLog.put("frequency", "input\\BPI2017\\frequencyLog.xml");
-            subLog.put("reduced", "input\\BPI2017\\reducedLogActivity.xml");
-            logs.put("BPI2017", new HashMap<>(subLog));
-            subLog.clear();
-            subLog.put("log", "input\\BPI2019\\sampledLog.xml");
-            subLog.put("simulated", "input\\BPI2019\\simulatedLog.xml");
-            subLog.put("clustered", "input\\BPI2019\\sampledClusteredLog.xml");
-            subLog.put("random", "input\\BPI2019\\randomLog.xml");
-            subLog.put("frequency", "input\\BPI2019\\frequencyLog.xml");
-            subLog.put("reduced", "input\\BPI2019\\reducedLogActivity.xml");
-            logs.put("BPI2019", new HashMap<>(subLog));
-            subLog.clear();
-            subLog.put("log", "input\\Sepsis\\sampledLog.xml");
-            subLog.put("simulated", "input\\Sepsis\\simulatedLog.xml");
-            subLog.put("clustered", "input\\Sepsis\\sampledClusteredLog.xml");
-            subLog.put("random", "input\\Sepsis\\randomLog.xml");
-            subLog.put("frequency", "input\\Sepsis\\frequencyLog.xml");
-            subLog.put("reduced", "input\\Sepsis\\reducedLogActivity.xml");
-            logs.put("Sepsis", new HashMap<>(subLog));
-            subLog.clear();
-
-            ConformanceCheckerType checkerType = ConformanceCheckerType.TRIE_STREAMING;
-            System.out.println(checkerType.toString());
-
-            String runType = "general"; //"specific" for unique log/proxy combination, "logSpecific" for all proxies in one log, "general" for running all logs
-
-            if (runType == "specific") {
-                // run for specific log
-                String sLog = "Sepsis";
-                String sLogType = "frequency";
-                String sLogPath = logs.get(sLog).get("log");
-                String sProxyLogPath = logs.get(sLog).get(sLogType);
-                String pathName = pathPrefix + formattedDate + "_" + sLog + "_" + sLogType + fileType;
+                res = testStreamConformanceOnFile(sProxyLogPath, sLogPath, params);
+                res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
                 try {
-
-                    List<String> res = testOnConformanceApproximationResults(sProxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-                    res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
                     FileWriter wr = new FileWriter(pathName);
                     for (String s : res) {
                         wr.write(s);
                         wr.write(System.lineSeparator());
                     }
                     wr.close();
-
-
                 } catch (IOException e) {
                     System.out.println("Error occurred!");
                     e.printStackTrace();
                 }
-            } else if (runType == "logSpecific") {
-                String sLog = "BPI2019";
-                String sLogPath = logs.get(sLog).get("log");
-                HashMap<String, String> logTypes = logs.get(sLog);
-
-                for (Map.Entry<String, String> logTypesMap :
-                        logTypes.entrySet()) {
-                    if (logTypesMap.getKey().equals("log")) {
-                        continue;
-                    }
-                    String pathName = pathPrefix + formattedDate + "_" + sLog + "_" + logTypesMap.getKey() + fileType;
-                    String proxyLogPath = logTypesMap.getValue();
-
-
-                    try {
-
-                        List<String> res = testOnConformanceApproximationResults(proxyLogPath, sLogPath, checkerType, LogSortType.NONE);
-                        res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-
-                        FileWriter wr = new FileWriter(pathName);
-                        for (String s : res) {
-                            wr.write(s);
-                            wr.write(System.lineSeparator());
-                        }
-                        wr.close();
-
-
-                    } catch (IOException e) {
-                        System.out.println("Error occurred!");
-                        e.printStackTrace();
-                    }
-
-                }
-
-
-            } else if (runType == "general") {
-                // run for all logs
-                for (Map.Entry<String, HashMap<String, String>> logsMap :
-                        logs.entrySet()) {
-
-                    HashMap<String, String> logTypes = logsMap.getValue();
-                    String logPath = logTypes.get("log");
-                    String logName = logsMap.getKey();
-                    System.out.println("-----##-----");
-                    System.out.println(logName);
-
-
-                    for (Map.Entry<String, String> logTypesMap :
-                            logTypes.entrySet()) {
-                        if (logTypesMap.getKey().equals("log")) {
-                            continue;
-                        }
-                        String pathName = pathPrefix + formattedDate + "_" + logName + "_" + logTypesMap.getKey() + fileType;
-                        String proxyLogPath = logTypesMap.getValue();
-
-                        System.out.println("-----");
-                        System.out.println(logTypesMap.getKey());
-
-
-                        try {
-
-                            List<String> res = testOnConformanceApproximationResults(proxyLogPath, logPath, checkerType, LogSortType.NONE);
-                            res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
-
-                            FileWriter wr = new FileWriter(pathName);
-                            for (String s : res) {
-                                wr.write(s);
-                                wr.write(System.lineSeparator());
-                            }
-                            wr.close();
-
-
-                        } catch (IOException e) {
-                            System.out.println("Error occurred!");
-                            e.printStackTrace();
-                        }
-
-                    }
-
-                }
-            } else {
-                System.out.println("Run type not implemented");
             }
-        } else if (executionType == "stress_test")
-        {
 
-            String proxyLog = null;
-            String logSize = "small";
-            if (logSize=="small")
-                proxyLog = "input\\Stress_test\\Simulated_Log_Small.xes.gz";
-            else if (logSize=="medium")
-                proxyLog = "input\\Stress_test\\Simulated_Log_Medium.xes.gz";
-            else if (logSize=="large")
-                proxyLog = "input\\Stress_test\\Simulated_Log_Large.xes.gz";
-            else
-                System.out.println("log size undefined");
-            listenToEvents(proxyLog);
-            //printLogStatistics(proxyLog);
-*/
+
+            // BPI-models
+            logs = new ArrayList<>();
+            logs.addAll(Arrays.asList("BPI_2012_0.2", "BPI_2012_0.5", "BPI_2012_0.8", "BPI_2012_0.95",
+                    "BPI_2017_0.2", "BPI_2017_0.5", "BPI_2017_0.8", "BPI_2017_0.95",
+                    "BPI_2020_0.2", "BPI_2020_0.5", "BPI_2020_0.8", "BPI_2020_0.95"));
+
+            for (String log_name:logs){
+                sProxyLogPath = "input\\"+log_name.substring(0,8)+"_Sim_2k_random"+log_name.substring(8)+".xes";
+                sLogPath = "input\\"+log_name.substring(0,8)+"_1k_sample.xes";
+                pathName = pathPrefix + formattedDate + "_" + log_name + fileType;
+
+                res = testStreamConformanceOnFile(sProxyLogPath, sLogPath, params);
+                res.add(0, String.format("TraceId, Cost_%1$s, ExecutionTime_%1$s", checkerType));
+                try {
+                    FileWriter wr = new FileWriter(pathName);
+                    for (String s : res) {
+                        wr.write(s);
+                        wr.write(System.lineSeparator());
+                    }
+                    wr.close();
+                } catch (IOException e) {
+                    System.out.println("Error occurred!");
+                    e.printStackTrace();
+                }
+            }
+
+
+
         } else {
             System.out.println("Unknown execution type");
         }
@@ -361,7 +177,16 @@ public class Runner {
 
     }
 
-    public static void listenToEvents(String inputLog) throws UnknownHostException {
+    public static void testStreamConformanceOnStream(String proxyLog, HashMap<String, Object> params) throws UnknownHostException {
+
+
+        int logCost = (int) params.get("logCost"); // not implemented
+        int modelCost = (int) params.get("modelCost"); // not implemented
+        int stateLimit = (int) params.get("stateLimit"); // not implemented
+        int caseLimit = (int) params.get("caseLimit");
+        int minDecayTime = (int) params.get("minDecayTime");
+        float decayTimeMultiplier = (float) params.get("decayTimeMultiplier");
+        boolean discountedDecayTime = (boolean) params.get("discountedDecayTime");
 
         int port = 1234;
         InetAddress address = InetAddress.getByName("127.0.0.1");
@@ -370,7 +195,7 @@ public class Runner {
         OSXMLConverter converter = new OSXMLConverter();
         init();
         long start = System.currentTimeMillis();
-        Trie t = constructTrie(inputLog);
+        Trie t = constructTrie(proxyLog);
         //System.out.println(String.format("Time taken for trie construction: %d", System.currentTimeMillis()-start));
         //System.out.println("Trie size: "+t.getSize());
 
@@ -405,7 +230,8 @@ public class Runner {
                 XTrace trace;
                 start = System.currentTimeMillis();
                 long prevStart = start;
-                long runTimeMillis = 300000;
+                long runTimeMillis = 60000*60;
+                long eventsLimit = 5000000;
                 long eventReceivedTime = System.currentTimeMillis();
                 long eventPreparedTime = System.currentTimeMillis();
                 long eventHandledTime = System.currentTimeMillis();
@@ -429,7 +255,7 @@ public class Runner {
 
         */
 
-                StreamingConformanceChecker cnfChecker = new StreamingConformanceChecker(t,1,1,100000, 100000);
+                StreamingConformanceChecker checker = new StreamingConformanceChecker(t, logCost, modelCost,stateLimit,caseLimit,minDecayTime,decayTimeMultiplier,discountedDecayTime);
 
                 Alignment alg;
                 List<String> events = new ArrayList<>();
@@ -463,18 +289,30 @@ public class Runner {
 
                     eventPreparedTime = System.currentTimeMillis();
 
-                    cnfChecker.check(events, caseId);
+                    checker.check(events, caseId);
                     eventHandledTime = System.currentTimeMillis();
                     eventReceivedToPrepared += eventPreparedTime - eventReceivedTime;
                     eventReceivedToHandled += eventHandledTime - eventReceivedTime;
                     eventPreparedToHandled += eventHandledTime - eventPreparedTime;
                     totalIdleTime += idleTime;
                     //System.out.println(String.format("%d\t%d\t%d\t%d", eventPrepared-eventReceived, eventHandled-eventReceived, eventHandled-eventPrepared, idleTime));
-                    if(System.currentTimeMillis()-start>=runTimeMillis){
-                        System.out.println(String.format("Run time exhausted. Run time: %d", runTimeMillis));
+                    if(System.currentTimeMillis()-start>runTimeMillis){
+                        System.out.println(String.format("Time limit reached. Run time: %d", runTimeMillis));
+                        System.out.print("events: ");
+                        System.out.print(eventsReceived);
+                        System.out.print(" | ");
+                        checker.printCurrentCaseAndStateCounts();
+                        System.out.print("\n");
                         System.out.println("Received to prepared, Received to handled, Prepared to handled, Idle time");
                         System.out.println(String.format("%d, %d, %d, %d", eventReceivedToPrepared, eventReceivedToHandled, eventPreparedToHandled, totalIdleTime));
                         break;
+                    }
+                    if(eventsReceived%500==0){
+                        System.out.print("events: ");
+                        System.out.print(eventsReceived);
+                        System.out.print(" | ");
+                        checker.printCurrentCaseAndStateCounts();
+                        System.out.print("\n");
                     }
                     //alg = cnfChecker.getCurrentOptimalState(caseId, true).getAlignment();
 
@@ -527,6 +365,73 @@ public class Runner {
             }
         }
 
+    }
+
+    public static ArrayList<String> testStreamConformanceOnFile(String proxyLog, String inputLog, HashMap<String, Object> params){
+
+        int logCost = (int) params.get("logCost"); // not implemented
+        int modelCost = (int) params.get("modelCost"); // not implemented
+        int stateLimit = (int) params.get("stateLimit"); // not implemented
+        int caseLimit = (int) params.get("caseLimit");
+        int minDecayTime = (int) params.get("minDecayTime");
+        float decayTimeMultiplier = (float) params.get("decayTimeMultiplier");
+        boolean discountedDecayTime = (boolean) params.get("discountedDecayTime");
+
+        ArrayList<String> result = new ArrayList<>();
+
+        init();
+        Trie t = constructTrie(proxyLog);
+
+        XLog inputSamplelog;
+        XesXmlParser parser = new XesXmlParser();
+        long totalTime=0;
+
+        try {
+            InputStream is = new FileInputStream(inputLog);
+            inputSamplelog = parser.parse(is).get(0);
+
+            List<String> templist = new ArrayList<>();
+            List<String> tracesToSort = new ArrayList<>();
+            XTrace trace;
+
+            for (int i = 0; i < inputSamplelog.size(); i++)
+            {
+                trace = inputSamplelog.get(i);
+                templist = new ArrayList<>();
+
+                for (XEvent e: trace)
+                {
+                    String label = "";
+                    try{
+                        label = e.getAttributes().get(inputSamplelog.getClassifiers().get(0).getDefiningAttributeKeys()[0]).toString();
+                    } catch (Exception ex) {
+                        label = e.getAttributes().get("concept:name").toString();
+                    }
+                    templist.add(Character.toString(service.alphabetize(label)));
+                }
+
+                StringBuilder sb = new StringBuilder(templist.size());
+                sb.append(i).append((char)63); // we prefix the trace with its ID
+
+                Arrays.stream(templist.toArray()).forEach( e-> sb.append(e));
+
+
+                tracesToSort.add(sb.toString());
+            }
+
+            ConformanceChecker checker = new StreamingConformanceChecker(t, logCost, modelCost,stateLimit,caseLimit,minDecayTime,decayTimeMultiplier,discountedDecayTime);
+
+            for (int i = 0; i < tracesToSort.size(); i++) {
+                totalTime = computeAlignmentStream(tracesToSort, checker, totalTime, i, result);
+
+            }
+
+        } catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
 
@@ -591,6 +496,7 @@ public class Runner {
     }
 
 
+
     private static ArrayList<String> testOnConformanceApproximationResults(String inputProxyLogFile, String inputSampleLogFile, ConformanceCheckerType confCheckerType, LogSortType sortType)
     {
         init();
@@ -622,7 +528,7 @@ public class Runner {
             ConformanceChecker checker;
 
             if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
-                checker = new StreamingConformanceChecker(t, 1, 1, 100000, 100000);
+                checker = new StreamingConformanceChecker(t, 1, 1, 100000, 100000, 3, 0.3F, true);
                 //System.out.print("Average trie size: ");
                 //System.out.println(checker.modelTrie.getAvgTraceLength());
             } else {
@@ -697,7 +603,7 @@ public class Runner {
                 for (int i = tracesToSort.size() -1; i>=0; i--)
                 {
                     if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
-                        totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
+                        totalTime = computeAlignmentStream(tracesToSort, checker, totalTime, i, result);
                     } else {
                         totalTime = computeAlignment(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
                     }
@@ -707,7 +613,7 @@ public class Runner {
             else {
                 for (int i = 0; i < tracesToSort.size(); i++) {
                     if (confCheckerType == ConformanceCheckerType.TRIE_STREAMING) {
-                        totalTime = computeAlignment2(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
+                        totalTime = computeAlignmentStream(tracesToSort, checker, totalTime, i, result);
                     } else {
                         totalTime = computeAlignment(tracesToSort, checker, sampleTracesMap, totalTime, devChecker, i, result);
                     }
@@ -732,11 +638,12 @@ public class Runner {
     }
 
 
-    private static long computeAlignment2(List<String> tracesToSort, ConformanceChecker checkerC, HashMap<String, Integer> sampleTracesMap, long totalTime, DeviationChecker devChecker, int i, ArrayList<String> result) {
+    private static long computeAlignmentStream(List<String> tracesToSort, ConformanceChecker checkerC, long totalTime, int i, ArrayList<String> result) {
         long start;
         long executionTime;
         Alignment alg;
         List<String> trace = new ArrayList<String>();
+        List<String> tempList;
         StreamingConformanceChecker checker = (StreamingConformanceChecker) checkerC;
 
         int pos = tracesToSort.get(i).indexOf((char) 63);
@@ -746,13 +653,10 @@ public class Runner {
             trace.add(new StringBuilder().append(c).toString());
         }
 
-        //System.out.println("Case id: "+Integer.toString(i));
-        //System.out.println(trace);
-
         start = System.currentTimeMillis();
 
         for (String e : trace) {
-            List<String> tempList = new ArrayList<String>();
+            tempList = new ArrayList<String>();
             tempList.add(e);
             checker.check(tempList, Integer.toString(i));
         }
@@ -763,9 +667,9 @@ public class Runner {
         executionTime = System.currentTimeMillis() - start;
         totalTime += executionTime;
         if (alg != null) {
-            System.out.println(Integer.toString(i) + "," + actualTrace);
+            //System.out.println(Integer.toString(i) + "," + actualTrace);
 
-            result.add(Integer.toString(i) + "," + alg.getTotalCost() + "," + executionTime);
+            result.add(Integer.toString(i) + "," + alg.getTotalCost() + "," + executionTime); //+ "," + alg.toString());
 
         } else {
             System.out.println("Couldn't find an alignment under the given constraints");
@@ -903,12 +807,14 @@ public class Runner {
 //                    break;
                 }
                 count++;
-                if (count%2000==0) {
-                    //break;
-                    System.out.println(count);
-                    //System.out.println(String.format("Trie size: %d",t.getSize()));
-                    //System.out.println(String.format("Trie avg length: %d",t.getAvgTraceLength()));
+                /*
+                if (count==25000){
+
+                    break;
                 }
+                */
+
+
             }
             return t;
         }

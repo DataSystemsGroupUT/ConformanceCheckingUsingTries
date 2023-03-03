@@ -217,8 +217,6 @@ public class TrieNode {
 
     public int hashCode()
     {
-        // This is not unique - does not take into account the path the node is on
-        // e.g. the "C" in ABC and XYC would return same value
         return this.getPrefix().hashCode();
     }
 

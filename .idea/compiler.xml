@@ -8,10 +8,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="ConformanceCheckingUsingTries" />
-      </profile> 
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="ConformanceCheckingUsingTries" target="8" />
+      <module name="ConformanceCheckingUsingTries" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

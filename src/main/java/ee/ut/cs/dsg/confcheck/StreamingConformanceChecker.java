@@ -19,36 +19,36 @@ public class StreamingConformanceChecker extends ConformanceChecker{
 
 
     protected boolean verbose = false;
-    protected final CostFunction costFunction;
+
+    protected LinkedList<String> casesList;
 
     // Streaming variables
 
     protected boolean replayWithLogMoves = true;
-    protected int minDecayTime = 3;
-    protected float decayTimeMultiplier = 0.3F;
-    protected boolean discountedDecayTime = true; // if set to false then uses fixed minDecayTime value
-    protected int averageTrieLength = 0;
+    protected int minDecayTime; // = 3;
+    protected float decayTimeMultiplier; // = 0.3F;
+    protected boolean discountedDecayTime; // = true; // if set to false then uses fixed minDecayTime value
+    protected int averageTrieLength;
+
+    protected int stateLimit;
+    protected int caseLimit;
 
 
 
-    public StreamingConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials, CostFunction costFunction)
+    public StreamingConformanceChecker(Trie trie, int logCost, int modelCost, int stateLimit, int caseLimit, int minDecayTime, float decayTimeMultiplier, boolean discountedDecayTime)
     {
-        super(trie, logCost, modelCost, maxStatesInQueue);
-        rnd = new Random(19);
-        this.maxTrials = maxTrials;
-        inspectedLogTraces = new Trie(trie.getMaxChildren());
-        this.costFunction = costFunction;
-        if (discountedDecayTime){
+        super(trie, logCost, modelCost);
+        this.stateLimit = stateLimit; //  to-be implemented
+        this.caseLimit = caseLimit;
+        this.minDecayTime = minDecayTime;
+        this.decayTimeMultiplier = decayTimeMultiplier;
+        this.discountedDecayTime = discountedDecayTime;
+
+        if (this.discountedDecayTime){
             this.averageTrieLength = trie.getAvgTraceLength();
         }
-    }
-    public StreamingConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue) {
-        this(trie,logCost,modelCost,maxStatesInQueue, 10000);
 
-    }
-
-    public StreamingConformanceChecker(Trie trie, int logCost, int modelCost, int maxStatesInQueue, int maxTrials) {
-        this(trie, logCost, modelCost, maxStatesInQueue, maxTrials, new DualProgressiveCostFunction());
+        casesList = new LinkedList<>();
     }
 
     public State checkForSyncMoves(String event, State currentState){
@@ -65,16 +65,21 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             syncMove = new Move(event, event, 0);
             alg.appendMove(syncMove);
             prev = node;
-            int decayTime;
-            if(discountedDecayTime){
-                decayTime = Math.max(Math.round((averageTrieLength-alg.getTraceSize())*decayTimeMultiplier),minDecayTime);
-            } else {
-                decayTime = minDecayTime;
-            }
+            int decayTime = findDecayTime(alg.getTraceSize());
 
             return new State(alg, new ArrayList<>(), prev, currentState.getCostSoFar(), currentState, decayTime);
         }
 
+    }
+
+    public int findDecayTime(int traceSize){
+        int decayTime;
+        if(discountedDecayTime){
+            decayTime = Math.max(Math.round((averageTrieLength-traceSize)*decayTimeMultiplier),minDecayTime);
+        } else {
+            decayTime = minDecayTime;
+        }
+        return decayTime;
     }
 
     public HashMap<TrieNode,Alignment> findOptimalLeafNode(State state, int costLimit){
@@ -194,90 +199,25 @@ public class StreamingConformanceChecker extends ConformanceChecker{
            alg.appendMove(mv);
        }
 
-
-
        HashMap<TrieNode, Alignment> result = new HashMap<>();
        result.put(optimalNode, alg);
        return result;
 
+    }
 
-
-
-        // find alignment using edit distance
-        /*
-        int originalCostLimit = costLimit;
-        List<String> originalPostfix = state.getTracePostfix();
-        int stateLevel = state.getNode().getLevel();
-        int originalPostfixSize = originalPostfix.size();
-        int maxLevel = stateLevel+originalPostfixSize+costLimit-1;
-        List<TrieNode> leaves = modelTrie.getLeavesFromNode(state.getNode(), maxLevel);
-        TrieNode currentNode;
-        TrieNode optimalNode = null;
-        Alignment alg = state.getAlignment();
-        String logTrace = String.join("",state.getTracePostfix());
-        String bestTrace = "";
-        String proxyTrace;
-        String event;
-        String bestAlignment = "";
-        List<TrieNode> optimalPath = null;
-        for (TrieNode n:leaves){
-            currentNode = n;
-            proxyTrace = "";
-            optimalPath = new ArrayList<>();
-            while(currentNode!=state.getNode() & currentNode.getLevel()>0){
-                optimalPath.add(0, currentNode);
-                proxyTrace = currentNode.getContent()+proxyTrace;
-                currentNode = currentNode.getParent();
-            }
-
-            ProtoTypeSelectionAlgo.AlignObj obj = ProtoTypeSelectionAlgo.levenshteinDistancewithAlignment(logTrace, proxyTrace);
-            if (obj.cost < costLimit) {
-                costLimit = (int) obj.cost;
-                if (logTrace.length()==0)
-                    costLimit++; // small fix if log trace is empty, then levenshteinDistancewithAlignment wrongly discounts the cost by 1
-                bestAlignment = obj.Alignment;
-                bestTrace = proxyTrace;
-                optimalNode = n;
-                if (obj.cost == 0)
-                    break;
-            }
+    public void printCurrentCaseAndStateCounts(){
+        long caseCount = 0;
+        long stateCount = 0;
+        for (StatesBuffer statesList : statesInBuffer.values()){
+            caseCount++;
+            stateCount += statesList.getCurrentStates().size();
         }
-        if (costLimit>=originalCostLimit)
-            return null;
-        String[] algStrings = bestAlignment.split(">> ");
-        List<String> moveAndEvent;
-        for (String s:algStrings){
-            //if sync: remove element from both postfix and optimalNodes
-            //if delete: remove element  from postfix
-            //if insert: remove element from optimalNodes
-
-            moveAndEvent = Arrays.stream(s.trim().split(" ")).collect(Collectors.toList());
-
-            if(moveAndEvent.contains("Sync")){
-                moveAndEvent.remove("Sync");
-                event = moveAndEvent.get(0);
-                alg.appendMove(new Move(event, event, 0));
-            } else if (moveAndEvent.contains("Deletion")){
-                moveAndEvent.remove("Deletion");
-                event = moveAndEvent.get(0);
-                alg.appendMove(new Move(event, ">>", 1));
-            } else if (moveAndEvent.contains("Insertion")){
-                moveAndEvent.remove("Insertion");
-                event = moveAndEvent.get(0);
-                alg.appendMove(new Move(">>", event, 1));
-            }
-        }
-
-
-        HashMap<TrieNode, Alignment> result = new HashMap<>();
-        result.put(optimalNode, alg);
-        return result;
-
-
-         */
-
-
-
+        System.out.print("Case count: ");
+        System.out.print(caseCount);
+        System.out.print(" | State count: ");
+        System.out.print(stateCount);
+        System.out.print(" | Curr time: ");
+        System.out.print(System.currentTimeMillis());
     }
 
     public State getCurrentOptimalState(String caseId, boolean finalState){ //
@@ -287,16 +227,11 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         List<State> statesList = new ArrayList<>();
 
         List<State> optimalStates = new ArrayList<>();
-        int postfixSize;
-        int minLengthToEnd;
-        int minAdditionalCost = 99999;
         int currentCost;
         int decayTime;
         State newestState = null;
-        State oldestState = null;
         List<State> newestStates = new ArrayList<>();
         List<State> oldestStates = new ArrayList<>();
-        boolean isEndOfTrace;
         if (statesInBuffer.containsKey(caseId)){
             caseStatesInBuffer = statesInBuffer.get(caseId);
             currentStates = caseStatesInBuffer.getCurrentStates();
@@ -326,40 +261,10 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                         newestStates.add(s);
                     }
 
-
-                    if(oldestState==null
-                            || (s.getDecayTime()<oldestState.getDecayTime() & s.getTracePostfix().size()>oldestState.getTracePostfix().size())
-                            || (s.getDecayTime()<oldestState.getDecayTime() & s.getTracePostfix().size()==oldestState.getTracePostfix().size())
-                            || (s.getDecayTime()==oldestState.getDecayTime() & s.getTracePostfix().size()>oldestState.getTracePostfix().size())
-                    ){
-                        oldestState = s;
-                        oldestStates.clear();
-                        oldestStates.add(s);
-                    } else if ((s.getDecayTime()==oldestState.getDecayTime() & s.getTracePostfix().size()==oldestState.getTracePostfix().size())){
-                        oldestStates.add(s);
-                    }
-
-                    /*
-                    System.out.println(s.toString());
-                    currentCost = s.getCostSoFar();
-                    postfixSize = s.getTracePostfix().size();
-                    minLengthToEnd = s.getNode().getMinPathLengthToEnd();
-                    isEndOfTrace = s.getNode().isEndOfTrace();
-                    if((postfixSize+minLengthToEnd)==0 || (postfixSize==0 && isEndOfTrace)){
-                        return s;
-                    } else if ((postfixSize+minLengthToEnd+currentCost)<=minAdditionalCost){
-                        minAdditionalCost = postfixSize+minLengthToEnd+currentCost;
-                        optimalStates.add(s);
-                    }
-
-                     */
                 } else {
                     // just want to return the latest / current state. This state is prefix-alignment type, not full alignment
-                    if(discountedDecayTime){
-                        decayTime = Math.max(Math.round((averageTrieLength-s.getAlignment().getTraceSize())*decayTimeMultiplier),minDecayTime);
-                    } else {
-                        decayTime = minDecayTime;
-                    }
+
+                    decayTime = findDecayTime(s.getAlignment().getTraceSize());
                     if(s.getDecayTime() == decayTime & s.getTracePostfix().size()==0){
                         return s;
                     }
@@ -426,38 +331,6 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             }
 
 
-            /*
-            for (State optS:optimalStates){
-                currentCost = optS.getCostSoFar();
-                postfixSize = optS.getTracePostfix().size();
-                minLengthToEnd = optS.getNode().getMinPathLengthToEnd();
-                if ((postfixSize+minLengthToEnd+currentCost)==minAdditionalCost){
-                    Alignment alg = optS.getAlignment();
-                    TrieNode currentNode = optS.getNode();
-                    List<String> postfix = new ArrayList<>(optS.getTracePostfix());
-                    // add log moves
-                    while(postfix.size()>0){
-                        Move m = new Move(postfix.get(0),">>",1);
-                        alg.appendMove(m, 1);
-                        currentCost++;
-                        postfix.remove(0);
-                    }
-                    // add model moves
-                    while(currentNode.getMinPathLengthToEnd()>0){
-                        currentNode = currentNode.getChildOnShortestPathToTheEnd();
-                        Move m = new Move(">>", currentNode.getContent(), 1);
-                        alg.appendMove(m, 1);
-                        currentCost++;
-                        if (currentNode.isEndOfTrace())
-                            break;
-                    }
-
-                    // return state
-                    return new State(alg, new ArrayList<>(),currentNode, currentCost);
-                }
-            }
-
-             */
         } else if (finalState){
             // did not find matching ID
             // returning only model moves for shortest path
@@ -481,6 +354,20 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         // OR there is no state with most recent decay time and no trace postfix (note: this part should not happen)
         return null;
 
+    }
+
+    public void handleCaseLimit(String caseId){
+        if (casesList.contains(caseId)) {
+            casesList.remove(caseId);
+            casesList.add(caseId);
+        } else {
+            casesList.add(caseId);
+        }
+        String caseToRemove;
+        while (casesList.size() > this.caseLimit) {
+            caseToRemove = casesList.pop();
+            statesInBuffer.remove(caseToRemove);
+        }
     }
 
 
@@ -518,12 +405,8 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         else
         {
             // if sync move(s) --> add sync move(s) to currentStates. If one of the moves will not be sync move, then start checking from that move.
-            int decayTime;
-            if(discountedDecayTime){
-                decayTime = Math.max(Math.round(averageTrieLength*decayTimeMultiplier),minDecayTime);
-            } else {
-                decayTime = minDecayTime;
-            }
+
+            int decayTime = findDecayTime(0);
             currentStates.put(new Alignment().toString(), new State(new Alignment(), new ArrayList<String>(), modelTrie.getRoot(), 0, decayTime+1)); // larger decay time because this is decremented in this iteration
         }
 
@@ -644,6 +527,7 @@ public class StreamingConformanceChecker extends ConformanceChecker{
         }
 
         statesInBuffer.put(caseId, caseStatesInBuffer);
+        handleCaseLimit(caseId);
         return currentStates;
 
     }
@@ -760,13 +644,10 @@ public class StreamingConformanceChecker extends ConformanceChecker{
                 for(Move m:moves){
                     alg.appendMove(m);
                 }
-                int decayTime;
 
-                if(discountedDecayTime){
-                    decayTime = Math.max(Math.round((averageTrieLength-alg.getTraceSize())*decayTimeMultiplier),minDecayTime);
-                } else {
-                    decayTime = minDecayTime;
-                }
+
+                int decayTime = findDecayTime(alg.getTraceSize());
+
                 matchingStates.add(new State(alg, new ArrayList<>(), n, cost, decayTime));
 
             }
@@ -790,13 +671,8 @@ public class StreamingConformanceChecker extends ConformanceChecker{
             Move logMove = new Move(e, ">>", 1);
             alg.appendMove(logMove);
         }
-        int decayTime;
 
-        if(discountedDecayTime){
-            decayTime = Math.max(Math.round((averageTrieLength-alg.getTraceSize())*decayTimeMultiplier),minDecayTime);
-        } else {
-            decayTime = minDecayTime;
-        }
+        int decayTime = findDecayTime(alg.getTraceSize());
         logMoveState = new State(alg, new ArrayList<String>(), state.getNode(), state.getCostSoFar()+suffix.size(), decayTime);
         return logMoveState;
     }
