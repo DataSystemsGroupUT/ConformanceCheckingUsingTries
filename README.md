@@ -14,10 +14,9 @@ We use a **proxy log** to describe the allowed behavior - i.e., the process mode
 An **event log** describes the actual behavior observed. For this algorithm, it is possible to load in an event log from a .xes file, or stream an event log via TCP using an external tool (e.g., PLG2).  
 
 ## How to run?
-<div style="text-align: justify">
 The Runner.java file main method is the place that should be run to get results. Based on the current example, it will output at `test.csv` in the `output` folder, indicating a .
 
 For the version used in the DEBS'23 paper, the commit to be used is `https://github.com/DataSystemsGroupUT/ConformanceCheckingUsingTries/tree/e49877f7bcb95e4cef3422a879665e1c84422e7c`
-</div>
+
 
 
