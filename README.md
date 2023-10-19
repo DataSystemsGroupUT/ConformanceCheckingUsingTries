@@ -1,29 +1,23 @@
-# I Will Survive: An Online Conformance Checking Algorithm Using Decay Time
+# I Will Survive: An Event-driven Conformance Checking Approach Over Process Streams
 
 ## Info
-This code is part of a conference paper currently under revision.
+Kristo Raun, Riccardo Tommasini, Ahmed Awad  
+June 2023, ACM (Association for Computing Machinery)  
+DOI: 10.1145/3583678.3596887
+
+## What is it about?
+In business processes, it is important to find discrepancies between expected and actual behavior. This paper introduces an algorithm that is able to find discrepancies in a fast and explainable manner in streaming data.
+
+## Notions
+We use a **proxy log** to describe the allowed behavior - i.e., the process model. This proxy log can be generated manually, simulated using a simulation method and a process model in a different dialect (Petri Net, BPMN), or sampled from an actual event log.
+
+An **event log** describes the actual behavior observed. For this algorithm, it is possible to load in an event log from a .xes file, or stream an event log via TCP using an external tool (e.g., PLG2).  
 
 ## How to run?
 <div style="text-align: justify">
-The Runner.java file main method has a few string values which can be modified, e.g. 
-whether to run the stress test or cost deviation test.
+The Runner.java file main method is the place that should be run to get results. Based on the current example, it will output at `test.csv` in the `output` folder, indicating a .
 
-If running the stress test, load a model from "input" folder into PLG2 and be ready to 
-initiate the stream. Make sure that the correct model size is defined in Runner.java, and then
-build and run the algorithm, and start the stream in PLG2.
-The algorithm is currently set to stop after 5 minutes of receiving a stream, and it outputs some 
-high level metrics into StdOut.
-
-For running the cost deviations, the input folders contain the proxy logs and have already been defined 
-in Runner.java. It is possible to run the deviation-checker for all logs ("general") or one specific
-log ("specific"). Note: due to Github storage limitations, only Sepsis and BPI2015 logs are provided
-in this repo. Please contact us in case you need the other datasets.
-
-In case you want to alter between fixed/discounted settings for the algorithm, this can be done in 
-StreamingConformanceChecker.java:
-* **discountedDecayTime** (false = Fixed, true = Discounted)
-* **minDecayTime** is either the value for Fixed or the minimum value for Discounted setting
-* **decayTimeMultiplier** is the Discounting Factor - only used if discountedDecayTime = true
+For the version used in the DEBS'23 paper, the commit to be used is `https://github.com/DataSystemsGroupUT/ConformanceCheckingUsingTries/tree/e49877f7bcb95e4cef3422a879665e1c84422e7c`
 </div>
 
 

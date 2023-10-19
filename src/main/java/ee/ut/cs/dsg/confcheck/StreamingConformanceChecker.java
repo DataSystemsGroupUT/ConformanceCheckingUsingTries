@@ -2,23 +2,14 @@ package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
 import ee.ut.cs.dsg.confcheck.alignment.Move;
-import ee.ut.cs.dsg.confcheck.cost.CostFunction;
-import ee.ut.cs.dsg.confcheck.cost.DualProgressiveCostFunction;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
 import ee.ut.cs.dsg.confcheck.trie.TrieNode;
-import ee.ut.cs.dsg.confcheck.util.Configuration;
-import org.cpntools.accesscpn.model.graphics.Align;
-import org.processmining.logfiltering.algorithms.ProtoTypeSelectionAlgo;
 
-import java.sql.Array;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class StreamingConformanceChecker extends ConformanceChecker{
 
 
-
-    protected boolean verbose = false;
 
     protected LinkedList<String> casesList;
 

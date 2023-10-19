@@ -1,10 +1,7 @@
 package ee.ut.cs.dsg.confcheck;
 
 import ee.ut.cs.dsg.confcheck.alignment.Alignment;
-import ee.ut.cs.dsg.confcheck.alignment.Move;
-import ee.ut.cs.dsg.confcheck.cost.CostFunction;
 import ee.ut.cs.dsg.confcheck.trie.Trie;
-import ee.ut.cs.dsg.confcheck.trie.TrieNode;
 
 import java.util.*;
 

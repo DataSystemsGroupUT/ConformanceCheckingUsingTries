@@ -27,21 +27,4 @@ public class Configuration {
         LOG_MOVE,
         MODEL_MOVE
     }
-    private ConformanceCheckerType confCheckerType;
-
-    private String proxyLog;
-    private String inputLog;
-
-    private boolean sort=false;
-    private LogSortType sortType;
-
-    private int maxStatesInQueue=100000;
-    private int maxTrials=100000;
-    private int cleanseFrequency=100;
-
-    private int logMoveCost=1;
-    private int modelMoveCost=1;
-
-    // This property is used by Random conformance checkers to determine the frequency of moving from exploitation to exploration
-    private int randomPickThreshold;
 }
